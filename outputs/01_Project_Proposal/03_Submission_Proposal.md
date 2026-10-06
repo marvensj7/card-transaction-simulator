@@ -7,7 +7,7 @@
 
 I will build a web application that simulates credit card purchases with fictional accounts and test cards. A customer will be able to sign in, see their available credit, submit a purchase, and review the result in a transaction history. The application will approve or decline the purchase based on the account’s status and available credit. Customers will also be able to request a full refund. An administrator will be able to review activity and freeze or reactivate accounts.
 
-The application will use React for the interface, Spring Boot for the API and transaction rules, and MySQL for persistent data. It is an independent simulation. It will not connect to Capital One, Accenture systems, a payment network, or real money.
+The application will use React for the interface, Spring Boot for the API and transaction rules, and MySQL for persistent data. The database mappings, repositories, and account and transaction services are implemented. The HTTP API, authentication, and React interface are planned. It is an independent simulation. It will not connect to Capital One, Accenture systems, a payment network, or real money.
 
 ## Problem and business case
 
@@ -43,10 +43,10 @@ The application has two signed-in roles: **USER** for customers and **ADMIN** fo
 | FR4 | The dashboard shows credit limit, outstanding balance, and available credit. Available credit equals the limit minus the outstanding balance. |
 | FR5 | The purchase form accepts only documented fictional test card numbers assigned to the customer. It checks number and test security-code format, expiration, merchant name, and amount. The server repeats the checks. |
 | FR6 | An active account approves a purchase only when the amount is positive, has no more than two decimal places, and fits within available credit. |
-| FR7 | A declined purchase records its outcome and reason without changing the account balance. |
+| FR7 | A valid purchase declined for an expired assigned card, frozen account, or insufficient credit records its outcome and reason without changing the balance. Malformed input creates no transaction. |
 | FR8 | An approved purchase updates the outstanding balance and saves its transaction record together. |
 | FR9 | Customers can view transaction history, newest first, with approved, declined, and refunded outcomes clearly labeled. |
-| FR10 | Customers can request a full refund of an approved purchase once. The refund is linked to the original purchase and restores the appropriate available credit. |
+| FR10 | Customers can request a full refund of an approved purchase once, including on a frozen account. The refund is linked to the original purchase and restores the appropriate available credit. |
 | FR11 | Each purchase has a unique request ID. Retrying the same request returns the original result; reusing the ID with different purchase details is rejected. |
 | FR12 | Administrators can view account and transaction summaries and change an account between ACTIVE and FROZEN. A frozen account rejects new purchases. |
 | FR13 | The purchase page includes a flippable 3D card showing masked test details. The form remains usable with a keyboard and without animation. |

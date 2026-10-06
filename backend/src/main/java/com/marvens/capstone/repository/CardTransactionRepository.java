@@ -20,6 +20,11 @@ public interface CardTransactionRepository extends JpaRepository<CardTransaction
     Optional<CardTransaction> findOwnedById(@Param("transactionId") Long transactionId,
                                           @Param("userId") Long userId);
 
+    // Read only the ID before locking, so the persistence context has no stale balance.
+    @Query("select t.account.id from CardTransaction t where t.id = :transactionId and t.account.user.id = :userId")
+    Optional<Long> findOwnedAccountId(@Param("transactionId") Long transactionId,
+                                    @Param("userId") Long userId);
+
     Optional<CardTransaction> findByOriginalPurchase_Id(Long purchaseId);
 
     Page<CardTransaction> findByAccount_IdAndAccount_User_IdOrderByIdDesc(

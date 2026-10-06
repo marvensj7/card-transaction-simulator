@@ -1,6 +1,6 @@
-# Backend — sections 2.2 and 2.3
+# Card simulator backend
 
-The backend maps the four MySQL tables to JPA entities and uses Spring Data JPA repositories for persistence. I kept the repositories as small interfaces so the database lookups stay separate from purchase and refund decisions. Controllers, transaction services, and authentication are later sections. The application starts, validates the database mappings, and exits because no web server is included at this stage.
+The backend maps the four MySQL tables to JPA entities and uses Spring Data JPA repositories for persistence. I kept the repositories as small interfaces so the database lookups stay separate from purchase and refund decisions. `AccountService` handles customer account/card lookups and admin account operations. `TransactionService` handles purchases, history, refunds, and admin activity. HTTP controllers, response DTOs, the global HTTP exception handler, and authentication are planned. The application validates the mappings and exits because it does not yet include a web server.
 
 ## Local setup
 
@@ -22,7 +22,7 @@ From `backend/` in PowerShell:
 
 On macOS/Linux, use `./mvnw` instead. `JAVA_HOME` should point to your JDK 17 installation.
 
-The first command builds the executable JAR and runs six validation/JSON tests without a database. The second also runs fifteen integration tests against the configured MySQL database: six entity mapping checks and nine repository checks. The repository checks cover custom queries, ownership filtering, account-scoped request IDs, linked refunds, ordering, page contents, and total counts. A missing database or schema fails verification instead of silently skipping it. Integration tests create fictional rows and roll back each test; existing rows are not changed. MySQL auto-increment counters can advance even when a test rolls back.
+The first command builds the executable JAR and runs validation/JSON and service unit tests without a database. The second also runs entity mapping, repository, and service integration tests against the configured MySQL database. These checks cover ownership, approvals and declines, full refunds, request retries, page ordering, concurrent requests, and rollback after write failures. A missing database or schema fails verification. Entity and repository tests roll back their fictional rows. Service tests commit fresh fictional fixtures so separate threads can see them, then delete only those fixtures after each test. Existing rows are not changed; MySQL auto-increment counters can advance.
 
 Maven `clean` can fail on read-only generated directories in this OneDrive workspace. A checkout outside the synced directory avoids that local build issue.
 
@@ -45,19 +45,35 @@ Money is `BigDecimal` with precision 14 and scale 2. `expiryMonth` is `Byte` for
 
 `createdAt` is `LocalDateTime` because MySQL `DATETIME(6)` contains no timezone. Timestamps are UTC values with microsecond precision. The API will format them with `Z` through response DTOs. There is no automatic timestamp callback or transaction processing in these entities.
 
-Validation covers required fields, text lengths, email/UUID format, masked digits, expiry ranges, and money size/scale. SQL retains its existing `CHECK` constraints. Card ownership, account-limit comparisons, refund eligibility/amount, retries, expiration decisions, and balance/history updates belong to later services. No entity stores a full card number or security code. `passwordHash` is ignored by Jackson; the later authentication service must supply BCrypt hashes. Relationships are also ignored by Jackson to avoid recursive graph serialization. Future APIs should use the response DTOs in the API design. SQL and bind-value logging are disabled.
+Validation covers required fields, text lengths, email/UUID format, masked digits, expiry ranges, and money size/scale. SQL retains its existing `CHECK` constraints. Services check ownership, credit limits, refund eligibility, retries, and expiry and coordinate balance/history writes. No entity stores a full card number or security code. Jackson excludes `passwordHash` and relationships. Seed passwords use BCrypt; registration and password verification are planned with BCrypt. The planned HTTP responses use the DTO shapes in the API design. SQL and bind-value logging are disabled.
 
 ## Repository lookups
 
 | Repository | Lookups |
 | --- | --- |
-| `AppUserRepository` | Email lookup for registration and sign-in. |
-| `CreditAccountRepository` | Account by user, account ID with owner ID, and a paginated admin account list ordered by ID ascending. |
+| `AppUserRepository` | Email lookup for planned registration/sign-in and a role-only lookup for service access checks. |
+| `CreditAccountRepository` | Account by user, account ID with owner ID, locking account lookups, and a paginated admin account list ordered by ID ascending. |
 | `DemoCardRepository` | Card by account, and card ID with account ID. |
-| `CardTransactionRepository` | Account/request ID pair, transaction ID with owner ID, refund by original purchase ID, paginated customer history, and a paginated admin transaction list. |
+| `CardTransactionRepository` | Account/request ID pair, transaction ID with owner ID, owned transaction's account ID, refund by original purchase ID, paginated customer history, and a paginated admin transaction list. |
 
 The transaction ownership query uses JPQL to follow the transaction's account to its user. Customer history filters by both account ID and owner ID. Card lookups use the account ID after the service checks account ownership. Missing single-row lookups return `Optional.empty()`.
 
-Transaction pages use descending transaction ID, matching the append-only history and the schema's `(account_id, id)` index. All three list queries accept `Pageable` and return `Page` with total counts. The later controller or service will apply the API defaults of page 0 and size 20, cap size at 50, and pass an unsorted page request to keep the repository's defined order.
+Transaction pages use descending transaction ID, matching the append-only history and the schema's `(account_id, id)` index. All three list queries accept `Pageable` and return `Page` with total counts. Services use page 0 and size 20 by default, cap size at 50, reject negative page numbers and nonpositive sizes, and preserve the repository's defined order.
 
-The repositories provide reads and writes only. Role checks, account locking, refund eligibility, retry comparisons, and balance changes remain service responsibilities. The SQL schema and ERD are unchanged; the API design clarifies the transaction ordering.
+The repositories provide reads and writes. Services make the business decisions; the SQL scripts remain the source of the schema.
+
+## Service behavior
+
+Service methods receive a trusted user ID. They read the user's stored role and enforce account ownership. JWT verification is planned separately; passing a user ID alone is not authentication. Both services use constructor injection.
+
+For a purchase, the service locks the owned account, validates the amount and fictional card input, and checks for an existing account/request-ID pair. The assigned profile `DEMO_4242` accepts the fictional test number `4242424242424242`. The submitted expiry matches the stored card, and the test security code is checked only for three or four digits. These input values are never copied to an entity or result, and the input object's `toString()` contains no field values.
+
+A matching card is valid through the end of its expiry month in UTC. An expired card records `CARD_EXPIRED`; otherwise a frozen account records `ACCOUNT_FROZEN`, and an amount exceeding available credit records `INSUFFICIENT_CREDIT`. These declines save history without changing the balance. Invalid input or an unowned account/card creates no history. Approval increases the outstanding balance and saves the purchase in one transaction.
+
+An identical retry compares the account-scoped request ID, card ID, exact merchant name, and numeric amount and returns the saved transaction with `replayed=true`. UUIDs are normalized to lowercase; `50` and `50.00` are the same amount. Different details or reuse across purchase/refund types throws `RequestConflictException`. The saved transaction retains its original outcome and balance; the accompanying account represents the current account summary.
+
+A full refund locks the account and checks that the owned transaction is an approved purchase without an existing refund. It copies the original amount, merchant, account, and card, links the original purchase, decreases the balance, and saves history together. A frozen account can receive a refund. An identical refund retry returns the saved refund; another request ID cannot refund that purchase again.
+
+Purchases and refunds use read-committed isolation with a pessimistic account write lock. Role and refund-account lookups read scalar values before the lock, avoiding an account loaded with an old balance. Waiting requests then see the previous request's committed balance and history. Admin freeze/reactivation takes the same account lock. Write failures roll back balance and history together.
+
+Money calculations use `BigDecimal`. The injected UTC clock produces microsecond transaction timestamps. Specific exceptions distinguish invalid purchase input, malformed request IDs or pagination, unavailable resources, wrong roles, conflicting retries, and ineligible refunds. HTTP status mapping is planned with the global exception handler.

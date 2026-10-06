@@ -71,7 +71,7 @@ Each customer has one credit account and one fictional card. An admin has no cre
 | `password_hash` | `VARCHAR(100)` | Required | BCrypt hash; never returned by the API. |
 | `role` | `VARCHAR(20)` | Required; `USER` or `ADMIN` | Access level. |
 
-Registration creates a USER, its credit account, and its demo card together. ADMIN users are seeded for the demonstration; registration cannot assign the ADMIN role.
+Planned registration creates a USER, its credit account, and its demo card together and cannot assign the ADMIN role. ADMIN users are seeded for the demonstration.
 
 ### `credit_accounts`
 
@@ -116,7 +116,7 @@ The full fictional number is mapped from `test_profile` in the application’s s
 | `request_id` | `CHAR(36)` | Required; unique with `account_id` | Identifies one submission so a retry cannot create another purchase. |
 | `original_purchase_id` | `BIGINT` | Optional foreign key → `card_transactions.id`; unique | Links a refund to its purchase. Null for purchases. |
 
-The history is append-only in normal use. An approved purchase remains in the table after a refund; the linked REFUND row shows what reversed it. A declined purchase keeps the same `outstanding_after` value as the account had before the attempt. A malformed request, including an unrecognized test number, receives an error and does not create a transaction row.
+The history is append-only in normal use. An approved purchase remains in the table after a refund; the linked REFUND row shows what reversed it. A declined purchase keeps the account's previous `outstanding_after` value. An expired assigned card, frozen account, or insufficient credit produces a decline. Malformed or mismatched input creates no transaction. Timestamps are UTC values with microsecond precision.
 
 ## Relationships and constraints
 
@@ -128,7 +128,7 @@ The history is append-only in normal use. An approved purchase remains in the ta
 | Demo card → transactions | One card to many transactions | `card_transactions.card_id` foreign key. The service also checks that card and transaction belong to the same account. |
 | Purchase → refund | One approved purchase to zero or one full refund | `original_purchase_id` self-reference and unique constraint, plus service checks on type, status, owner, and amount. |
 
-MySQL checks restrict roles and statuses and prevent negative balances or nonpositive transaction amounts. An index on `(account_id, id)` supports newest-first account history. A unique index on `(account_id, request_id)` supports duplicate-submission protection. The service performs the cross-row business checks that a simple column constraint cannot express.
+MySQL checks restrict roles and statuses and prevent negative balances or nonpositive transaction amounts. An index on `(account_id, id)` supports newest-first account history. A unique index on `(account_id, request_id)` supports duplicate-submission protection. Services lock the account during purchases, refunds, and status changes and check the cross-row rules. Balance and history commit together. A full refund remains eligible on a frozen account.
 
 ## Balance examples
 

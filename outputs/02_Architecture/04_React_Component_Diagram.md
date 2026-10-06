@@ -5,7 +5,7 @@
 
 ## Overview
 
-The frontend is one React application. `App` sets up routing and the signed-in user. Each page owns the data and form state it needs, while a small API helper handles requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
+The planned frontend is one React application. `App` sets up routing and the signed-in user. Each page owns the data and form state it needs, while a small API helper handles requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
 
 The virtual card is part of the purchase page. It previews masked test-card details and flips when the user presses a button. It does not replace the normal form or make its own API calls.
 
@@ -76,7 +76,7 @@ The purchase form uses controlled inputs. `PurchasePage` passes only a card labe
 
 The API helper sends JSON, adds the JWT to protected requests, and turns HTTP errors into readable messages. It does not contain purchase rules. For example, a `DECLINED` transaction is a successful API response with a declined outcome, while a malformed form submission is an error response.
 
-## Suggested frontend files
+## Planned frontend files
 
 ```text
 frontend/
@@ -107,4 +107,4 @@ frontend/
     styles.css
 ```
 
-The initial version can keep very small pieces together in their page file. A component gets its own file when it has a clear responsibility or is reused. There is no global state library, second frontend, or separate 3D service.
+Small pieces stay in their page file. Shared components have their own files. Each page uses plain React state; the design has one frontend and no separate 3D service.

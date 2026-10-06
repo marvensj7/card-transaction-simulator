@@ -2,7 +2,7 @@
 
 A full-stack capstone project that simulates credit card purchases with fictional users, cards, and balances. Customers will be able to submit a purchase, see an approval or decline, review transaction history, and request a full refund. Administrators will be able to review activity and freeze or reactivate accounts.
 
-The project is independent and does not connect to a bank, payment network, or real money. It must be used with the documented fictional test cards only.
+The project is independent and uses only its assigned fictional test cards. It does not connect to a bank, payment network, or real money.
 
 ## Planned application
 
@@ -11,11 +11,11 @@ The project is independent and does not connect to a bank, payment network, or r
 - **Database:** MySQL with users, credit accounts, demo cards, and transaction history.
 - **Security:** BCrypt password hashes, signed JWTs, role and account-ownership checks, and no stored full card numbers or security codes.
 
-The code will follow a direct path: React page → API request → controller → service → repository → MySQL. The backend will make the purchase and refund decisions.
+The design follows a direct path: React page → API request → controller → service → repository → MySQL. The backend services make the purchase and refund decisions.
 
-## Project status
+## Current application
 
-The project proposal and four architecture documents are complete. Section 2.1 provides the MySQL schema and fictional seed data. Section 2.2 adds the minimal Spring Boot backend and four JPA entities. Section 2.3 adds repositories with ownership lookups, request ID and refund lookups, and paginated customer history and admin lists. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md). API endpoints, transaction services, authentication, and the React application are later sections.
+The backend has four JPA entities, repositories, and two services over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. Account locks and request IDs protect balance changes and retries. The REST controllers, response DTOs, HTTP exception handler, authentication, and React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
 
 ## Repository layout
 
@@ -24,7 +24,7 @@ The project proposal and four architecture documents are complete. Section 2.1 p
 | [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
 | [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
 | `frontend/` | React application, to be added. |
-| [`backend/`](backend/) | Spring Boot setup, JPA entities, repositories, and focused verification checks. |
+| [`backend/`](backend/) | Spring Boot setup, JPA entities, repositories, services, and verification checks. |
 | [`sql/`](sql/) | MySQL schema and fictional seed data. |
 | `work/` | Local scratch files; ignored by Git. |
 

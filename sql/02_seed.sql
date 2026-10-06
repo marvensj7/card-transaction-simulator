@@ -32,7 +32,7 @@ FROM app_users AS u
 WHERE u.email = 'jordan.demo@example.test' AND u.role = 'USER'
   AND NOT EXISTS (SELECT 1 FROM credit_accounts AS a WHERE a.user_id = u.id);
 
--- DEMO_4242 is a profile name for a later application allowlist, not a PAN.
+-- DEMO_4242 names the service's fictional test profile, not a stored card number.
 INSERT INTO demo_cards (account_id, test_profile, label, last_four, expiry_month, expiry_year)
 SELECT a.id, 'DEMO_4242', 'Casey Demo Card', '4242', 12, 2030
 FROM credit_accounts AS a

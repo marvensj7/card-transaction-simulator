@@ -85,7 +85,7 @@ public class CardTransaction {
     @Column(name = "reason_code", length = 40)
     private String reasonCode;
 
-    // MySQL DATETIME has no zone. The service must supply UTC with microsecond precision.
+    // MySQL DATETIME has no zone. The service supplies UTC with microsecond precision.
     @NotNull
     @Column(name = "created_at", nullable = false, columnDefinition = "datetime(6)")
     private LocalDateTime createdAt;

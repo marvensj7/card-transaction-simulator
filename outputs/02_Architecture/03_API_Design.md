@@ -7,6 +7,8 @@
 
 The React app calls one Spring Boot REST API under `/api`. Controllers receive requests and return responses. Services check ownership, validate the purchase or refund, and update the account. Spring Data JPA repositories handle the MySQL reads and writes. The API does not call a bank or payment processor.
 
+This document defines the planned HTTP contract. The account and transaction services and repository operations are implemented; controllers, JSON DTOs, HTTP error mapping, and JWT authentication are planned.
+
 Request and response bodies use JSON. Field names use `camelCase`. IDs are numbers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
 
 Protected requests send `Authorization: Bearer <JWT>`. The React app holds the token in memory and clears it on sign-out. Refreshing the page requires signing in again. No endpoint accepts a role supplied by the browser as proof of access.
@@ -61,17 +63,17 @@ The server gets the signed-in user from the validated JWT and checks account own
 | Field | Type | Rule |
 | --- | --- | --- |
 | `cardId` | number | Must name the demo card owned by the account. |
-| `testCardNumber` | string | Digits only; must match the card's predefined fictional test profile. |
+| `testCardNumber` | string | The assigned `DEMO_4242` profile accepts `4242424242424242`; no other number is accepted. |
 | `expiryMonth` | number | 1–12 and must match the demo card. |
-| `expiryYear` | number | Four-digit year and must match the demo card; the test card must not be expired. |
+| `expiryYear` | number | 2000–9999 and matches the demo card. A card remains valid through the end of its expiry month in UTC; an expired matching card is declined. |
 | `testSecurityCode` | string | Three or four digits. Format check only; never saved, logged, or returned. |
 | `merchantName` | string | Required, at most 100 characters. |
 | `amount` | decimal string | Positive, no more than two decimal places. |
 | `requestId` | UUID string | Generated once per attempted purchase and reused only for retries of that purchase. |
 
-The server checks the fields again even if React has already shown form feedback. A malformed request or unrecognized test number returns `400 Bad Request` and creates no transaction. A valid purchase that fails a business rule, such as `INSUFFICIENT_CREDIT` or `ACCOUNT_FROZEN`, creates a `DECLINED` transaction and returns its result. Its `outstandingAfter` is unchanged.
+The server checks the fields again even if React has already shown form feedback. A malformed request, unrecognized test number, or mismatched expiry returns `400 Bad Request` and creates no transaction. Amounts fit `DECIMAL(14,2)` without rounding. A valid purchase that fails a business rule creates a `DECLINED` transaction with `CARD_EXPIRED`, `ACCOUNT_FROZEN`, or `INSUFFICIENT_CREDIT`, checked in that order. Its `outstandingAfter` is unchanged.
 
-For a new approved purchase, the service increases the outstanding balance and records the transaction in one database transaction. It compares `accountId`, `cardId`, `merchantName`, and `amount` when a request ID is reused. An identical retry returns the existing transaction. Reusing the ID with different details returns `409 Conflict`.
+For a new approved purchase, the service increases the outstanding balance and records the transaction in one database transaction. The account is locked before checking the account/request-ID pair or changing the balance. Read-committed isolation lets a waiting retry see the committed result. UUIDs are normalized to lowercase. Within an account, the service compares `cardId`, exact `merchantName`, and numeric `amount`; `50` and `50.00` are equivalent. Card fields still pass the assigned-profile checks. An identical retry returns the original transaction, including its original balance and timestamp, with the current account summary. Different details or reuse between purchase and refund operations returns `409 Conflict`.
 
 ### `RefundRequest`
 

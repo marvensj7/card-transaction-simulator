@@ -13,3 +13,5 @@ mysql --login-path=capstone --execute="source sql/02_seed.sql"
 Run both files again whenever needed. The schema uses `IF NOT EXISTS`, and the seed inserts only missing demo rows. Existing balances, statuses, passwords, cards, and transaction history are preserved. This is initial setup, not a migration tool for future schema changes.
 
 The seed password values are BCrypt hashes. Keep any demo sign-in password outside source control and application logs; replace the seed hashes before first use if you want a different local password. The later Spring application must map `DEMO_4242` to one documented fictional test number without storing the number or test security code in MySQL. It must also check the card/account and refund relationships and commit each balance change with its history row.
+
+Section 2.2 maps these tables to JPA entities. Follow the [backend setup and verification instructions](../backend/README.md) to configure the database connection and run MySQL mapping checks. Hibernate uses `validate`; the SQL scripts remain the source of the schema.

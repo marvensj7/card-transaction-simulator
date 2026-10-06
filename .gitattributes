@@ -3,3 +3,5 @@
 *.yml text eol=lf
 *.yaml text eol=lf
 *.sh text eol=lf
+backend/mvnw text eol=lf
+backend/mvnw.cmd text eol=crlf

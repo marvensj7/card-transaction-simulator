@@ -15,6 +15,12 @@ import org.springframework.web.servlet.HandlerMapping;
 public class ApiExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
+    @ExceptionHandler(AuthenticationRequiredException.class)
+    public ResponseEntity<ApiError> authenticationRequired(HttpServletRequest request) {
+        ApiError error = ApiError.authenticationRequired();
+        return error(HttpStatus.UNAUTHORIZED, error.code(), error.message(), request);
+    }
+
     @ExceptionHandler(InvalidPurchaseException.class)
     public ResponseEntity<ApiError> invalidPurchase(HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, "INVALID_PURCHASE",

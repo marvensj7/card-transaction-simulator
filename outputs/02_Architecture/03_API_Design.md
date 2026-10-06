@@ -99,7 +99,7 @@ Admin list endpoints use the same page defaults and maximum size as customer his
 
 ## Error responses and status codes
 
-The shared exception handler maps service failures to the `Error` shape with fixed public messages and codes: `INVALID_PURCHASE` and `INVALID_REQUEST` (`400`), `ACCESS_DENIED` (`403`), `RESOURCE_NOT_FOUND` (`404`), and `REQUEST_CONFLICT` or `REFUND_NOT_ELIGIBLE` (`409`). Missing and unowned resources have the same message. The identity filter still returns an empty `401`; MVC validation and unexpected-error formatting are being added separately. Default errors omit exception messages, binding values, and stack traces. Request-detail logging is disabled.
+The shared exception handler maps service failures to the `Error` shape with fixed public messages and codes: `INVALID_PURCHASE` and `INVALID_REQUEST` (`400`), `ACCESS_DENIED` (`403`), `RESOURCE_NOT_FOUND` (`404`), and `REQUEST_CONFLICT` or `REFUND_NOT_ELIGIBLE` (`409`). Missing and unowned resources have the same message. The identity filter returns the same JSON shape with `401`, `AUTHENTICATION_REQUIRED`, and `Authentication is required.` before MVC reads protected input. The controller identity guard uses that contract too. MVC validation and unexpected-error formatting are being added separately. Default errors omit exception messages, binding values, and stack traces. Request-detail logging is disabled.
 
 The shared error contract uses short corrective messages without echoing card details or other sensitive input.
 

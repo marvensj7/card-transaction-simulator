@@ -7,6 +7,7 @@ import com.marvens.capstone.exception.*;
 import com.marvens.capstone.service.AccountService;
 import com.marvens.capstone.service.TransactionService;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -34,12 +36,40 @@ class ApiExceptionHandlerTest {
 
     static Stream<Arguments> serviceErrors() {
         return Stream.of(
+                Arguments.of(new AuthenticationRequiredException(), 401, "AUTHENTICATION_REQUIRED"),
                 Arguments.of(new InvalidPurchaseException(SECRET), 400, "INVALID_PURCHASE"),
                 Arguments.of(new InvalidRequestException(SECRET), 400, "INVALID_REQUEST"),
                 Arguments.of(new AccessDeniedException(), 403, "ACCESS_DENIED"),
                 Arguments.of(new ResourceNotFoundException(SECRET), 404, "RESOURCE_NOT_FOUND"),
                 Arguments.of(new RequestConflictException(), 409, "REQUEST_CONFLICT"),
                 Arguments.of(new RefundNotEligibleException(SECRET), 409, "REFUND_NOT_ELIGIBLE"));
+    }
+
+    @Test
+    void filterReturnsSafeJsonBeforeMvcReadsMalformedInput(CapturedOutput output) throws Exception {
+        String body = mvc.perform(post("/api/accounts/7/purchases").header("X-User-Id", "9")
+                        .header("X-Role", "ADMIN").header("Authorization", "Bearer " + SECRET)
+                        .param("userId", "9").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"testCardNumber\":\"" + RequestDtoTest.testNumber() + "\",\"testSecurityCode\":\"" + SECRET))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getContentAsString();
+        assertError(body, 401, "AUTHENTICATION_REQUIRED");
+        assertThat(body).doesNotContain(SECRET, RequestDtoTest.testNumber(), "ADMIN", "userId");
+        assertThat(output.getAll()).contains("status=401 code=AUTHENTICATION_REQUIRED route=/api/** user=anonymous")
+                .doesNotContain(SECRET, RequestDtoTest.testNumber());
+        verifyNoInteractions(accounts, transactions);
+    }
+
+    @Test
+    void mvcIdentityGuardUsesTheSameErrorIfTheFilterIsAbsent() throws Exception {
+        var withoutFilter = MockMvcBuilders.standaloneSetup(new AccountController(accounts))
+                .setControllerAdvice(new ApiExceptionHandler()).build();
+        String body = withoutFilter.perform(get("/api/accounts").principal(() -> "9"))
+                .andExpect(status().isUnauthorized()).andReturn().getResponse().getContentAsString();
+        assertError(body, 401, "AUTHENTICATION_REQUIRED");
+        assertThat(json.readTree(body).path("message").asText()).isEqualTo("Authentication is required.");
+        verifyNoInteractions(accounts, transactions);
     }
 
     @ParameterizedTest

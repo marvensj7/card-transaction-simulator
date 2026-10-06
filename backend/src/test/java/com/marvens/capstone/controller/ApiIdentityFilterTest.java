@@ -1,6 +1,8 @@
 package com.marvens.capstone.controller;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Instant;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -8,7 +10,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import static org.assertj.core.api.Assertions.*;
 
 class ApiIdentityFilterTest {
-    private final ApiIdentityFilter filter = new ApiIdentityFilter();
+    private final ObjectMapper json = new ObjectMapper();
+    private final ApiIdentityFilter filter = new ApiIdentityFilter(json);
 
     @Test
     void callerSuppliedIdsRolesAndBearerTextCannotOpenTheApi() throws Exception {
@@ -23,7 +26,15 @@ class ApiIdentityFilterTest {
             var called = new AtomicBoolean();
             filter.doFilter(request, response, (req, res) -> called.set(true));
             assertThat(response.getStatus()).isEqualTo(401);
-            assertThat(response.getContentAsString()).isEmpty();
+            var error = json.readTree(response.getContentAsString());
+            assertThat(error.size()).isEqualTo(4);
+            assertThat(error.path("status").asInt()).isEqualTo(401);
+            assertThat(error.path("code").asText()).isEqualTo("AUTHENTICATION_REQUIRED");
+            assertThat(error.path("message").asText()).isEqualTo("Authentication is required.");
+            assertThat(error.path("timestamp").asText()).endsWith("Z");
+            assertThat(Instant.parse(error.path("timestamp").asText())).isBeforeOrEqualTo(Instant.now());
+            assertThat(response.getContentType()).startsWith("application/json");
+            assertThat(response.getContentAsString()).doesNotContain("unverified-test-token", "userId", "ADMIN");
             assertThat(called).isFalse();
         }
     }
@@ -36,7 +47,7 @@ class ApiIdentityFilterTest {
         filter.doFilter(request, response, (req, res) -> fail("Unexpected controller access"));
         assertThat(response.getStatus()).isEqualTo(401);
         assertThatThrownBy(() -> CurrentUser.id(request.getUserPrincipal()))
-                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+                .isInstanceOf(com.marvens.capstone.exception.AuthenticationRequiredException.class);
     }
 
     @Test

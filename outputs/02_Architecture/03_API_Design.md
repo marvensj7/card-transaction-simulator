@@ -81,7 +81,7 @@ For a new approved purchase, the service increases the outstanding balance and r
 
 The purchase ID comes from the path. The server checks that it is an approved PURCHASE owned by the signed-in customer and has not been refunded. A successful refund uses the original purchase's amount, merchant, account, and card. It creates a REFUND transaction with `originalPurchaseId` set to the purchase ID and reduces the outstanding balance in the same database transaction. A second refund under a different request ID returns `409 Conflict`. An unowned purchase returns `404 Not Found`. Freezing an account does not block a valid refund.
 
-Transaction history uses `page=0` and `size=20` by default, with a maximum size of 50. The original approved purchase remains in history after a refund; the linked REFUND row shows the reversal.
+Transaction history uses `page=0` and `size=20` by default, with a maximum size of 50. Newest first means descending transaction ID, matching the append-only history and the `(account_id, id)` database index. This gives transactions with the same timestamp a stable order. The original approved purchase remains in history after a refund; the linked REFUND row shows the reversal.
 
 ## Administration
 
@@ -91,7 +91,7 @@ Transaction history uses `page=0` and `size=20` by default, with a maximum size 
 | `GET /api/admin/transactions` | ADMIN | Optional `page` and `size` query parameters | `200 OK` → `Page<AdminTransaction>`, newest first. |
 | `PATCH /api/admin/accounts/{accountId}/status` | ADMIN | `status: "ACTIVE" \| "FROZEN"` | `200 OK` → `AdminAccount` with the updated status. |
 
-Admin list endpoints use the same page defaults and maximum size as customer history. A USER calling an admin endpoint receives `403 Forbidden`. An ADMIN can review accounts and change account status, but cannot submit a purchase using another customer's account.
+Admin list endpoints use the same page defaults and maximum size as customer history. Accounts are ordered by ascending account ID; transactions use descending transaction ID. A USER calling an admin endpoint receives `403 Forbidden`. An ADMIN can review accounts and change account status, but cannot submit a purchase using another customer's account.
 
 ## Error responses and status codes
 

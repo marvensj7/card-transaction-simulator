@@ -15,7 +15,7 @@ The code will follow a direct path: React page → API request → controller �
 
 ## Project status
 
-The project proposal and four architecture documents are complete. Section 2.1 provides the MySQL schema and fictional seed data. Section 2.2 adds the minimal Spring Boot backend and four JPA entities. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md). Repositories, API endpoints, transaction services, authentication, and the React application are later sections.
+The project proposal and four architecture documents are complete. Section 2.1 provides the MySQL schema and fictional seed data. Section 2.2 adds the minimal Spring Boot backend and four JPA entities. Section 2.3 adds repositories with ownership lookups, request ID and refund lookups, and paginated customer history and admin lists. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md). API endpoints, transaction services, authentication, and the React application are later sections.
 
 ## Repository layout
 
@@ -24,7 +24,7 @@ The project proposal and four architecture documents are complete. Section 2.1 p
 | [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
 | [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
 | `frontend/` | React application, to be added. |
-| [`backend/`](backend/) | Spring Boot setup, JPA entities, and focused verification checks. |
+| [`backend/`](backend/) | Spring Boot setup, JPA entities, repositories, and focused verification checks. |
 | [`sql/`](sql/) | MySQL schema and fictional seed data. |
 | `work/` | Local scratch files; ignored by Git. |
 

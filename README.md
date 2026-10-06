@@ -1,0 +1,35 @@
+# Credit Card Transaction Simulator
+
+A full-stack capstone project that simulates credit card purchases with fictional users, cards, and balances. Customers will be able to submit a purchase, see an approval or decline, review transaction history, and request a full refund. Administrators will be able to review activity and freeze or reactivate accounts.
+
+The project is independent and does not connect to a bank, payment network, or real money. It must be used with the documented fictional test cards only.
+
+## Planned application
+
+- **Frontend:** React with Vite, React Router, and a flippable 3D card on the purchase page.
+- **Backend:** Java, Spring Boot, Spring Security, and Spring Data JPA.
+- **Database:** MySQL with users, credit accounts, demo cards, and transaction history.
+- **Security:** BCrypt password hashes, signed JWTs, role and account-ownership checks, and no stored full card numbers or security codes.
+
+The code will follow a direct path: React page → API request → controller → service → repository → MySQL. The backend will make the purchase and refund decisions.
+
+## Project status
+
+The project proposal and four architecture documents are complete. Application code has not been started yet. Local setup and run commands will be added when the frontend, backend, and database scripts exist.
+
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
+| [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
+| `frontend/` | React application, to be added. |
+| `backend/` | Spring Boot application, to be added. |
+| `sql/` | MySQL schema and seed data, to be added. |
+| `work/` | Local scratch files; ignored by Git. |
+
+Start with the [document index](outputs/README.md) or the [submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md).
+
+## Demonstration
+
+The application will run locally with fictional test credentials and balances. AWS deployment and a Jira board are outside this capstone's approved scope.

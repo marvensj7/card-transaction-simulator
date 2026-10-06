@@ -1,0 +1,30 @@
+# Local scratch work
+work/
+
+# Frontend dependencies and builds
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Java and Maven builds
+target/
+*.class
+
+# Local configuration and secrets
+**/.env
+**/.env.*
+!**/.env.example
+**/application-local.properties
+**/application-secrets.properties
+*.pem
+*.p12
+
+# Logs and editor files
+logs/
+*.log
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

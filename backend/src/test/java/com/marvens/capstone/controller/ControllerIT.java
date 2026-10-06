@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.marvens.capstone.entity.*;
-import com.marvens.capstone.exception.AccessDeniedException;
-import com.marvens.capstone.exception.ResourceNotFoundException;
 import com.marvens.capstone.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,19 +142,18 @@ class ControllerIT {
                 get("/api/accounts/" + accountId + "/cards").principal(new AuthenticatedUser(otherId)),
                 get("/api/accounts/" + accountId + "/transactions").principal(new AuthenticatedUser(otherId)),
                 purchase(otherId, id(), "1.00"), refund(otherId, purchaseId, id())}) {
-            assertThatThrownBy(() -> mvc.perform(request.header("X-User-Id", ownerId)))
-                    .hasRootCauseInstanceOf(ResourceNotFoundException.class);
+            assertThat(response(request.header("X-User-Id", ownerId), 404).path("code").asText())
+                    .isEqualTo("RESOURCE_NOT_FOUND");
         }
         for (MockHttpServletRequestBuilder request : new MockHttpServletRequestBuilder[] {
                 get("/api/admin/accounts"), get("/api/admin/transactions"),
                 patch("/api/admin/accounts/" + accountId + "/status")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"FROZEN\"}")}) {
-            assertThatThrownBy(() -> mvc.perform(request.principal(new AuthenticatedUser(ownerId))
-                    .header("X-Role", "ADMIN").header("X-User-Id", adminId)))
-                    .hasRootCauseInstanceOf(AccessDeniedException.class);
+            assertThat(response(request.principal(new AuthenticatedUser(ownerId))
+                    .header("X-Role", "ADMIN").header("X-User-Id", adminId), 403).path("code").asText())
+                    .isEqualTo("ACCESS_DENIED");
         }
-        assertThatThrownBy(() -> mvc.perform(purchase(adminId, id(), "1.00")))
-                .hasRootCauseInstanceOf(AccessDeniedException.class);
+        assertThat(response(purchase(adminId, id(), "1.00"), 403).path("code").asText()).isEqualTo("ACCESS_DENIED");
         mvc.perform(get("/api/admin/accounts").header("Authorization", "Bearer unverified-test-token")
                         .header("X-User-Id", adminId).header("X-Role", "ADMIN"))
                 .andExpect(status().isUnauthorized());

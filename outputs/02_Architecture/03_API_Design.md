@@ -99,7 +99,7 @@ Admin list endpoints use the same page defaults and maximum size as customer his
 
 ## Error responses and status codes
 
-The shared `Error` shape and domain error statuses below define the exception-handler contract. That handler is not implemented yet. Currently, the identity filter returns `401` with an empty body, and Spring MVC returns `400` for request-body, path, and query validation failures. Service exceptions still become server errors rather than the intended `400`, `403`, `404`, or `409`. Default error responses exclude exception messages, binding values, and stack traces. Validation and request-detail logging are disabled because rejected fields can contain fictional card input.
+The shared exception handler maps service failures to the `Error` shape with fixed public messages and codes: `INVALID_PURCHASE` and `INVALID_REQUEST` (`400`), `ACCESS_DENIED` (`403`), `RESOURCE_NOT_FOUND` (`404`), and `REQUEST_CONFLICT` or `REFUND_NOT_ELIGIBLE` (`409`). Missing and unowned resources have the same message. The identity filter still returns an empty `401`; MVC validation and unexpected-error formatting are being added separately. Default errors omit exception messages, binding values, and stack traces. Request-detail logging is disabled.
 
 The shared error contract uses short corrective messages without echoing card details or other sensitive input.
 

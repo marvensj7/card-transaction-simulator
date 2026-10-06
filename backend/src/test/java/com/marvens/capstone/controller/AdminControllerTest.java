@@ -100,11 +100,11 @@ class AdminControllerTest {
     }
 
     @Test
-    void roleHeadersCannotBypassTheStoredRoleCheck() {
+    void roleHeadersCannotBypassTheStoredRoleCheck() throws Exception {
         when(accounts.getAdminAccounts(9L, 0, 20)).thenThrow(new AccessDeniedException());
-        assertThatThrownBy(() -> mvc.perform(get("/api/admin/accounts").principal(new AuthenticatedUser(9L))
-                .header("X-Role", "ADMIN").header("X-User-Id", "13")))
-                .hasRootCauseInstanceOf(AccessDeniedException.class);
+        mvc.perform(get("/api/admin/accounts").principal(new AuthenticatedUser(9L))
+                .header("X-Role", "ADMIN").header("X-User-Id", "13"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
         verify(accounts).getAdminAccounts(9L, 0, 20);
     }
 

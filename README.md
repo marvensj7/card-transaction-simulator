@@ -17,7 +17,7 @@ The design follows a direct path: React page → API request → controller → 
 
 The backend has four JPA entities, repositories, two services, and REST controllers over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. Validated request DTOs and dedicated response DTOs keep money, UTC dates, masked cards, and pagination consistent. New purchases and refunds return `201`; saved retries return `200`. Account locks and request IDs protect balance changes.
 
-Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. The shared HTTP exception handler, JWT sign-in, and React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
+Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. Errors use consistent status, code, message, and UTC timestamp fields, including requests blocked by the identity filter. JWT sign-in and the React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
 
 ## Repository layout
 

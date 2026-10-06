@@ -7,7 +7,7 @@
 
 The React app calls one Spring Boot REST API under `/api`. Controllers receive requests and return responses. Services check ownership, validate the purchase or refund, and update the account. Spring Data JPA repositories handle the MySQL reads and writes. The API does not call a bank or payment processor.
 
-Customer and admin controllers return dedicated response DTOs over the existing services and repositories. Request DTOs validate purchase, refund, and account-status bodies. New purchases and refunds return `201`; saved retries return `200`. JWT authentication and the shared HTTP error mapping are planned separately.
+Customer and admin controllers return dedicated response DTOs over the existing services and repositories. Request DTOs validate purchase, refund, and account-status bodies. New purchases and refunds return `201`; saved retries return `200`. Shared HTTP error handling is implemented. JWT authentication is planned separately.
 
 Request and response bodies use JSON. Field names use `camelCase`. IDs are positive integers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC ending in `Z`. Fractional IDs and numeric status values are rejected. Money responses always have two decimal places. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
 
@@ -99,19 +99,37 @@ Admin list endpoints use the same page defaults and maximum size as customer his
 
 ## Error responses and status codes
 
-The shared exception handler maps service failures to the `Error` shape with fixed public messages and codes: `INVALID_PURCHASE` and `INVALID_REQUEST` (`400`), `ACCESS_DENIED` (`403`), `RESOURCE_NOT_FOUND` (`404`), and `REQUEST_CONFLICT` or `REFUND_NOT_ELIGIBLE` (`409`). Missing and unowned resources have the same message. The identity filter returns the same JSON shape with `401`, `AUTHENTICATION_REQUIRED`, and `Authentication is required.` before MVC reads protected input. The controller identity guard uses that contract too. Malformed or missing JSON returns `400 MALFORMED_JSON`. Failed body validation returns `400 VALIDATION_FAILED` with corrective field rules; invalid path/query types or ranges return `400 INVALID_PARAMETER`. These messages use fixed rules without rejected values. Unexpected-error formatting is being added separately. Default errors omit exception messages, binding values, and stack traces. Request-detail logging is disabled.
+The shared exception handler returns the four-field `Error` shape. Messages describe field rules without repeating rejected values. Missing and unowned resources have the same message. The identity filter returns `401 AUTHENTICATION_REQUIRED` with `Authentication is required.` before MVC reads protected input; the controller identity guard uses the same response.
 
-The shared error contract uses short corrective messages without echoing card details or other sensitive input.
+| Status | Code | Used for |
+| --- | --- | --- |
+| `400` | `INVALID_PURCHASE` | Invalid amount, merchant, or assigned fictional card details. |
+| `400` | `INVALID_REQUEST` | Invalid request ID or pagination rejected by a service. |
+| `400` | `MALFORMED_JSON` | Malformed or missing JSON, incorrect field types, or unsupported status value. |
+| `400` | `VALIDATION_FAILED` | Missing, null, or invalid body fields. |
+| `400` | `INVALID_PARAMETER` | Invalid path or query types and ranges. |
+| `401` | `AUTHENTICATION_REQUIRED` | No trusted server-side principal. |
+| `403` | `ACCESS_DENIED` | Stored role does not allow the operation. |
+| `404` | `RESOURCE_NOT_FOUND` | Unavailable or unowned account, card, or purchase; unknown route. |
+| `409` | `REQUEST_CONFLICT` | Request ID reused with changed details or a different operation. |
+| `409` | `REFUND_NOT_ELIGIBLE` | Purchase is not eligible for a full refund. |
+| `405` | `METHOD_NOT_ALLOWED` | Unsupported HTTP method; the `Allow` header is preserved. |
+| `406` | `NOT_ACCEPTABLE` | Requested response format is unavailable; the API returns JSON. |
+| `415` | `UNSUPPORTED_MEDIA_TYPE` | Request body is not sent as JSON. |
+| `500` | `INTERNAL_ERROR` | Unexpected failure. |
 
-| Status | Used for |
-| --- | --- |
-| `400 Bad Request` | Missing or malformed fields, invalid amount, unrecognized test card, or unsupported status value. |
-| `401 Unauthorized` | Missing, expired, or invalid JWT; incorrect login. |
-| `403 Forbidden` | Signed-in user has the wrong role for an endpoint. |
-| `404 Not Found` | Account, card, or purchase does not exist or is not owned by the customer. |
-| `409 Conflict` | Duplicate email, request ID reused with changed details, or refund of a purchase that is not eligible. |
-| `429 Too Many Requests` | Login rate limit reached. |
-| `500 Internal Server Error` | Unexpected failure; response contains no stack trace or secrets. |
+Unexpected failures return `An unexpected error occurred. Please try again later.` Responses contain no exception class, stack trace, or internal detail. Expected rejections log status, code, route template, and trusted user ID at INFO. MVC logs include the HTTP method; the pre-MVC filter uses `/api/**`. Unexpected failures log method, route template, user ID, exception type, and stack locations at ERROR, excluding messages and causes. Request, SQL, and bind-value logging are disabled, including Hibernate driver-error text.
+
+JWT failures and incorrect login will use `401`; duplicate email will use `409`. `429` is reserved for login rate limiting. These authentication behaviors are not implemented yet.
+
+```json
+{
+  "status": 401,
+  "code": "AUTHENTICATION_REQUIRED",
+  "message": "Authentication is required.",
+  "timestamp": "2026-10-06T20:30:00Z"
+}
+```
 
 An approved or declined purchase is a recorded outcome, so both use a success HTTP status with the transaction's `status` field distinguishing them. This lets the frontend show a meaningful decline rather than treating it as a server failure.
 

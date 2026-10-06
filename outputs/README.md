@@ -13,4 +13,4 @@
 - [API design](02_Architecture/03_API_Design.md) — endpoints, request and response shapes, access rules, and error behavior.
 - [React component diagram](02_Architecture/04_React_Component_Diagram.md) — routes, component hierarchy, and state ownership.
 
-The diagrams describe the full application design. The API design records the implemented controller contract and identifies the authentication and shared error handling that are still planned.
+The diagrams describe the full application design. The API design records the implemented controller and shared error contracts and identifies the authentication endpoints that are still planned.

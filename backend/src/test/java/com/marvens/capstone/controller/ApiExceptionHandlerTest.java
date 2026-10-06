@@ -2,6 +2,7 @@ package com.marvens.capstone.controller;
 
 import java.time.Instant;
 import java.util.stream.Stream;
+import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marvens.capstone.exception.*;
 import com.marvens.capstone.service.AccountService;
@@ -70,6 +71,52 @@ class ApiExceptionHandlerTest {
         assertError(body, 401, "AUTHENTICATION_REQUIRED");
         assertThat(json.readTree(body).path("message").asText()).isEqualTo("Authentication is required.");
         verifyNoInteractions(accounts, transactions);
+    }
+
+    @Test
+    void unexpectedFailureHasGenericJsonAndLogsOnlySafeContext(CapturedOutput output) throws Exception {
+        String details = SECRET + " " + RequestDtoTest.testNumber() + " " + RequestDtoTest.testCode()
+                + " password-marker token-marker database-credential-marker sql-parameter-marker";
+        var failure = new IllegalStateException(details, new RuntimeException(details));
+        when(transactions.purchase(eq(9L), eq(7L), any())).thenThrow(failure);
+        String body = mvc.perform(post("/api/accounts/7/purchases").principal(new AuthenticatedUser(9L))
+                        .header("Authorization", "Bearer token-marker").param("debug", "password-marker")
+                        .contentType(MediaType.APPLICATION_JSON).content(RequestDtoTest.validJson()))
+                .andExpect(status().isInternalServerError()).andReturn().getResponse().getContentAsString();
+        assertError(body, 500, "INTERNAL_ERROR");
+        assertThat(json.readTree(body).path("message").asText())
+                .isEqualTo("An unexpected error occurred. Please try again later.");
+        assertThat(body).doesNotContain("IllegalStateException", "RuntimeException", "TransactionService", "stackTrace");
+        assertThat(output.getAll()).contains("ERROR", "API failure: status=500", "method=POST",
+                "route=/api/accounts/{accountId}/purchases", "user=9", "type=java.lang.IllegalStateException",
+                "TransactionService.purchase(TransactionService.java:");
+        for (String secret : new String[] {SECRET, RequestDtoTest.testNumber(), "password-marker", "token-marker",
+                "database-credential-marker", "sql-parameter-marker"}) {
+            assertThat(body).doesNotContain(secret);
+            assertThat(output.getAll()).doesNotContain(secret);
+        }
+        assertThat(json.readTree(body).path("message").asText()).doesNotContain(RequestDtoTest.testCode());
+    }
+
+    @Test
+    void frameworkErrorsKeepTheirStatusesAndUseSafeJson() throws Exception {
+        String missing = mvc.perform(get("/api/unavailable").principal(new AuthenticatedUser(9L)))
+                .andExpect(status().isNotFound()).andReturn().getResponse().getContentAsString();
+        assertError(missing, 404, "RESOURCE_NOT_FOUND");
+        String method = mvc.perform(delete("/api/accounts").principal(new AuthenticatedUser(9L)))
+                .andExpect(status().isMethodNotAllowed()).andExpect(header().string("Allow", org.hamcrest.Matchers.containsString("GET")))
+                .andReturn().getResponse().getContentAsString();
+        assertError(method, 405, "METHOD_NOT_ALLOWED");
+        String media = mvc.perform(post("/api/accounts/7/purchases").principal(new AuthenticatedUser(9L))
+                        .contentType(MediaType.TEXT_PLAIN).content(SECRET))
+                .andExpect(status().isUnsupportedMediaType()).andReturn().getResponse().getContentAsString();
+        assertError(media, 415, "UNSUPPORTED_MEDIA_TYPE");
+        assertThat(media).doesNotContain(SECRET);
+        verifyNoInteractions(accounts, transactions);
+        when(accounts.getAccounts(9L)).thenReturn(List.of(ControllerFixtures.account()));
+        String accept = mvc.perform(get("/api/accounts").principal(new AuthenticatedUser(9L)).accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotAcceptable()).andReturn().getResponse().getContentAsString();
+        assertError(accept, 406, "NOT_ACCEPTABLE");
     }
 
     @ParameterizedTest

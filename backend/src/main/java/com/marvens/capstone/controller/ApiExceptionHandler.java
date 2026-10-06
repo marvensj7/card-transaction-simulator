@@ -22,7 +22,9 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Arrays;
 import org.springframework.validation.method.ParameterErrors;
+import org.springframework.http.MediaType;
 
 @RestControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
@@ -68,13 +70,23 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return error(HttpStatus.CONFLICT, "REFUND_NOT_ELIGIBLE", "This purchase is not eligible for a full refund.", request);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> unexpected(Exception failure, HttpServletRequest request) {
+        logUnexpected(failure, request);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON)
+                .body(internalError());
+    }
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception exception, Object body,
             HttpHeaders headers, HttpStatusCode status, WebRequest webRequest) {
         var request = ((ServletWebRequest) webRequest).getRequest();
         String code = "INVALID_REQUEST";
         String message = "Check the request fields and types.";
-        if (exception instanceof HttpMessageNotReadableException) {
+        if (status.is5xxServerError()) {
+            logUnexpected(exception, request);
+            return new ResponseEntity<>(internalError(), jsonHeaders(headers), HttpStatus.INTERNAL_SERVER_ERROR);
+        } else if (exception instanceof HttpMessageNotReadableException) {
             code = "MALFORMED_JSON";
             message = "Request body must contain valid JSON with the expected field types.";
         } else if (exception instanceof MethodArgumentNotValidException invalid) {
@@ -97,10 +109,54 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             code = "INVALID_PARAMETER";
             message = exception instanceof MethodArgumentTypeMismatchException invalid
                     ? fieldMessage(invalid.getName()) : "Use the expected parameter types.";
+        } else if (status.value() == 404) {
+            code = "RESOURCE_NOT_FOUND";
+            message = "The requested resource is unavailable.";
+        } else if (status.value() == 405) {
+            code = "METHOD_NOT_ALLOWED";
+            message = "This HTTP method is not supported for this resource.";
+        } else if (status.value() == 415) {
+            code = "UNSUPPORTED_MEDIA_TYPE";
+            message = "Use application/json for request bodies.";
+        } else if (status.value() == 406) {
+            code = "NOT_ACCEPTABLE";
+            message = "The API returns application/json responses.";
         }
-        log.info("API rejection: status={} code={} route={} user={}", status.value(), code, route(request), user(request));
+        logRejection(status, code, request);
         // Preserve Spring's status and headers, but replace its body and exception detail.
-        return new ResponseEntity<>(ApiError.of(status, code, message), headers, status);
+        return new ResponseEntity<>(ApiError.of(status, code, message), jsonHeaders(headers), status);
+    }
+
+    private HttpHeaders jsonHeaders(HttpHeaders original) {
+        var headers = new HttpHeaders();
+        headers.putAll(original);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
+    private ApiError internalError() {
+        return ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
+                "An unexpected error occurred. Please try again later.");
+    }
+
+    private void logUnexpected(Exception failure, HttpServletRequest request) {
+        // Throwable logging also prints messages and causes, which may contain secrets or SQL values.
+        // Class and stack locations identify the failure without printing that data.
+        log.error("API failure: status=500 code=INTERNAL_ERROR method={} route={} user={} type={} frames={}",
+                method(request), route(request), user(request), failure.getClass().getName(),
+                Arrays.toString(Arrays.copyOf(failure.getStackTrace(), Math.min(12, failure.getStackTrace().length))));
+    }
+
+    private void logRejection(HttpStatusCode status, String code, HttpServletRequest request) {
+        log.info("API rejection: status={} code={} method={} route={} user={}",
+                status.value(), code, method(request), route(request), user(request));
+    }
+
+    private String method(HttpServletRequest request) {
+        return switch (request.getMethod()) {
+            case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS" -> request.getMethod();
+            default -> "OTHER";
+        };
     }
 
     private String fieldMessage(String field) {
@@ -123,9 +179,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     private ResponseEntity<ApiError> error(HttpStatus status, String code, String message, HttpServletRequest request) {
         // Use the server's route template, never the raw URI, query, or exception message.
-        log.info("API rejection: status={} code={} route={} user={}", status.value(), code,
-                route(request), user(request));
-        return ResponseEntity.status(status).body(ApiError.of(status, code, message));
+        logRejection(status, code, request);
+        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(ApiError.of(status, code, message));
     }
 
     private String route(HttpServletRequest request) {

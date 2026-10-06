@@ -1,6 +1,6 @@
 # Card simulator backend
 
-The backend maps the four MySQL tables to JPA entities and uses Spring Data JPA repositories for persistence. I kept the repositories as small interfaces so the database lookups stay separate from purchase and refund decisions. `AccountService` handles customer account/card lookups and admin account operations. `TransactionService` handles purchases, history, refunds, and admin activity. HTTP controllers, response DTOs, the global HTTP exception handler, and authentication are planned. The application validates the mappings and exits because it does not yet include a web server.
+The backend maps four MySQL tables to JPA entities and uses Spring Data JPA repositories for persistence. `AccountService` handles customer accounts, cards, and admin account operations. `TransactionService` handles purchases, history, refunds, and admin activity. Spring MVC runs a local web server. The API requires an `AuthenticatedUser` servlet principal established by the server before it reads protected request bodies. No authentication component creates that principal yet, so external `/api` requests receive `401`. A user ID or role in a header, URL, or JSON body does not establish identity. JWT sign-in and the shared HTTP exception handler are planned separately.
 
 ## Local setup
 

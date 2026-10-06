@@ -7,7 +7,7 @@
 
 The React app calls one Spring Boot REST API under `/api`. Controllers receive requests and return responses. Services check ownership, validate the purchase or refund, and update the account. Spring Data JPA repositories handle the MySQL reads and writes. The API does not call a bank or payment processor.
 
-The account and transaction services and repository operations are implemented. Request DTOs validate the purchase, refund, and account-status bodies. JWT authentication and the shared HTTP error mapping are planned separately.
+Customer account, card, purchase, history, and refund controllers return dedicated response DTOs over the existing services and repositories. Request DTOs validate the purchase, refund, and account-status bodies. New purchases and refunds return `201`; saved retries return `200`. JWT authentication and the shared HTTP error mapping are planned separately.
 
 Request and response bodies use JSON. Field names use `camelCase`. IDs are numbers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
 
@@ -48,7 +48,7 @@ Registration never accepts a role field. Duplicate email returns `409 Conflict`.
 | `GET /api/accounts` | USER | No body | `200 OK` → `Account[]`, containing only the signed-in customer's account. |
 | `GET /api/accounts/{accountId}/cards` | Owner of account | `accountId: number` in path | `200 OK` → `Card[]`, containing only that account's masked demo card. |
 
-The server gets the signed-in user from the validated JWT and checks account ownership. Changing `{accountId}` to another customer's ID does not return that customer's data. An unavailable or unowned account returns `404 Not Found`.
+The controller gets the user ID from the server-established principal; the service checks the stored role and account ownership. Changing `{accountId}` does not establish identity or grant access. An unavailable or unowned account raises an unavailable-resource exception; its `404` HTTP mapping is part of the shared exception handler.
 
 ## Purchases, history, and refunds
 

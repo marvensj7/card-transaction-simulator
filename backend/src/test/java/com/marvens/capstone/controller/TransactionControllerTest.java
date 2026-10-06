@@ -106,7 +106,7 @@ class TransactionControllerTest {
 
     @Test
     void invalidPurchaseFieldsAreRejectedWithoutSensitiveLogs(CapturedOutput output) throws Exception {
-        Object[][] invalid = {{"cardId", 0}, {"expiryMonth", 0}, {"expiryMonth", 13},
+        Object[][] invalid = {{"cardId", 0}, {"cardId", 7.5}, {"expiryMonth", 12.5}, {"expiryMonth", 0}, {"expiryMonth", 13},
                 {"expiryYear", 1999}, {"expiryYear", 10000}, {"testCardNumber", "sensitive-number-marker"},
                 {"testSecurityCode", "sensitive-code-marker"}, {"merchantName", " "}, {"merchantName", "x".repeat(101)},
                 {"amount", "0"}, {"amount", "-1"}, {"amount", "1.001"}, {"amount", "1000000000000"},

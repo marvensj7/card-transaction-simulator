@@ -83,7 +83,7 @@ class AdminControllerTest {
 
     @Test
     void invalidStatusPathsAndPageArgumentsNeverReachTheServices() throws Exception {
-        for (String body : new String[] {"{}", "{\"status\":null}", "{\"status\":\"CLOSED\"}", "{"}) {
+        for (String body : new String[] {"{}", "{\"status\":null}", "{\"status\":\"CLOSED\"}", "{\"status\":0}", "{"}) {
             mvc.perform(patch("/api/admin/accounts/7/status").principal(new AuthenticatedUser(13L))
                             .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
         }

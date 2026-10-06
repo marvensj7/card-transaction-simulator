@@ -89,8 +89,8 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    app_users ||--o{ credit_accounts : owns
-    credit_accounts ||--o{ demo_cards : has
+    app_users ||--o| credit_accounts : owns
+    credit_accounts ||--o| demo_cards : has
     credit_accounts ||--o{ card_transactions : records
     demo_cards ||--o{ card_transactions : used_for
     card_transactions o|--o| card_transactions : refunded_by

@@ -22,7 +22,7 @@ From `backend/` in PowerShell:
 
 On macOS/Linux, use `./mvnw` instead. `JAVA_HOME` should point to your JDK 17 installation.
 
-The first command builds the executable JAR and runs validation/JSON and service unit tests without a database. The second also runs entity mapping, repository, and service integration tests against the configured MySQL database. These checks cover ownership, approvals and declines, full refunds, request retries, page ordering, concurrent requests, and rollback after write failures. A missing database or schema fails verification. Entity and repository tests roll back their fictional rows. Service tests commit fresh fictional fixtures so separate threads can see them, then delete only those fixtures after each test. Existing rows are not changed; MySQL auto-increment counters can advance.
+The first command builds the executable JAR and runs entity, service, request DTO, response DTO, identity-filter, and MVC controller tests without a database. The second also runs entity mapping, repository, service, and controller integration tests against the configured MySQL database. These checks cover ownership, roles, approvals and declines, full refunds, retries, `201` versus `200`, validation, response fields, page ordering, concurrent requests, and rollback. A missing database or schema fails verification. Entity and repository tests roll back their fictional rows. Service and controller tests commit fresh fictional fixtures, then delete only those fixtures after each test. Controller integration tests map responses after the service transaction closes. Existing rows are not changed; MySQL auto-increment counters can advance.
 
 Maven `clean` can fail on read-only generated directories in this OneDrive workspace. A checkout outside the synced directory avoids that local build issue.
 
@@ -31,6 +31,12 @@ Maven `clean` can fail on read-only generated directories in this OneDrive works
 ## Customer accounts and cards
 
 `GET /api/accounts` returns the customer's account summary. `GET /api/accounts/{accountId}/cards` returns masked card details after the service checks ownership. Controllers pass the principal's user ID separately from the resource ID. Responses contain decimal money strings and no entity relationships or password hashes.
+
+## Purchases, history, and refunds
+
+`POST /api/accounts/{accountId}/purchases` validates the fictional input and returns a transaction plus the account summary. A new approved or declined purchase returns `201`; an identical retry returns `200` with the saved transaction. `POST /api/transactions/{purchaseId}/refund` uses the same status behavior for a full refund. `GET /api/accounts/{accountId}/transactions` returns `items`, `page`, `size`, `totalItems`, and `totalPages`. Pages start at 0, default to 20 rows, and cap at 50. History keeps the service's descending transaction-ID order.
+
+Request DTOs use Bean Validation with `@Valid`. Money input is a positive decimal string; fractional IDs and numeric status values are rejected. Sensitive purchase fields are write-only and excluded from the request DTO's `toString()`. Responses use two decimal places, UTC timestamps ending in `Z`, and only the documented fields. Endpoint annotations describe the operation and its success codes; no Swagger UI is exposed.
 
 ## Entity mappings
 
@@ -47,9 +53,9 @@ Required owning relationships, the refund's purchase link, and transaction colle
 
 Money is `BigDecimal` with precision 14 and scale 2. `expiryMonth` is `Byte` for MySQL `TINYINT`, and `expiryYear` is `Short` for `SMALLINT`. Nested enums store their names in the existing `VARCHAR(20)` columns; explicit column definitions prevent Hibernate from expecting native MySQL enums. `lastFour` and `requestId` preserve the schema's fixed-width `CHAR` types.
 
-`createdAt` is `LocalDateTime` because MySQL `DATETIME(6)` contains no timezone. Timestamps are UTC values with microsecond precision. The API will format them with `Z` through response DTOs. There is no automatic timestamp callback or transaction processing in these entities.
+`createdAt` is `LocalDateTime` because MySQL `DATETIME(6)` contains no timezone. Timestamps are UTC values with microsecond precision. Response DTOs format them with `Z`. There is no automatic timestamp callback or transaction processing in these entities.
 
-Validation covers required fields, text lengths, email/UUID format, masked digits, expiry ranges, and money size/scale. SQL retains its existing `CHECK` constraints. Services check ownership, credit limits, refund eligibility, retries, and expiry and coordinate balance/history writes. No entity stores a full card number or security code. Jackson excludes `passwordHash` and relationships. Seed passwords use BCrypt; registration and password verification are planned with BCrypt. The planned HTTP responses use the DTO shapes in the API design. SQL and bind-value logging are disabled.
+Validation covers required fields, text lengths, email/UUID format, masked digits, expiry ranges, and money size/scale. SQL retains its existing `CHECK` constraints. Services check ownership, credit limits, refund eligibility, retries, and expiry and coordinate balance/history writes. No entity stores a full card number or security code. Jackson excludes `passwordHash` and relationships. Seed passwords use BCrypt; registration and password verification are planned with BCrypt. HTTP responses use the DTO shapes in the API design. SQL, bind-value, request-detail, and Spring Web validation logging are disabled.
 
 ## Repository lookups
 
@@ -68,7 +74,7 @@ The repositories provide reads and writes. Services make the business decisions;
 
 ## Admin responses
 
-Admin account pages and status updates include the owner's ID, display name, and email. Admin transaction pages add the owner's email. Repository entity graphs fetch these owner details inside the service transaction, so response mapping works with `open-in-view=false`. No controller serializes a JPA entity.
+`GET /api/admin/accounts` returns account pages with the owner's ID, display name, and email, ordered by ascending account ID. `GET /api/admin/transactions` adds the owner's email to transaction pages, ordered by descending transaction ID. Both use the same pagination defaults and cap as customer history. `PATCH /api/admin/accounts/{accountId}/status` accepts `ACTIVE` or `FROZEN` and returns the updated admin account with `200`. Repository entity graphs fetch owner details inside the service transaction, so response mapping works with `open-in-view=false`. No controller serializes a JPA entity.
 
 ## Service behavior
 
@@ -84,4 +90,10 @@ A full refund locks the account and checks that the owned transaction is an appr
 
 Purchases and refunds use read-committed isolation with a pessimistic account write lock. Role and refund-account lookups read scalar values before the lock, avoiding an account loaded with an old balance. Waiting requests then see the previous request's committed balance and history. Admin freeze/reactivation takes the same account lock. Write failures roll back balance and history together.
 
-Money calculations use `BigDecimal`. The injected UTC clock produces microsecond transaction timestamps. Specific exceptions distinguish invalid purchase input, malformed request IDs or pagination, unavailable resources, wrong roles, conflicting retries, and ineligible refunds. HTTP status mapping is planned with the global exception handler.
+Money calculations use `BigDecimal`. The injected UTC clock produces microsecond transaction timestamps. Specific exceptions distinguish invalid purchase input, malformed request IDs or pagination, unavailable resources, wrong roles, conflicting retries, and ineligible refunds.
+
+## Authentication and error handling
+
+The API is closed to external callers until server authentication establishes the typed principal. There is no demo user-ID header, login shortcut, or token parser. Tests set a trusted principal directly on server-side mock requests; that test mechanism is not an HTTP endpoint. Services still verify the stored role and resource ownership.
+
+The identity filter returns `401` with an empty body before request validation. Spring MVC rejects invalid JSON, body fields, IDs, and pagination with its standard client-error responses. The shared exception handler is not implemented, so service exceptions still become server errors rather than the API design's intended `400`, `403`, `404`, or `409`. Default errors omit exception messages, rejected values, and stack traces. Authentication, registration, and the shared `Error` JSON shape remain separate parts of the application.

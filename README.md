@@ -15,7 +15,9 @@ The design follows a direct path: React page → API request → controller → 
 
 ## Current application
 
-The backend has four JPA entities, repositories, and two services over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. Account locks and request IDs protect balance changes and retries. The REST controllers, response DTOs, HTTP exception handler, authentication, and React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
+The backend has four JPA entities, repositories, two services, and REST controllers over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. Validated request DTOs and dedicated response DTOs keep money, UTC dates, masked cards, and pagination consistent. New purchases and refunds return `201`; saved retries return `200`. Account locks and request IDs protect balance changes.
+
+Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. The shared HTTP exception handler, JWT sign-in, and React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
 
 ## Repository layout
 
@@ -24,7 +26,7 @@ The backend has four JPA entities, repositories, and two services over the MySQL
 | [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
 | [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
 | `frontend/` | React application, to be added. |
-| [`backend/`](backend/) | Spring Boot setup, JPA entities, repositories, services, and verification checks. |
+| [`backend/`](backend/) | Spring Boot REST API, DTOs, entities, repositories, services, and verification checks. |
 | [`sql/`](sql/) | MySQL schema and fictional seed data. |
 | `work/` | Local scratch files; ignored by Git. |
 

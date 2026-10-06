@@ -7,9 +7,9 @@
 
 The React app calls one Spring Boot REST API under `/api`. Controllers receive requests and return responses. Services check ownership, validate the purchase or refund, and update the account. Spring Data JPA repositories handle the MySQL reads and writes. The API does not call a bank or payment processor.
 
-Customer account, card, purchase, history, and refund controllers return dedicated response DTOs over the existing services and repositories. Request DTOs validate the purchase, refund, and account-status bodies. New purchases and refunds return `201`; saved retries return `200`. JWT authentication and the shared HTTP error mapping are planned separately.
+Customer and admin controllers return dedicated response DTOs over the existing services and repositories. Request DTOs validate purchase, refund, and account-status bodies. New purchases and refunds return `201`; saved retries return `200`. JWT authentication and the shared HTTP error mapping are planned separately.
 
-Request and response bodies use JSON. Field names use `camelCase`. IDs are numbers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
+Request and response bodies use JSON. Field names use `camelCase`. IDs are positive integers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC ending in `Z`. Fractional IDs and numeric status values are rejected. Money responses always have two decimal places. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
 
 The authentication design uses `Authorization: Bearer <JWT>`. The React app will hold the token in memory and clear it on sign-out. Refreshing the page requires signing in again. The current API requires a server-established `AuthenticatedUser` servlet principal and returns `401` without it. No component creates that principal yet; bearer text alone cannot open the API. IDs and roles in headers, query parameters, paths, or bodies are never proof of identity.
 
@@ -31,7 +31,7 @@ These shapes are reused across endpoints so the frontend can handle them consist
 
 The API never returns a password hash, full card number, test security code, or JWT signing key. `maskedNumber` contains only the last four digits, for example `•••• 4242`.
 
-## Authentication
+## Authentication design
 
 | Method and path | Access | Request body | Success response |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ The API never returns a password hash, full card number, test security code, or 
 | `POST /api/auth/login` | Public | `email: string`, `password: string` | `200 OK` → `accessToken: string`, `expiresAt: UTC timestamp`, `user: User`. |
 | `GET /api/auth/me` | USER or ADMIN | No body | `200 OK` → `User`. |
 
-Registration never accepts a role field. Duplicate email returns `409 Conflict`. Incorrect login returns `401 Unauthorized` without saying whether the email or password was wrong. Repeated login attempts can return `429 Too Many Requests`.
+Registration, login, and `/me` are not implemented yet. The authentication contract excludes a registration role field, uses `409` for duplicate email and `401` for incorrect login without identifying which credential failed, and reserves `429` for login rate limiting.
 
 ## Customer accounts and cards
 
@@ -71,9 +71,9 @@ The controller gets the user ID from the server-established principal; the servi
 | `amount` | decimal string | JSON text containing 1–12 digits and an optional decimal part of 1–2 digits; positive. Numeric JSON, signs, spaces, and exponent notation are rejected. |
 | `requestId` | UUID string | Generated once per attempted purchase and reused only for retries of that purchase. |
 
-The server checks the fields again even if React has already shown form feedback. A malformed request, unrecognized test number, or mismatched expiry returns `400 Bad Request` and creates no transaction. Amounts fit `DECIMAL(14,2)` without rounding. A valid purchase that fails a business rule creates a `DECLINED` transaction with `CARD_EXPIRED`, `ACCOUNT_FROZEN`, or `INSUFFICIENT_CREDIT`, checked in that order. Its `outstandingAfter` is unchanged.
+The server checks the fields again even if React has already shown form feedback. Spring MVC rejects malformed or missing fields with `400`. The service rejects an unrecognized test number or mismatched expiry without creating a transaction; these domain exceptions have a `400` error contract. Amounts fit `DECIMAL(14,2)` without rounding. A valid purchase that fails a business rule creates a `DECLINED` transaction with `CARD_EXPIRED`, `ACCOUNT_FROZEN`, or `INSUFFICIENT_CREDIT`, checked in that order. Its `outstandingAfter` is unchanged.
 
-For a new approved purchase, the service increases the outstanding balance and records the transaction in one database transaction. The account is locked before checking the account/request-ID pair or changing the balance. Read-committed isolation lets a waiting retry see the committed result. UUIDs are normalized to lowercase. Within an account, the service compares `cardId`, exact `merchantName`, and numeric `amount`; `50` and `50.00` are equivalent. Card fields still pass the assigned-profile checks. An identical retry returns the original transaction, including its original balance and timestamp, with the current account summary. Different details or reuse between purchase and refund operations returns `409 Conflict`.
+For a new approved purchase, the service increases the outstanding balance and records the transaction in one database transaction. The account is locked before checking the account/request-ID pair or changing the balance. Read-committed isolation lets a waiting retry see the committed result. UUIDs are normalized to lowercase. Within an account, the service compares `cardId`, exact `merchantName`, and numeric `amount`; `50` and `50.00` are equivalent. Card fields still pass the assigned-profile checks. An identical retry returns the original transaction, including its original balance and timestamp, with the current account summary. Different details or reuse between purchase and refund operations raises a conflict exception, assigned `409` in the error contract.
 
 ### `RefundRequest`
 
@@ -81,7 +81,7 @@ For a new approved purchase, the service increases the outstanding balance and r
 | --- | --- | --- |
 | `requestId` | UUID string | Identifies this full-refund submission and its retries. |
 
-The purchase ID comes from the path. The server checks that it is an approved PURCHASE owned by the signed-in customer and has not been refunded. A successful refund uses the original purchase's amount, merchant, account, and card. It creates a REFUND transaction with `originalPurchaseId` set to the purchase ID and reduces the outstanding balance in the same database transaction. A second refund under a different request ID returns `409 Conflict`. An unowned purchase returns `404 Not Found`. Freezing an account does not block a valid refund.
+The purchase ID comes from the path. The server checks that it is an approved PURCHASE owned by the signed-in customer and has not been refunded. A successful refund uses the original purchase's amount, merchant, account, and card. It creates a REFUND transaction with `originalPurchaseId` set to the purchase ID and reduces the outstanding balance in the same database transaction. The service raises an ineligible-refund exception for a second refund under a different request ID and an unavailable-resource exception for an unowned purchase. Their error contract uses `409` and `404`, respectively. Freezing an account does not block a valid refund.
 
 Transaction history uses `page=0` and `size=20` by default, with a maximum size of 50. Newest first means descending transaction ID, matching the append-only history and the `(account_id, id)` database index. This gives transactions with the same timestamp a stable order. The original approved purchase remains in history after a refund; the linked REFUND row shows the reversal.
 
@@ -93,11 +93,13 @@ Transaction history uses `page=0` and `size=20` by default, with a maximum size 
 | `GET /api/admin/transactions` | ADMIN | Optional `page` and `size` query parameters | `200 OK` → `Page<AdminTransaction>`, newest first. |
 | `PATCH /api/admin/accounts/{accountId}/status` | ADMIN | `status: "ACTIVE" \| "FROZEN"` | `200 OK` → `AdminAccount` with the updated status. |
 
-Admin list endpoints use the same page defaults and maximum size as customer history. Accounts are ordered by ascending account ID; transactions use descending transaction ID. A USER calling an admin endpoint receives `403 Forbidden`. An ADMIN can review accounts and change account status, but cannot submit a purchase using another customer's account.
+Admin list endpoints use the same page defaults and maximum size as customer history. Accounts are ordered by ascending account ID; transactions use descending transaction ID. Services check the user's stored role, and their wrong-role exception has a `403` error contract. An ADMIN can review accounts and change account status, but cannot submit a purchase as a customer. Owner details are fetched before the service transaction closes, so admin response mapping works without an open persistence session.
 
 ## Error responses and status codes
 
-All errors use the shared `Error` shape. Messages explain what the user can correct without echoing card details or other sensitive input.
+The shared `Error` shape and domain error statuses below define the exception-handler contract. That handler is not implemented yet. Currently, the identity filter returns `401` with an empty body, and Spring MVC returns `400` for request-body, path, and query validation failures. Service exceptions still become server errors rather than the intended `400`, `403`, `404`, or `409`. Default error responses exclude exception messages, binding values, and stack traces. Validation and request-detail logging are disabled because rejected fields can contain fictional card input.
+
+The shared error contract uses short corrective messages without echoing card details or other sensitive input.
 
 | Status | Used for |
 | --- | --- |

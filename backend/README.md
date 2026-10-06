@@ -28,6 +28,10 @@ Maven `clean` can fail on read-only generated directories in this OneDrive works
 
 `spring.jpa.hibernate.ddl-auto=validate` checks the existing schema. `spring.sql.init.mode=never` disables automatic SQL script execution. Neither the application nor its tests create or alter tables. Hibernate's validation does not fully check lengths, nullability, indexes, or uniqueness, so the integration checks also inspect MySQL metadata ([initialization settings](https://docs.spring.io/spring-boot/3.5/how-to/data-initialization.html)).
 
+## Customer accounts and cards
+
+`GET /api/accounts` returns the customer's account summary. `GET /api/accounts/{accountId}/cards` returns masked card details after the service checks ownership. Controllers pass the principal's user ID separately from the resource ID. Responses contain decimal money strings and no entity relationships or password hashes.
+
 ## Entity mappings
 
 | Entity | Table | Relationships |

@@ -1,6 +1,7 @@
 package com.marvens.capstone.controller;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -159,6 +160,38 @@ class ControllerIT {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void rejectedPurchasesRetriesAndRefundsDoNotChangeBalancesOrHistory() throws Exception {
+        ObjectNode invalid = (ObjectNode) json.readTree(RequestDtoTest.validJson());
+        invalid.put("cardId", cardId);
+        invalid.put("testCardNumber", "4111".repeat(4));
+        assertThat(response(post("/api/accounts/" + accountId + "/purchases")
+                .principal(new AuthenticatedUser(ownerId)).contentType(MediaType.APPLICATION_JSON)
+                .content(invalid.toString()), 400).path("code").asText()).isEqualTo("INVALID_PURCHASE");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM card_transactions WHERE account_id = ?", Long.class, accountId))
+                .isZero();
+        assertThat(balance()).isEqualByComparingTo("0.00");
+
+        String requestId = id();
+        Long purchaseId = response(purchase(ownerId, requestId, "25.00"), 201).path("transaction").path("id").asLong();
+        assertThat(response(purchase(ownerId, requestId, "26.00"), 409).path("code").asText()).isEqualTo("REQUEST_CONFLICT");
+        assertThat(balance()).isEqualByComparingTo("25.00");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM card_transactions WHERE account_id = ?", Long.class, accountId))
+                .isEqualTo(1);
+
+        response(refund(ownerId, purchaseId, id()), 201);
+        assertThat(response(refund(ownerId, purchaseId, id()), 409).path("code").asText()).isEqualTo("REFUND_NOT_ELIGIBLE");
+        Long declinedId = response(purchase(ownerId, id(), "1001.00"), 201).path("transaction").path("id").asLong();
+        assertThat(response(refund(ownerId, declinedId, id()), 409).path("code").asText()).isEqualTo("REFUND_NOT_ELIGIBLE");
+        assertThat(balance()).isEqualByComparingTo("0.00");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM card_transactions WHERE account_id = ?", Long.class, accountId))
+                .isEqualTo(3);
+    }
+
+    private BigDecimal balance() {
+        return jdbc.queryForObject("SELECT outstanding_balance FROM credit_accounts WHERE id = ?", BigDecimal.class, accountId);
+    }
+
     private AppUser user(AppUser.Role role) {
         var user = new AppUser();
         user.setDisplayName("Controller Test User");
@@ -192,7 +225,17 @@ class ControllerIT {
         String body = mvc.perform(request).andExpect(status().is(expectedStatus)).andReturn().getResponse().getContentAsString();
         assertThat(body).doesNotContain(RequestDtoTest.testNumber(), "testSecurityCode", "testCardNumber",
                 "passwordHash", "$2b$", "accessToken", "signingKey");
-        return json.readTree(body);
+        JsonNode result = json.readTree(body);
+        if (expectedStatus >= 400) {
+            assertThat(result.size()).isEqualTo(4);
+            assertThat(result.path("status").asInt()).isEqualTo(expectedStatus);
+            assertThat(result.path("code").asText()).isNotBlank();
+            assertThat(result.path("message").asText()).isNotBlank();
+            assertThat(result.path("timestamp").asText()).endsWith("Z");
+            assertThat(Instant.parse(result.path("timestamp").asText())).isBeforeOrEqualTo(Instant.now());
+            assertThat(body).doesNotContain("exception", "stackTrace");
+        }
+        return result;
     }
 
     private String id() { return UUID.randomUUID().toString(); }

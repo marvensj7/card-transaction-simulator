@@ -120,6 +120,8 @@ The shared exception handler returns the four-field `Error` shape. Messages desc
 
 Unexpected failures return `An unexpected error occurred. Please try again later.` Responses contain no exception class, stack trace, or internal detail. Expected rejections log status, code, route template, and trusted user ID at INFO. MVC logs include the HTTP method; the pre-MVC filter uses `/api/**`. Unexpected failures log method, route template, user ID, exception type, and stack locations at ERROR, excluding messages and causes. Request, SQL, and bind-value logging are disabled, including Hibernate driver-error text.
 
+Rejected purchase input, conflicting retries, and ineligible refunds leave account balances and transaction history unchanged. An approved or declined purchase remains a recorded outcome with a success HTTP status.
+
 JWT failures and incorrect login will use `401`; duplicate email will use `409`. `429` is reserved for login rate limiting. These authentication behaviors are not implemented yet.
 
 ```json

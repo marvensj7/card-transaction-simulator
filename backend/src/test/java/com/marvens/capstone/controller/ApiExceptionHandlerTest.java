@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -117,6 +118,21 @@ class ApiExceptionHandlerTest {
         String accept = mvc.perform(get("/api/accounts").principal(new AuthenticatedUser(9L)).accept(MediaType.APPLICATION_XML))
                 .andExpect(status().isNotAcceptable()).andReturn().getResponse().getContentAsString();
         assertError(accept, 406, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    void mvcInternalFailureAlsoUsesTheGeneric500Message(CapturedOutput output) throws Exception {
+        when(accounts.getAccounts(9L)).thenThrow(new HttpMessageNotWritableException(SECRET));
+        String body = mvc.perform(get("/api/accounts").principal(new AuthenticatedUser(9L)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse().getContentAsString();
+        assertError(body, 500, "INTERNAL_ERROR");
+        assertThat(json.readTree(body).path("message").asText())
+                .isEqualTo("An unexpected error occurred. Please try again later.");
+        assertThat(body).doesNotContain(SECRET, "HttpMessageNotWritableException");
+        assertThat(output.getAll()).contains("API failure: status=500", "method=GET", "route=/api/accounts")
+                .doesNotContain(SECRET);
     }
 
     @ParameterizedTest

@@ -7,11 +7,11 @@
 
 The React app calls one Spring Boot REST API under `/api`. Controllers receive requests and return responses. Services check ownership, validate the purchase or refund, and update the account. Spring Data JPA repositories handle the MySQL reads and writes. The API does not call a bank or payment processor.
 
-This document defines the planned HTTP contract. The account and transaction services and repository operations are implemented; controllers, JSON DTOs, HTTP error mapping, and JWT authentication are planned.
+The account and transaction services and repository operations are implemented. Request DTOs validate the purchase, refund, and account-status bodies. JWT authentication and the shared HTTP error mapping are planned separately.
 
 Request and response bodies use JSON. Field names use `camelCase`. IDs are numbers, money amounts are decimal strings such as `"25.00"`, and timestamps are ISO 8601 strings in UTC. The account balance shown in a response is the **outstanding balance**; available credit is the credit limit minus that balance.
 
-Protected requests send `Authorization: Bearer <JWT>`. The React app holds the token in memory and clears it on sign-out. Refreshing the page requires signing in again. No endpoint accepts a role supplied by the browser as proof of access.
+The authentication design uses `Authorization: Bearer <JWT>`. The React app will hold the token in memory and clear it on sign-out. Refreshing the page requires signing in again. The current API requires a server-established `AuthenticatedUser` servlet principal and returns `401` without it. No component creates that principal yet; bearer text alone cannot open the API. IDs and roles in headers, query parameters, paths, or bodies are never proof of identity.
 
 ## Shared response shapes
 
@@ -68,7 +68,7 @@ The server gets the signed-in user from the validated JWT and checks account own
 | `expiryYear` | number | 2000–9999 and matches the demo card. A card remains valid through the end of its expiry month in UTC; an expired matching card is declined. |
 | `testSecurityCode` | string | Three or four digits. Format check only; never saved, logged, or returned. |
 | `merchantName` | string | Required, at most 100 characters. |
-| `amount` | decimal string | Positive, no more than two decimal places. |
+| `amount` | decimal string | JSON text containing 1–12 digits and an optional decimal part of 1–2 digits; positive. Numeric JSON, signs, spaces, and exponent notation are rejected. |
 | `requestId` | UUID string | Generated once per attempted purchase and reused only for retries of that purchase. |
 
 The server checks the fields again even if React has already shown form feedback. A malformed request, unrecognized test number, or mismatched expiry returns `400 Bad Request` and creates no transaction. Amounts fit `DECIMAL(14,2)` without rounding. A valid purchase that fails a business rule creates a `DECLINED` transaction with `CARD_EXPIRED`, `ACCOUNT_FROZEN`, or `INSUFFICIENT_CREDIT`, checked in that order. Its `outstandingAfter` is unchanged.

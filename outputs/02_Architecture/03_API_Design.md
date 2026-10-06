@@ -31,6 +31,8 @@ These shapes are reused across endpoints so the frontend can handle them consist
 
 The API never returns a password hash, full card number, test security code, or JWT signing key. `maskedNumber` contains only the last four digits, for example `•••• 4242`.
 
+The shared error DTO contains exactly four fields. Its timestamp records when the error response is created, in UTC ending in `Z`.
+
 ## Authentication design
 
 | Method and path | Access | Request body | Success response |

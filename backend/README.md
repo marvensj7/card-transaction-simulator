@@ -66,6 +66,10 @@ Transaction pages use descending transaction ID, matching the append-only histor
 
 The repositories provide reads and writes. Services make the business decisions; the SQL scripts remain the source of the schema.
 
+## Admin responses
+
+Admin account pages and status updates include the owner's ID, display name, and email. Admin transaction pages add the owner's email. Repository entity graphs fetch these owner details inside the service transaction, so response mapping works with `open-in-view=false`. No controller serializes a JPA entity.
+
 ## Service behavior
 
 Service methods receive a trusted user ID. They read the user's stored role and enforce account ownership. JWT verification is planned separately; passing a user ID alone is not authentication. Both services use constructor injection.

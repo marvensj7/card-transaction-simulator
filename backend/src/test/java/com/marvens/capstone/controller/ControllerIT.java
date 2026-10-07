@@ -1,5 +1,6 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -107,7 +108,7 @@ class ControllerIT {
         assertThat(summary.get(0).path("availableCredit").asText()).isEqualTo("990.00");
         JsonNode masked = response(get("/api/accounts/" + accountId + "/cards")
                 .principal(new AuthenticatedUser(ownerId)), 200);
-        assertThat(masked.get(0).path("maskedNumber").asText()).isEqualTo("•••• 4242");
+        assertThat(masked.get(0).path("maskedNumber").asText()).isEqualTo("\u2022\u2022\u2022\u2022 4242");
     }
 
     @Test
@@ -149,7 +150,7 @@ class ControllerIT {
         for (MockHttpServletRequestBuilder request : new MockHttpServletRequestBuilder[] {
                 get("/api/admin/accounts"), get("/api/admin/transactions"),
                 patch("/api/admin/accounts/" + accountId + "/status")
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"FROZEN\"}")}) {
+                        .param("status", "FROZEN")}) {
             assertThat(response(request.principal(new AuthenticatedUser(ownerId))
                     .header("X-Role", "ADMIN").header("X-User-Id", adminId), 403).path("code").asText())
                     .isEqualTo("ACCESS_DENIED");
@@ -213,12 +214,12 @@ class ControllerIT {
 
     private MockHttpServletRequestBuilder refund(Long userId, Long purchaseId, String requestId) {
         return post("/api/transactions/" + purchaseId + "/refund").principal(new AuthenticatedUser(userId))
-                .contentType(MediaType.APPLICATION_JSON).content("{\"requestId\":\"" + requestId + "\"}");
+                .param("requestId", requestId);
     }
 
     private MockHttpServletRequestBuilder statusChange(String state) {
         return patch("/api/admin/accounts/" + accountId + "/status").principal(new AuthenticatedUser(adminId))
-                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"" + state + "\"}");
+                .param("status", state);
     }
 
     private JsonNode response(MockHttpServletRequestBuilder request, int expectedStatus) throws Exception {

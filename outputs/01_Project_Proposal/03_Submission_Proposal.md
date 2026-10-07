@@ -3,6 +3,12 @@
 **UCI 2123 Capstone Project Proposal**<br>
 **October 6, 2026**
 
+## MVP scope update — October 7, 2026
+
+Following instructor feedback, the immediate target is a working local flow that I can explain: sign in → account summary → purchase approval/decline → history → full refund, plus a simple admin freeze/reactivate page. The backend follows controller → service → repository → MySQL with four tables. Purchase input uses one DTO; small scalar operations use parameters. The current backend has purchase/refund/admin rules, but authentication and customer/admin React screens are still unfinished.
+
+The 3D card, login rate limiting, a build pipeline, SonarQube review, and a numerical coverage target are deferred enhancements. These are no longer MVP completion requirements. Core role/ownership checks, BCrypt passwords, signed JWT authentication, safe card handling, and consistent balance/history writes remain required. AWS and Jira remain outside the approved scope. Earlier proposal drafts are retained as historical references; the current architecture documents describe this smaller implementation plan.
+
 ## Project overview
 
 I will build a web application that simulates credit card purchases with fictional accounts and test cards. A customer will be able to sign in, see their available credit, submit a purchase, and review the result in a transaction history. The application will approve or decline the purchase based on the account’s status and available credit. Customers will also be able to request a full refund. An administrator will be able to review activity and freeze or reactivate accounts.
@@ -31,7 +37,7 @@ The application has two signed-in roles: **USER** for customers and **ADMIN** fo
 10. As a customer, I cannot see or change another customer’s account by editing an account ID in a request.
 11. As an administrator, I can review customer accounts and transaction outcomes without seeing full card numbers or security codes.
 12. As an administrator, I can freeze or reactivate an account and know that a frozen account cannot make new purchases.
-13. As a user, I can flip a virtual card while filling out the purchase form, or use the regular form without the animation.
+13. As a user, I can complete a labeled purchase form with keyboard access. A card animation is a deferred enhancement.
 
 ## Functional requirements
 
@@ -49,12 +55,12 @@ The application has two signed-in roles: **USER** for customers and **ADMIN** fo
 | FR10 | Customers can request a full refund of an approved purchase once, including on a frozen account. The refund is linked to the original purchase and restores the appropriate available credit. |
 | FR11 | Each purchase has a unique request ID. Retrying the same request returns the original result; reusing the ID with different purchase details is rejected. |
 | FR12 | Administrators can view account and transaction summaries and change an account between ACTIVE and FROZEN. A frozen account rejects new purchases. |
-| FR13 | The purchase page includes a flippable 3D card showing masked test details. The form remains usable with a keyboard and without animation. |
+| FR13 | Deferred enhancement: a flippable card preview. The MVP uses a normal labeled purchase form with keyboard access. |
 | FR14 | The interface provides loading states and readable success and error messages. It includes separate routes for home, login, dashboard, purchase, transactions, and administration. |
 
 ## Nonfunctional requirements
 
-**Security and privacy.** Passwords will use BCrypt. JWTs will be signed with HS256 using a randomly generated key of at least 256 bits that is kept out of source control. The API will check both role and account ownership. Login requests will be rate-limited. Only predefined fictional card numbers will be accepted. The database will keep a card ID and last four digits, but not a full card number or CVV. Sensitive values will not appear in logs or the 3D card display.
+**Security and privacy.** Passwords will use BCrypt. JWTs will be signed with HS256 using a randomly generated key of at least 256 bits that is kept out of source control. The API will check both role and account ownership. Login rate limiting is deferred beyond the local MVP. Only predefined fictional card numbers will be accepted. The database will keep a card ID and last four digits, but not a full card number or CVV. Sensitive values will not appear in logs or the 3D card display.
 
 **Correctness and reliability.** Money values will use `BigDecimal` in Java and `DECIMAL(14,2)` in MySQL. A balance change and its transaction record will commit together or not at all. The account will be locked while a balance-changing request is processed so simultaneous purchases cannot spend the same available credit. A database uniqueness rule will back the duplicate-submission check. Invalid requests and failed refunds will leave the balance unchanged.
 
@@ -62,7 +68,7 @@ The application has two signed-in roles: **USER** for customers and **ADMIN** fo
 
 **Usability and accessibility.** The interface will work on desktop and mobile widths. Forms will have labels, specific error messages, and keyboard access. The 3D card will respect reduced-motion preferences, and the standard form will remain fully functional without it.
 
-**Testing and code quality.** JUnit tests will cover service rules and important failure cases, with at least 70% code coverage. API requests will be documented in a Postman collection. A basic build pipeline will run the frontend build and backend tests, and I will review the code with SonarQube.
+**Testing and code quality.** JUnit and MySQL checks cover service rules and important failure cases. API requests will be documented in a Postman collection, and local backend verification/frontend builds must pass. A numerical coverage target, automated build pipeline, and SonarQube review are deferred enhancements.
 
 ## System design
 
@@ -126,7 +132,6 @@ flowchart TD
     App --> TransactionsPage
     App --> AdminPage
     PurchasePage --> PurchaseForm
-    PurchasePage --> VirtualCard3D
     DashboardPage --> CreditSummary
     TransactionsPage --> TransactionList
 ```
@@ -137,4 +142,4 @@ The application will not accept real payment cards, move real money, connect to 
 
 ## What I will show in the presentation
 
-I will sign in as a customer, show the available credit, enter a fictional test card, and submit a purchase. I will show the saved transaction and balance change, then demonstrate a decline, a refund, and a retry that does not create a second purchase. I will also show an administrator freezing an account and the virtual card flipping in the purchase form. The demo will use fictional users and balances throughout.
+I will sign in as a customer, show the available credit, enter a fictional test card, and submit a purchase. I will show the saved transaction and balance change, then demonstrate a decline, a refund, and a retry that does not create a second purchase. I will also show an administrator freezing an account. A card animation is optional after the main workflows are complete. The demo will use fictional users and balances throughout.

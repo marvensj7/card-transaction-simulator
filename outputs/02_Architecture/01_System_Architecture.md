@@ -1,11 +1,13 @@
 # System Architecture
 
 **Credit Card Transaction Simulator**<br>
-**October 6, 2026**
+**October 7, 2026**
 
 ## Overview
 
 The design has one React frontend, one Spring Boot backend, and one MySQL database. MySQL mappings, repositories, services, and customer/admin REST controllers are implemented. Shared HTTP error handling is implemented. Authentication and the React interface are planned. A servlet filter requires a server-established identity before protected requests reach validation or services. No authentication component creates that identity yet, so external API calls receive `401`. In the complete application, customers use the frontend to view their credit account, submit fictional card purchases, request refunds, and read history. Administrators use a separate view to review activity and freeze or reactivate accounts. The Spring Boot services make the account and transaction decisions; the browser displays the result.
+
+The MVP uses ordinary React page state, one purchase request DTO passed directly to its service, and single query parameters for refunds/status changes. Security, exception handling, and configuration live outside `controller`. Entities follow foreign keys in one direction; repositories load reverse lookups and history. Card animation is deferred polish. See the [backend walkthrough](05_Backend_Walkthrough.md) for the package map and a worked example.
 
 The system runs locally for the capstone demonstration. It does not connect to a bank, payment network, or payment processor. All cards, balances, and transactions are fictional.
 
@@ -13,49 +15,21 @@ The system runs locally for the capstone demonstration. It does not connect to a
 
 ```mermaid
 flowchart LR
-    PERSON[Customer or administrator]
-
-    subgraph BROWSER[Browser]
-        PAGES[React pages and forms]
-        CARD[Flippable 3D card view]
-        CLIENT[Fetch API helper and in-memory JWT]
-        PAGES --> CARD
-        PAGES --> CLIENT
-    end
-
-    subgraph SERVER[Spring Boot application]
-        SECURITY[Spring Security<br/>JWT verification and role checks]
-        CONTROLLERS[Auth, account, purchase,<br/>transaction, and admin controllers]
-        AUTH[Registration and<br/>JWT issuing service]
-        SERVICES[Account and<br/>transaction services]
-        REPOSITORIES[Spring Data JPA repositories]
-        TESTCARDS[Allowed fictional<br/>test card numbers]
-        SECURITY --> CONTROLLERS
-        CONTROLLERS --> AUTH
-        CONTROLLERS --> SERVICES
-        AUTH --> REPOSITORIES
-        SERVICES --> REPOSITORIES
-        SERVICES --> TESTCARDS
-    end
-
-    DATABASE[(MySQL<br/>users, accounts, cards, transactions)]
-    SECRET[JWT signing key<br/>environment variable]
-
-    PERSON --> PAGES
-    CLIENT -->|REST requests and responses| SECURITY
-    REPOSITORIES -->|Read and write| DATABASE
-    SECRET --> SECURITY
-    SECRET --> AUTH
+    REACT[React page: state and form] --> API[fetch API call]
+    API --> SECURITY[Verify JWT — planned]
+    SECURITY --> CONTROLLER[Controller: HTTP only]
+    CONTROLLER --> SERVICE[Service: rules]
+    SERVICE --> REPOSITORY[JPA repository]
+    REPOSITORY --> MYSQL[(MySQL: four tables)]
 ```
 
-The 3D card is a view of the form state. It does not make a separate API request or decide whether a transaction is valid. The regular HTML fields remain usable without the 3D view.
+The MVP purchase screen is a normal HTML form. A masked animated card can be added after the workflows are complete.
 
 ## What each part does
 
 | Part | Responsibility |
 | --- | --- |
 | React pages and forms | Show credit information, collect fictional purchase details, display errors and transaction results, and provide customer and admin navigation. |
-| Flippable 3D card | Preview a masked test card and flip between its front and back. It never displays the entered security code. |
 | Fetch API helper | Send requests, attach the JWT to protected requests, and handle loading and error responses. The token is held in memory; a page refresh requires a new sign-in. |
 | Spring Security | Allow public registration and login, validate JWTs on protected routes, and enforce USER or ADMIN access. |
 | Controllers | Validate request DTOs, pass the trusted user ID to services, and return dedicated DTOs with decimal money strings, UTC timestamps, masked cards, and page totals. |
@@ -102,4 +76,4 @@ The services check the user's stored role before returning admin lists or changi
 
 ## Local runtime and build checks
 
-The planned React development server sends `/api` requests to the Spring Boot backend, which connects to local MySQL. Maven checks cover request validation, response formats, trusted identity handoff, controller status codes and pagination, schema mappings, repository lookups, service rules, concurrency, and rollback. Controller integration checks use real service transactions and MySQL. Hibernate uses `validate` and SQL initialization is disabled. A basic GitHub Actions workflow is planned to build React and run Maven tests. The local demonstration uses seeded fictional users and card accounts. Cloud infrastructure and a Jira board are outside this project, as agreed with the instructor.
+The planned React development server sends `/api` requests to the Spring Boot backend, which connects to local MySQL. Maven checks cover request validation, response formats, trusted identity handoff, controller status codes and pagination, schema mappings, repository lookups, service rules, concurrency, and rollback. Controller integration checks use real service transactions and MySQL. Hibernate uses `validate` and SQL initialization is disabled. An automated build pipeline is deferred; local builds and verification are required for the MVP. The local demonstration uses seeded fictional users and card accounts. Cloud infrastructure and a Jira board are outside this project, as agreed with the instructor.

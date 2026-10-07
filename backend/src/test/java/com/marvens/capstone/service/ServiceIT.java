@@ -1,5 +1,6 @@
 package com.marvens.capstone.service;
 
+import com.marvens.capstone.dto.PurchaseRequest;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -276,8 +277,8 @@ class ServiceIT {
         return jdbc.queryForObject("SELECT COUNT(*) FROM card_transactions WHERE account_id = ?", Long.class, accountId);
     }
 
-    private PurchaseCommand command(String amount, String requestId) {
-        return new PurchaseCommand(cardId, TransactionServiceTest.testNumber(), 12, 2030,
+    private PurchaseRequest command(String amount, String requestId) {
+        return new PurchaseRequest(cardId, TransactionServiceTest.testNumber(), 12, 2030,
                 TransactionServiceTest.testCode(), "Demo Shop", new BigDecimal(amount), requestId);
     }
 

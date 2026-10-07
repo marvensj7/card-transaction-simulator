@@ -91,7 +91,6 @@ class EntityValidationTest {
     void jsonOmitsPasswordHashAndDoesNotTraverseRelationships() throws Exception {
         AppUser user = EntityFixtures.user();
         CreditAccount account = EntityFixtures.account(user);
-        user.setCreditAccount(account);
 
         var json = new ObjectMapper().valueToTree(user);
         assertThat(json.has("passwordHash")).isFalse();

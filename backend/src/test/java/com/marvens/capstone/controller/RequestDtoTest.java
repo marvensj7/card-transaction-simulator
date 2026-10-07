@@ -1,7 +1,7 @@
 package com.marvens.capstone.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marvens.capstone.controller.dto.PurchaseRequest;
+import com.marvens.capstone.dto.PurchaseRequest;
 import jakarta.validation.Validation;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -15,18 +15,20 @@ class RequestDtoTest {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             assertThat(factory.getValidator().validate(request)).isEmpty();
         }
-        assertThat(request.toCommand().getTestCardNumber()).isEqualTo(testNumber());
-        assertThat(request.toCommand().getTestSecurityCode()).isEqualTo(testCode());
-        assertThat(request.toCommand().getAmount()).isEqualByComparingTo("25.00");
+        assertThat(request.getTestCardNumber()).isEqualTo(testNumber());
+        assertThat(request.getTestSecurityCode()).isEqualTo(testCode());
+        assertThat(request.getAmount()).isEqualByComparingTo("25.00");
         assertThat(request.toString()).isEqualTo("PurchaseRequest");
         assertThat(json.writeValueAsString(request)).doesNotContain(testNumber(), testCode(),
                 "testCardNumber", "testSecurityCode");
     }
 
     @Test
-    void amountMustBeJsonText() {
-        assertThatThrownBy(() -> json.readValue(validJson().replace("\"25.00\"", "25.00"), PurchaseRequest.class))
-                .isInstanceOf(com.fasterxml.jackson.databind.JsonMappingException.class);
+    void standardDecimalBindingAcceptsJsonTextAndNumbers() throws Exception {
+        var text = json.readValue(validJson(), PurchaseRequest.class);
+        var number = json.readValue(validJson().replace("\"25.00\"", "25.00"), PurchaseRequest.class);
+        assertThat(text.getAmount()).isEqualByComparingTo("25.00");
+        assertThat(number.getAmount()).isEqualByComparingTo(text.getAmount());
     }
 
     static String testNumber() { return "4242".repeat(4); }

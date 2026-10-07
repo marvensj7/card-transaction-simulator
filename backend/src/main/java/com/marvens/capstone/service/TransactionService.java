@@ -1,5 +1,6 @@
 package com.marvens.capstone.service;
 
+import com.marvens.capstone.dto.PurchaseRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -42,25 +43,25 @@ public class TransactionService {
 
     // Read committed lets a waiting retry see history committed by the lock holder.
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public TransactionOutcome purchase(Long userId, Long accountId, PurchaseCommand command) {
+    public TransactionOutcome purchase(Long userId, Long accountId, PurchaseRequest request) {
         accountService.requireCustomer(userId);
         CreditAccount account = lockOwnedAccount(userId, accountId);
-        validatePurchaseFields(command);
-        String requestId = RequestChecks.requestId(command.getRequestId());
+        validatePurchaseFields(request);
+        String requestId = RequestChecks.requestId(request.getRequestId());
         // Lock first: a simultaneous retry waits until the first result commits.
         CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId).orElse(null);
         if (saved != null) {
             if (saved.getType() != CardTransaction.Type.PURCHASE
-                    || !saved.getCard().getId().equals(command.getCardId())
-                    || !saved.getMerchantName().equals(command.getMerchantName())
-                    || saved.getAmount().compareTo(command.getAmount()) != 0) {
+                    || !saved.getCard().getId().equals(request.getCardId())
+                    || !saved.getMerchantName().equals(request.getMerchantName())
+                    || saved.getAmount().compareTo(request.getAmount()) != 0) {
                 throw new RequestConflictException();
             }
         }
 
-        DemoCard card = cards.findByIdAndAccount_Id(command.getCardId(), accountId)
+        DemoCard card = cards.findByIdAndAccount_Id(request.getCardId(), accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card is unavailable."));
-        validateAssignedCard(command, card);
+        validateAssignedCard(request, card);
         if (saved != null) {
             return new TransactionOutcome(saved, account, true);
         }
@@ -71,16 +72,16 @@ public class TransactionService {
             reason = "CARD_EXPIRED";
         } else if (account.getStatus() == CreditAccount.Status.FROZEN) {
             reason = "ACCOUNT_FROZEN";
-        } else if (command.getAmount().compareTo(
+        } else if (request.getAmount().compareTo(
                 account.getCreditLimit().subtract(account.getOutstandingBalance())) > 0) {
             reason = "INSUFFICIENT_CREDIT";
         }
 
         if (reason == null) {
-            account.setOutstandingBalance(account.getOutstandingBalance().add(command.getAmount()));
+            account.setOutstandingBalance(account.getOutstandingBalance().add(request.getAmount()));
             accounts.saveAndFlush(account);
         }
-        CardTransaction purchase = history(account, card, command.getAmount(), command.getMerchantName(), requestId);
+        CardTransaction purchase = history(account, card, request.getAmount(), request.getMerchantName(), requestId);
         purchase.setType(CardTransaction.Type.PURCHASE);
         purchase.setStatus(reason == null ? CardTransaction.Status.APPROVED : CardTransaction.Status.DECLINED);
         purchase.setReasonCode(reason);
@@ -144,32 +145,32 @@ public class TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account is unavailable."));
     }
 
-    private void validatePurchaseFields(PurchaseCommand command) {
-        if (command == null || command.getCardId() == null || command.getCardId() < 1
-                || command.getTestCardNumber() == null || !command.getTestCardNumber().matches("[0-9]{16}")
-                || command.getTestSecurityCode() == null || !command.getTestSecurityCode().matches("[0-9]{3,4}")
-                || command.getExpiryMonth() == null || command.getExpiryMonth() < 1 || command.getExpiryMonth() > 12
-                || command.getExpiryYear() == null || command.getExpiryYear() < 2000 || command.getExpiryYear() > 9999) {
+    private void validatePurchaseFields(PurchaseRequest request) {
+        if (request == null || request.getCardId() == null || request.getCardId() < 1
+                || request.getTestCardNumber() == null || !request.getTestCardNumber().matches("[0-9]{16}")
+                || request.getTestSecurityCode() == null || !request.getTestSecurityCode().matches("[0-9]{3,4}")
+                || request.getExpiryMonth() == null || request.getExpiryMonth() < 1 || request.getExpiryMonth() > 12
+                || request.getExpiryYear() == null || request.getExpiryYear() < 2000 || request.getExpiryYear() > 9999) {
             throw new InvalidPurchaseException("Enter valid fictional card fields.");
         }
-        if (command.getMerchantName() == null || command.getMerchantName().isBlank()
-                || command.getMerchantName().length() > 100) {
+        if (request.getMerchantName() == null || request.getMerchantName().isBlank()
+                || request.getMerchantName().length() > 100) {
             throw new InvalidPurchaseException("Merchant name is required and must be at most 100 characters.");
         }
-        BigDecimal amount = command.getAmount();
+        BigDecimal amount = request.getAmount();
         if (amount == null || amount.signum() <= 0 || amount.scale() > 2
                 || amount.compareTo(new BigDecimal("999999999999.99")) > 0) {
             throw new InvalidPurchaseException("Amount must be positive, fit DECIMAL(14,2), and have at most two decimal places.");
         }
     }
 
-    private void validateAssignedCard(PurchaseCommand command, DemoCard card) {
+    private void validateAssignedCard(PurchaseRequest request, DemoCard card) {
         // This is the only fictional profile in the schema's seed data.
         if (!"DEMO_4242".equals(card.getTestProfile())
-                || !"4242424242424242".equals(command.getTestCardNumber())
+                || !"4242424242424242".equals(request.getTestCardNumber())
                 || !"4242".equals(card.getLastFour())
-                || command.getExpiryMonth().intValue() != card.getExpiryMonth().intValue()
-                || command.getExpiryYear().intValue() != card.getExpiryYear().intValue()) {
+                || request.getExpiryMonth().intValue() != card.getExpiryMonth().intValue()
+                || request.getExpiryYear().intValue() != card.getExpiryYear().intValue()) {
             throw new InvalidPurchaseException("Card details must match the assigned fictional test card.");
         }
     }

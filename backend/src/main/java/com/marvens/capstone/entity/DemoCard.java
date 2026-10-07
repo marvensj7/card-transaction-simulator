@@ -1,8 +1,5 @@
 package com.marvens.capstone.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -66,10 +62,6 @@ public class DemoCard {
     @Column(name = "expiry_year", nullable = false)
     private Short expiryYear;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "card", fetch = FetchType.LAZY)
-    private List<CardTransaction> transactions = new ArrayList<>();
-
     public DemoCard() {
     }
 
@@ -86,5 +78,4 @@ public class DemoCard {
     public void setExpiryMonth(Byte expiryMonth) { this.expiryMonth = expiryMonth; }
     public Short getExpiryYear() { return expiryYear; }
     public void setExpiryYear(Short expiryYear) { this.expiryYear = expiryYear; }
-    public List<CardTransaction> getTransactions() { return transactions; }
 }

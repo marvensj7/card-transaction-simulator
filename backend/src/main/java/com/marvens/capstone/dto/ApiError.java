@@ -1,4 +1,4 @@
-package com.marvens.capstone.controller.dto;
+package com.marvens.capstone.dto;
 
 import java.time.Instant;
 import org.springframework.http.HttpStatusCode;

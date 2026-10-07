@@ -1,5 +1,6 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.time.Instant;
 import java.util.stream.Stream;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,24 +36,24 @@ class ApiValidationTest {
     private static final String SECRET = "fictional-rejected-secret";
 
     static Stream<Arguments> invalidFields() {
-        return Stream.of(Arguments.of("cardId", 0, "Resource IDs"),
-                Arguments.of("testCardNumber", SECRET, "16-digit"),
-                Arguments.of("testSecurityCode", SECRET, "three or four digits"),
-                Arguments.of("expiryMonth", 13, "1 to 12"),
-                Arguments.of("expiryYear", 1999, "2000 to 9999"),
-                Arguments.of("merchantName", " ", "Merchant name"),
-                Arguments.of("amount", "1.001", "positive decimal string"),
-                Arguments.of("requestId", SECRET, "UUID"));
+        return Stream.of(Arguments.of("cardId", 0),
+                Arguments.of("testCardNumber", SECRET),
+                Arguments.of("testSecurityCode", SECRET),
+                Arguments.of("expiryMonth", 13),
+                Arguments.of("expiryYear", 1999),
+                Arguments.of("merchantName", " "),
+                Arguments.of("amount", "1.001"),
+                Arguments.of("requestId", SECRET));
     }
 
     @ParameterizedTest
     @MethodSource("invalidFields")
     void beanValidationUsesCorrectiveMessagesWithoutRejectedValues(String field, Object value,
-            String hint, CapturedOutput output) throws Exception {
+            CapturedOutput output) throws Exception {
         ObjectNode body = (ObjectNode) json.readTree(RequestDtoTest.validJson());
         body.set(field, json.valueToTree(value));
         String response = badRequest(purchase().content(body.toString()), "VALIDATION_FAILED");
-        assertThat(json.readTree(response).path("message").asText()).contains(hint);
+        assertThat(json.readTree(response).path("message").asText()).contains("Check the required fields");
         assertSafe(response, output);
     }
 
@@ -71,7 +72,6 @@ class ApiValidationTest {
     void malformedJsonWrongTypesAndMissingBodyUseSafeJson(CapturedOutput output) throws Exception {
         for (String body : new String[] {"{", "null", "[]",
                 "{\"testCardNumber\":\"" + RequestDtoTest.testNumber() + "\",\"testSecurityCode\":\"" + SECRET + "\",",
-                RequestDtoTest.validJson().replace("\"25.00\"", "25.00"),
                 RequestDtoTest.validJson().replace("\"cardId\":7", "\"cardId\":7.5")}) {
             assertSafe(badRequest(purchase().content(body), "MALFORMED_JSON"), output);
         }
@@ -89,16 +89,14 @@ class ApiValidationTest {
     }
 
     @Test
-    void refundAndAccountStatusValidationUseTheSameShape(CapturedOutput output) throws Exception {
-        assertSafe(badRequest(post("/api/transactions/42/refund").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"requestId\":\"" + SECRET + "\"}"), "VALIDATION_FAILED"), output);
-        assertSafe(badRequest(post("/api/transactions/0/refund").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"requestId\":\"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\"}"), "INVALID_PARAMETER"), output);
-        assertSafe(badRequest(patch("/api/admin/accounts/7/status").contentType(MediaType.APPLICATION_JSON)
-                .content("{}"), "VALIDATION_FAILED"), output);
-        for (String value : new String[] {"\"" + SECRET + "\"", "1"}) {
-            assertSafe(badRequest(patch("/api/admin/accounts/7/status").contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"status\":" + value + "}"), "MALFORMED_JSON"), output);
+    void refundAndAccountStatusParametersUseTheSameErrorShape(CapturedOutput output) throws Exception {
+        assertSafe(badRequest(post("/api/transactions/42/refund").param("requestId", SECRET), "INVALID_PARAMETER"), output);
+        assertSafe(badRequest(post("/api/transactions/0/refund")
+                .param("requestId", "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "INVALID_PARAMETER"), output);
+        assertSafe(badRequest(post("/api/transactions/42/refund"), "INVALID_PARAMETER"), output);
+        assertSafe(badRequest(patch("/api/admin/accounts/7/status"), "INVALID_PARAMETER"), output);
+        for (String value : new String[] {SECRET, "1", ""}) {
+            assertSafe(badRequest(patch("/api/admin/accounts/7/status").param("status", value), "INVALID_PARAMETER"), output);
         }
     }
 

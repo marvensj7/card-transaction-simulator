@@ -1,10 +1,8 @@
-package com.marvens.capstone.controller.dto;
+package com.marvens.capstone.dto;
 
 import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.marvens.capstone.service.PurchaseCommand;
 import jakarta.validation.constraints.*;
 
 /** In-memory fictional input. Sensitive fields are write-only and never printed. */
@@ -23,9 +21,9 @@ public class PurchaseRequest {
     private final String testSecurityCode;
     @NotBlank @Size(max = 100)
     private final String merchantName;
-    @NotNull @Pattern(regexp = "[0-9]{1,12}(\\.[0-9]{1,2})?")
+    @NotNull @Digits(integer = 12, fraction = 2)
     @DecimalMin(value = "0", inclusive = false)
-    private final String amount;
+    private final BigDecimal amount;
     @NotNull @Pattern(regexp = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
     private final String requestId;
 
@@ -36,7 +34,7 @@ public class PurchaseRequest {
                            @JsonProperty("expiryYear") Integer expiryYear,
                            @JsonProperty("testSecurityCode") String testSecurityCode,
                            @JsonProperty("merchantName") String merchantName,
-                           @JsonProperty("amount") @JsonDeserialize(using = DecimalStringDeserializer.class) String amount,
+                           @JsonProperty("amount") BigDecimal amount,
                            @JsonProperty("requestId") String requestId) {
         this.cardId = cardId;
         this.testCardNumber = testCardNumber;
@@ -48,17 +46,16 @@ public class PurchaseRequest {
         this.requestId = requestId;
     }
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public String getTestCardNumber() { return testCardNumber; }
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public String getTestSecurityCode() { return testSecurityCode; }
     public Long getCardId() { return cardId; }
     public Integer getExpiryMonth() { return expiryMonth; }
     public Integer getExpiryYear() { return expiryYear; }
     public String getMerchantName() { return merchantName; }
-    public String getAmount() { return amount; }
+    public BigDecimal getAmount() { return amount; }
     public String getRequestId() { return requestId; }
-
-    public PurchaseCommand toCommand() {
-        return new PurchaseCommand(cardId, testCardNumber, expiryMonth, expiryYear,
-                testSecurityCode, merchantName, new BigDecimal(amount), requestId);
-    }
 
     @Override
     public String toString() { return "PurchaseRequest"; }

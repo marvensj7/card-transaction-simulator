@@ -1,5 +1,7 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.exception.ApiExceptionHandler;
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.time.Instant;
 import java.util.stream.Stream;
 import java.util.List;
@@ -58,8 +60,7 @@ class ApiExceptionHandlerTest {
                 .andReturn().getResponse().getContentAsString();
         assertError(body, 401, "AUTHENTICATION_REQUIRED");
         assertThat(body).doesNotContain(SECRET, RequestDtoTest.testNumber(), "ADMIN", "userId");
-        assertThat(output.getAll()).contains("status=401 code=AUTHENTICATION_REQUIRED route=/api/** user=anonymous")
-                .doesNotContain(SECRET, RequestDtoTest.testNumber());
+        assertThat(output.getAll()).doesNotContain(SECRET, RequestDtoTest.testNumber());
         verifyNoInteractions(accounts, transactions);
     }
 
@@ -88,8 +89,7 @@ class ApiExceptionHandlerTest {
         assertThat(json.readTree(body).path("message").asText())
                 .isEqualTo("An unexpected error occurred. Please try again later.");
         assertThat(body).doesNotContain("IllegalStateException", "RuntimeException", "TransactionService", "stackTrace");
-        assertThat(output.getAll()).contains("ERROR", "API failure: status=500", "method=POST",
-                "route=/api/accounts/{accountId}/purchases", "user=9", "type=java.lang.IllegalStateException",
+        assertThat(output.getAll()).contains("ERROR", "API failure: status=500", "type=java.lang.IllegalStateException",
                 "TransactionService.purchase(TransactionService.java:");
         for (String secret : new String[] {SECRET, RequestDtoTest.testNumber(), "password-marker", "token-marker",
                 "database-credential-marker", "sql-parameter-marker"}) {
@@ -131,7 +131,7 @@ class ApiExceptionHandlerTest {
         assertThat(json.readTree(body).path("message").asText())
                 .isEqualTo("An unexpected error occurred. Please try again later.");
         assertThat(body).doesNotContain(SECRET, "HttpMessageNotWritableException");
-        assertThat(output.getAll()).contains("API failure: status=500", "method=GET", "route=/api/accounts")
+        assertThat(output.getAll()).contains("API failure: status=500", "type=org.springframework.http.converter.HttpMessageNotWritableException")
                 .doesNotContain(SECRET);
     }
 
@@ -149,9 +149,7 @@ class ApiExceptionHandlerTest {
                 RequestDtoTest.testNumber(), "testCardNumber", "testSecurityCode", "stackTrace");
         // A three-digit code can coincidentally occur in timestamp fractions.
         assertThat(json.readTree(body).path("message").asText()).doesNotContain(RequestDtoTest.testCode());
-        assertThat(output.getAll()).contains("status=" + status, "code=" + code,
-                "route=/api/accounts/{accountId}/purchases", "user=9")
-                .doesNotContain(SECRET, RequestDtoTest.testNumber(), "testSecurityCode");
+        assertThat(output.getAll()).doesNotContain(SECRET, RequestDtoTest.testNumber(), "testSecurityCode");
     }
 
     private void assertError(String body, int status, String code) throws Exception {

@@ -1,115 +1,41 @@
-# React Component Diagram
+# React component plan — the MVP
 
-**Credit Card Transaction Simulator**<br>
-**October 7, 2026**
+Updated October 7, 2026 after instructor feedback.
 
-## Overview
+The current frontend is `main.jsx` → `App.jsx` → `pages/HomePage.jsx`, with `styles.css`. It is a public home page and makes no API calls yet. Vite forwards `/api` to Spring Boot at `http://localhost:8080`; see the [frontend setup](../../frontend/README.md).
 
-The frontend is one Vite and React application written in plain JavaScript/JSX. The current entry path is `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. `main.jsx` also imports `styles.css` for the responsive layout. The home page introduces purchases, decisions, and balance history, with one footer note identifying fictional cards and balances. Its static CSS illustration is decorative and separate from the planned interactive 3D card. It has no forms, sign-in links, or transaction controls yet.
-
-The remaining hierarchy below is planned. `App` will set up routing and the signed-in user. Each page will own the data and form state it needs, while a small API helper will handle requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
-
-The virtual card is part of the purchase page. It previews masked test-card details and flips when the user presses a button. It does not replace the normal form or make its own API calls.
-
-Vite's local development proxy forwards `/api` to Spring Boot at `http://localhost:8080` without changing the path. The optional `API_PROXY_TARGET` variable changes that origin in local configuration and is not exposed to browser code. The home page makes no API calls. Practical run commands are in the [frontend setup](../../frontend/README.md).
-
-## Planned component hierarchy
+## Planned structure
 
 ```mermaid
 flowchart TD
-    MAIN[main.jsx] --> APP[App.jsx]
-    APP --> AUTH[AuthContext]
-    AUTH --> ROUTER[React Router]
-    ROUTER --> LAYOUT[AppLayout]
-
-    LAYOUT --> HEADER[Header and navigation]
-    LAYOUT --> NOTICE[Notice and loading state]
-    LAYOUT --> HOME[HomePage]
-    LAYOUT --> LOGIN[LoginPage]
-    LAYOUT --> DASH[DashboardPage]
-    LAYOUT --> PURCHASE[PurchasePage]
-    LAYOUT --> HISTORY[TransactionsPage]
-    LAYOUT --> ADMIN[AdminPage]
-
-    LOGIN --> AUTHFORM[AuthForm]
-    DASH --> SUMMARY[CreditSummary]
-    DASH --> CARDTILE[MaskedCardTile]
-    DASH --> RECENT[RecentTransactions]
-    PURCHASE --> FORM[PurchaseForm]
-    PURCHASE --> MODEL[VirtualCard3D]
-    PURCHASE --> RESULT[PurchaseResult]
-    HISTORY --> LIST[TransactionList]
-    HISTORY --> REFUND[RefundButton]
-    ADMIN --> ACCOUNTS[AdminAccountTable]
-    ADMIN --> ACTIVITY[AdminTransactionTable]
-
-    AUTH -.-> API[api.js]
-    DASH -.-> API
-    PURCHASE -.-> API
-    HISTORY -.-> API
-    ADMIN -.-> API
-    API --> BACKEND[Spring Boot REST API]
+    MAIN[main.jsx] --> APP[App.jsx: routing and signed-in state]
+    APP --> HOME[HomePage]
+    APP --> LOGIN[LoginPage]
+    APP --> DASH[DashboardPage]
+    APP --> PURCHASE[PurchasePage]
+    APP --> HISTORY[TransactionsPage]
+    APP --> ADMIN[AdminPage]
+    LOGIN --> API[api.js: fetch requests]
+    DASH --> API
+    PURCHASE --> API
+    HISTORY --> API
+    ADMIN --> API
+    API --> SERVER[Spring controllers]
 ```
 
-The dotted lines represent API calls. The other arrows show which component renders another component. The route checks in React keep the interface clear, but Spring Security and service ownership checks make the actual access decision.
+Use plain React `useState`, ordinary props, and React Router when routes are implemented. `App` owns the signed-in user and JWT in memory and passes them to pages. Refreshing requires sign-in again. An authentication context, layout framework, data cache, and global state library are unnecessary for this small application.
 
-## Planned routes and page responsibilities
+| Planned route | Page responsibility and local state |
+| --- | --- |
+| `/` | `HomePage`: describe the fictional simulation and link to sign-in. |
+| `/login` | `LoginPage`: registration/sign-in fields, loading state, and errors. |
+| `/dashboard` | `DashboardPage`: account summary and masked card. |
+| `/purchase` | `PurchasePage`: eight input fields, one request ID per attempted purchase, loading/error state, and the returned result. Reuse that ID for an uncertain retry. |
+| `/transactions` | `TransactionsPage`: history page number, rows, and full-refund action with a `requestId` query parameter. |
+| `/admin` | `AdminPage`: account/activity lists and ACTIVE/FROZEN status controls using a `status` query parameter. |
 
-| Route | Access | Page | Main responsibility |
-| --- | --- | --- | --- |
-| `/` | Public | `HomePage` | Explain the fictional simulation and link to sign-in. |
-| `/login` | Public | `LoginPage` | Register or sign in through `AuthForm`. |
-| `/dashboard` | USER | `DashboardPage` | Show credit limit, outstanding balance, available credit, masked card, and recent activity. |
-| `/purchase` | USER | `PurchasePage` | Collect test card details, show the 3D preview, submit a purchase, and display its outcome. |
-| `/transactions` | USER | `TransactionsPage` | Show paginated history and request an eligible full refund. |
-| `/admin` | ADMIN | `AdminPage` | Review account and transaction summaries; freeze or reactivate accounts. |
+Each page calls a small `api.js` helper using `fetch`. That helper sends requests, adds the JWT header, and reads safe API errors. It contains no purchase/refund decisions. Server role and ownership checks enforce access; frontend route checks only guide navigation.
 
-`AppLayout` renders the header, navigation, and shared notices. A small protected-route component directs signed-out users to `/login` and keeps USER pages separate from the ADMIN page. API responses still determine what the user may actually access.
+Keep forms, result displays, and tables in their page files until something actually needs reuse. Do not create every form field/button as a separate component. The customer form remains ordinary labeled HTML inputs. Card animation is deferred polish after all MVP workflows work; it is not part of the purchase decision or an extra service.
 
-## Planned state and data flow
-
-| State | Owner | Why it lives there |
-| --- | --- | --- |
-| Signed-in user and JWT | `AuthContext` | The header, protected routes, and API helper all need the same login state. The token is kept in memory and cleared on sign-out. |
-| Account summary and recent activity | `DashboardPage` | Only the dashboard needs these values. It loads them when the page opens and after a successful purchase or refund. |
-| Purchase fields, card flip, request ID, and result | `PurchasePage` | The form and 3D card need the same local state. One request ID is created for a submission and reused if that request is retried. |
-| History page number and refund result | `TransactionsPage` | Pagination and refund controls are specific to the history view. |
-| Admin account and transaction lists | `AdminPage` | Only admins use these lists and status controls. |
-
-The purchase form uses controlled inputs. `PurchasePage` passes only a card label, masked last four digits, expiry, and flip state to `VirtualCard3D`. The test security code stays in the form field and is never passed to the model. If WebGL is unavailable or reduced motion is requested, the same HTML form remains usable.
-
-The API helper sends JSON, adds the JWT to protected requests, and turns HTTP errors into readable messages. It does not contain purchase rules. For example, a `DECLINED` transaction is a successful API response with a declined outcome, while a malformed form submission is an error response.
-
-## Planned frontend files
-
-```text
-frontend/
-  src/
-    main.jsx
-    App.jsx
-    api/
-      api.js
-    auth/
-      AuthContext.jsx
-    pages/
-      HomePage.jsx
-      LoginPage.jsx
-      DashboardPage.jsx
-      PurchasePage.jsx
-      TransactionsPage.jsx
-      AdminPage.jsx
-    components/
-      AppLayout.jsx
-      AuthForm.jsx
-      CreditSummary.jsx
-      MaskedCardTile.jsx
-      PurchaseForm.jsx
-      VirtualCard3D.jsx
-      PurchaseResult.jsx
-      TransactionList.jsx
-      AdminAccountTable.jsx
-      AdminTransactionTable.jsx
-    styles.css
-```
-
-Only `main.jsx`, `App.jsx`, `pages/HomePage.jsx`, and `styles.css` are implemented so far. The `components/`, `auth/`, and `api/` directories contain only `.gitkeep` files until they are used. Small pieces stay in their page file. Shared components will have their own files. Each page will use plain React state; the design has one frontend and no separate 3D service.
+The remaining planned files are `api/api.js` and the five unfinished page files listed above. Their implementation is a later numbered section, after backend authentication. No additional frontend code was added during the backend simplification.

@@ -1,4 +1,4 @@
-package com.marvens.capstone.service;
+package com.marvens.capstone.config;
 
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;

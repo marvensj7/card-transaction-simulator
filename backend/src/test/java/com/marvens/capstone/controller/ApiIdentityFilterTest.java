@@ -1,5 +1,7 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.security.AuthenticatedUser;
+import com.marvens.capstone.security.ApiIdentityFilter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.time.Instant;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +48,7 @@ class ApiIdentityFilterTest {
         var response = new MockHttpServletResponse();
         filter.doFilter(request, response, (req, res) -> fail("Unexpected controller access"));
         assertThat(response.getStatus()).isEqualTo(401);
-        assertThatThrownBy(() -> CurrentUser.id(request.getUserPrincipal()))
+        assertThatThrownBy(() -> AuthenticatedUser.id(request.getUserPrincipal()))
                 .isInstanceOf(com.marvens.capstone.exception.AuthenticationRequiredException.class);
     }
 
@@ -60,7 +62,7 @@ class ApiIdentityFilterTest {
         var called = new AtomicBoolean();
         filter.doFilter(request, new MockHttpServletResponse(), (req, res) -> called.set(true));
         assertThat(called).isTrue();
-        assertThat(CurrentUser.id(request.getUserPrincipal())).isEqualTo(9L);
+        assertThat(AuthenticatedUser.id(request.getUserPrincipal())).isEqualTo(9L);
         assertThatThrownBy(() -> new AuthenticatedUser(0L)).isInstanceOf(IllegalArgumentException.class);
     }
 }

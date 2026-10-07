@@ -1,7 +1,7 @@
 package com.marvens.capstone.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marvens.capstone.controller.dto.*;
+import com.marvens.capstone.dto.*;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
@@ -18,7 +18,7 @@ class ResponseDtoTest {
         assertThat(accountJson.get("availableCredit").asText()).isEqualTo("975.00");
         assertThat(accountJson.size()).isEqualTo(5);
         var cardJson = json.readTree(json.writeValueAsString(CardResponse.from(transaction.getCard())));
-        assertThat(cardJson.get("maskedNumber").asText()).isEqualTo("•••• 4242");
+        assertThat(cardJson.get("maskedNumber").asText()).isEqualTo("\u2022\u2022\u2022\u2022 4242");
         assertThat(cardJson.size()).isEqualTo(6);
         var transactionJson = json.readTree(json.writeValueAsString(TransactionResponse.from(transaction)));
         assertThat(transactionJson.get("amount").asText()).isEqualTo("25.00");

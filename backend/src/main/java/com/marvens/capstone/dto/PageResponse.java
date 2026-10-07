@@ -1,4 +1,4 @@
-package com.marvens.capstone.controller.dto;
+package com.marvens.capstone.dto;
 
 import java.util.List;
 import java.util.function.Function;

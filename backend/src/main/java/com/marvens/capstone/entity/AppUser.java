@@ -5,11 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -50,12 +48,6 @@ public class AppUser {
     @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Role role;
 
-    // An admin can have no account. Inverse optional one-to-one uses EAGER
-    // deliberately: reliable LAZY loading here would need bytecode enhancement.
-    @JsonIgnore
-    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, optional = true)
-    private CreditAccount creditAccount;
-
     public AppUser() {
     }
 
@@ -69,6 +61,4 @@ public class AppUser {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-    public CreditAccount getCreditAccount() { return creditAccount; }
-    public void setCreditAccount(CreditAccount creditAccount) { this.creditAccount = creditAccount; }
 }

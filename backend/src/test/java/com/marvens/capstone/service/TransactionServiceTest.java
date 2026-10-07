@@ -1,5 +1,6 @@
 package com.marvens.capstone.service;
 
+import com.marvens.capstone.dto.PurchaseRequest;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -112,7 +113,7 @@ class TransactionServiceTest {
         var boundaryService = new TransactionService(accountService, accounts, cards, transactions, boundaryClock);
         card.setExpiryMonth((byte) 10);
         card.setExpiryYear((short) 2026);
-        var command = new PurchaseCommand(8L, testNumber(), 10, 2026, testCode(),
+        var command = new PurchaseRequest(8L, testNumber(), 10, 2026, testCode(),
                 "Demo Shop", BigDecimal.ONE, requestId);
         assertDecline(boundaryService.purchase(1L, 7L, command), "CARD_EXPIRED");
     }
@@ -120,7 +121,7 @@ class TransactionServiceTest {
     @Test
     void matchingExpiredCardRecordsDecline() {
         card.setExpiryYear((short) 2025);
-        var command = new PurchaseCommand(8L, testNumber(), 12, 2025, testCode(),
+        var command = new PurchaseRequest(8L, testNumber(), 12, 2025, testCode(),
                 "Demo Shop", new BigDecimal("1.00"), requestId);
         assertDecline(service.purchase(1L, 7L, command), "CARD_EXPIRED");
     }
@@ -129,7 +130,7 @@ class TransactionServiceTest {
     void cardIsValidThroughTheLastDayOfItsExpiryMonth() {
         card.setExpiryMonth((byte) 10);
         card.setExpiryYear((short) 2026);
-        var command = new PurchaseCommand(8L, testNumber(), 10, 2026, testCode(),
+        var command = new PurchaseRequest(8L, testNumber(), 10, 2026, testCode(),
                 "Demo Shop", new BigDecimal("1.00"), requestId);
         assertThat(service.purchase(1L, 7L, command).transaction().getStatus())
                 .isEqualTo(CardTransaction.Status.APPROVED);
@@ -164,10 +165,10 @@ class TransactionServiceTest {
 
     @Test
     void unrecognizedNumberWrongExpiryAndMalformedCodeCreateNoHistory() {
-        for (PurchaseCommand command : new PurchaseCommand[] {
-                new PurchaseCommand(8L, "0".repeat(16), 12, 2030, testCode(), "Demo Shop", BigDecimal.ONE, requestId),
-                new PurchaseCommand(8L, testNumber(), 11, 2030, testCode(), "Demo Shop", BigDecimal.ONE, requestId),
-                new PurchaseCommand(8L, testNumber(), 12, 2030, "x", "Demo Shop", BigDecimal.ONE, requestId)}) {
+        for (PurchaseRequest command : new PurchaseRequest[] {
+                new PurchaseRequest(8L, "0".repeat(16), 12, 2030, testCode(), "Demo Shop", BigDecimal.ONE, requestId),
+                new PurchaseRequest(8L, testNumber(), 11, 2030, testCode(), "Demo Shop", BigDecimal.ONE, requestId),
+                new PurchaseRequest(8L, testNumber(), 12, 2030, "x", "Demo Shop", BigDecimal.ONE, requestId)}) {
             assertThatThrownBy(() -> service.purchase(1L, 7L, command)).isInstanceOf(InvalidPurchaseException.class);
         }
         verify(transactions, never()).saveAndFlush(any());
@@ -189,10 +190,10 @@ class TransactionServiceTest {
     void changedAmountMerchantCardOrTransactionTypeConflicts() {
         var first = service.purchase(1L, 7L, command("50.00")).transaction();
         when(transactions.findByAccount_IdAndRequestId(7L, requestId)).thenReturn(Optional.of(first));
-        for (PurchaseCommand changed : new PurchaseCommand[] {
+        for (PurchaseRequest changed : new PurchaseRequest[] {
                 command("51.00"),
-                new PurchaseCommand(8L, testNumber(), 12, 2030, testCode(), "Other Shop", new BigDecimal("50.00"), requestId),
-                new PurchaseCommand(9L, testNumber(), 12, 2030, testCode(), "Demo Shop", new BigDecimal("50.00"), requestId)}) {
+                new PurchaseRequest(8L, testNumber(), 12, 2030, testCode(), "Other Shop", new BigDecimal("50.00"), requestId),
+                new PurchaseRequest(9L, testNumber(), 12, 2030, testCode(), "Demo Shop", new BigDecimal("50.00"), requestId)}) {
             assertThatThrownBy(() -> service.purchase(1L, 7L, changed)).isInstanceOf(RequestConflictException.class);
         }
         first.setType(CardTransaction.Type.REFUND);
@@ -274,8 +275,8 @@ class TransactionServiceTest {
         verify(accounts, never()).saveAndFlush(any());
     }
 
-    private PurchaseCommand command(String amount) {
-        return new PurchaseCommand(8L, testNumber(), 12, 2030, testCode(), "Demo Shop", new BigDecimal(amount), requestId);
+    private PurchaseRequest command(String amount) {
+        return new PurchaseRequest(8L, testNumber(), 12, 2030, testCode(), "Demo Shop", new BigDecimal(amount), requestId);
     }
 
     // Test input is kept out of test names, parameter labels, logs, and results.

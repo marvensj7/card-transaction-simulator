@@ -2,7 +2,7 @@ package com.marvens.capstone.controller;
 
 import java.time.Instant;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marvens.capstone.controller.dto.ApiError;
+import com.marvens.capstone.dto.ApiError;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import static org.assertj.core.api.Assertions.*;

@@ -130,6 +130,8 @@ The history is append-only in normal use. An approved purchase remains in the ta
 
 MySQL checks restrict roles and statuses and prevent negative balances or nonpositive transaction amounts. An index on `(account_id, id)` supports newest-first account history. A unique index on `(account_id, request_id)` supports duplicate-submission protection. Services lock the account during purchases, refunds, and status changes and check the cross-row rules. Balance and history commit together. A full refund remains eligible on a frozen account.
 
+Java entities follow the foreign keys in one direction. The ERD still describes the database relationships; it does not require reverse Java fields or transaction collections. Repository queries retrieve accounts, cards, and history as needed.
+
 ## Balance examples
 
 If the credit limit is **$1,000.00** and the outstanding balance is **$200.00**, available credit is **$800.00**. An approved **$50.00** purchase changes the outstanding balance to **$250.00** and records `outstanding_after = 250.00`. A declined **$900.00** purchase records the decline but leaves the outstanding balance at **$250.00**. A full refund of the approved $50.00 purchase creates a linked REFUND row and returns the outstanding balance to **$200.00**.

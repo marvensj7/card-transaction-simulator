@@ -1,5 +1,7 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.dto.PurchaseRequest;
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,7 +59,7 @@ class TransactionControllerTest {
                 .andReturn();
         assertThat(result.getResponse().getContentAsString()).doesNotContain(RequestDtoTest.testNumber(),
                 "testSecurityCode", "passwordHash", "fictional-secret-hash-marker", "accessToken", "replayed", "requestId");
-        var command = ArgumentCaptor.forClass(PurchaseCommand.class);
+        var command = ArgumentCaptor.forClass(PurchaseRequest.class);
         verify(transactions).purchase(eq(9L), eq(7L), command.capture());
         assertThat(command.getValue().getCardId()).isEqualTo(7L);
         assertThat(command.getValue().getAmount()).isEqualByComparingTo("25.00");
@@ -78,7 +80,7 @@ class TransactionControllerTest {
                 .thenReturn(new TransactionOutcome(refund, account, replayed));
         mvc.perform(post("/api/transactions/42/refund").principal(new AuthenticatedUser(9L))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"requestId\":\"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\",\"userId\":1,\"amount\":\"99.00\"}"))
+                        .param("requestId", "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
                 .andExpect(status().is(status))
                 .andExpect(jsonPath("$.transaction.type").value("REFUND"))
                 .andExpect(jsonPath("$.transaction.originalPurchaseId").value(42))
@@ -110,7 +112,7 @@ class TransactionControllerTest {
                 {"expiryYear", 1999}, {"expiryYear", 10000}, {"testCardNumber", "sensitive-number-marker"},
                 {"testSecurityCode", "sensitive-code-marker"}, {"merchantName", " "}, {"merchantName", "x".repeat(101)},
                 {"amount", "0"}, {"amount", "-1"}, {"amount", "1.001"}, {"amount", "1000000000000"},
-                {"amount", "1e2"}, {"amount", " 25.00"}, {"amount", 25}, {"requestId", "invalid-id"}};
+                {"amount", "not-money"}, {"requestId", "invalid-id"}};
         for (Object[] entry : invalid) {
             ObjectNode body = (ObjectNode) json.readTree(RequestDtoTest.validJson());
             body.set((String) entry[0], json.valueToTree(entry[1]));
@@ -135,9 +137,9 @@ class TransactionControllerTest {
 
     @Test
     void malformedBodiesRefundIdsPathsAndPaginationStopBeforeServiceAccess() throws Exception {
-        for (String body : new String[] {"{}", "{\"requestId\":null}", "{\"requestId\":\"invalid\"}", "{"}) {
+        for (String requestId : new String[] {"", "invalid", "1-1-1-1-1"}) {
             mvc.perform(post("/api/transactions/42/refund").principal(new AuthenticatedUser(9L))
-                            .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+                            .param("requestId", requestId)).andExpect(status().isBadRequest());
         }
         mvc.perform(post("/api/accounts/0/purchases").principal(new AuthenticatedUser(9L))
                         .contentType(MediaType.APPLICATION_JSON).content(RequestDtoTest.validJson())).andExpect(status().isBadRequest());

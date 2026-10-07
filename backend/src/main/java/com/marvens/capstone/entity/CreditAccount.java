@@ -1,8 +1,6 @@
 package com.marvens.capstone.entity;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -15,7 +13,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -58,15 +55,6 @@ public class CreditAccount {
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Status status;
 
-    // An account can have no card. See AppUser for the inverse fetch choice.
-    @JsonIgnore
-    @OneToOne(mappedBy = "account", fetch = FetchType.EAGER, optional = true)
-    private DemoCard demoCard;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
-    private List<CardTransaction> transactions = new ArrayList<>();
-
     public CreditAccount() {
     }
 
@@ -79,7 +67,4 @@ public class CreditAccount {
     public void setOutstandingBalance(BigDecimal outstandingBalance) { this.outstandingBalance = outstandingBalance; }
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
-    public DemoCard getDemoCard() { return demoCard; }
-    public void setDemoCard(DemoCard demoCard) { this.demoCard = demoCard; }
-    public List<CardTransaction> getTransactions() { return transactions; }
 }

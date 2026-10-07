@@ -1,4 +1,4 @@
-package com.marvens.capstone.controller.dto;
+package com.marvens.capstone.dto;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

@@ -25,7 +25,7 @@ class EntityMappingIT {
     private JdbcTemplate jdbc;
 
     @Test
-    void optionalAccountAndCardLoadAsNull() {
+    void userWithoutAccountAndAccountWithoutCardCanBeStored() {
         AppUser admin = EntityFixtures.user();
         admin.setRole(AppUser.Role.ADMIN);
         entityManager.persist(admin);
@@ -37,9 +37,12 @@ class EntityMappingIT {
         entityManager.flush();
         entityManager.clear();
 
-        assertThat(entityManager.find(AppUser.class, admin.getId()).getCreditAccount()).isNull();
+        assertThat(entityManager.find(AppUser.class, admin.getId()).getRole()).isEqualTo(AppUser.Role.ADMIN);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM credit_accounts WHERE user_id = ?",
+                Long.class, admin.getId())).isZero();
         CreditAccount loaded = entityManager.find(CreditAccount.class, account.getId());
-        assertThat(loaded.getDemoCard()).isNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM demo_cards WHERE account_id = ?",
+                Long.class, account.getId())).isZero();
         assertThat(loaded.getUser().getId()).isEqualTo(customer.getId());
         assertThat(loaded.getOutstandingBalance()).isEqualByComparingTo("0.00");
     }
@@ -64,10 +67,11 @@ class EntityMappingIT {
         assertThat(loaded.getCreatedAt()).isEqualTo(purchase.getCreatedAt());
         assertThat(loaded.getRequestId()).isEqualTo(refund.getRequestId());
         assertThat(loaded.getReasonCode()).isNull();
-        assertThat(loaded.getAccount().getTransactions()).hasSize(2);
-        assertThat(loaded.getCard().getTransactions()).hasSize(2);
-        assertThat(loaded.getAccount().getUser().getCreditAccount().getId()).isEqualTo(loaded.getAccount().getId());
-        assertThat(loaded.getAccount().getDemoCard().getId()).isEqualTo(loaded.getCard().getId());
+        assertThat(loaded.getAccount().getId()).isEqualTo(purchase.getAccount().getId());
+        assertThat(loaded.getCard().getId()).isEqualTo(purchase.getCard().getId());
+        assertThat(loaded.getCard().getAccount().getId()).isEqualTo(loaded.getAccount().getId());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM card_transactions WHERE account_id = ?",
+                Long.class, loaded.getAccount().getId())).isEqualTo(2L);
     }
 
     @Test

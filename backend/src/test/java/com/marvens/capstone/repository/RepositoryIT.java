@@ -245,7 +245,6 @@ class RepositoryIT {
         account.setUser(user);
         account.setCreditLimit(new BigDecimal("1000.00"));
         account.setStatus(CreditAccount.Status.ACTIVE);
-        user.setCreditAccount(account);
         return accounts.save(account);
     }
 
@@ -257,7 +256,6 @@ class RepositoryIT {
         card.setLastFour("4242");
         card.setExpiryMonth((byte) 12);
         card.setExpiryYear((short) 2030);
-        account.setDemoCard(card);
         return cards.save(card);
     }
 

@@ -1,5 +1,6 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.util.List;
 import com.marvens.capstone.service.AccountService;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ class AccountControllerTest {
         when(accounts.getCards(9L, 7L)).thenReturn(List.of(ControllerFixtures.card(ControllerFixtures.account())));
         mvc.perform(get("/api/accounts/7/cards").principal(new AuthenticatedUser(9L)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].maskedNumber").value("•••• 4242"))
+                .andExpect(jsonPath("$[0].maskedNumber").value("\u2022\u2022\u2022\u2022 4242"))
                 .andExpect(jsonPath("$[0].expiryMonth").value(12))
                 .andExpect(jsonPath("$[0].expiryYear").value(2030))
                 .andExpect(jsonPath("$[0].testProfile").value("DEMO_4242"))

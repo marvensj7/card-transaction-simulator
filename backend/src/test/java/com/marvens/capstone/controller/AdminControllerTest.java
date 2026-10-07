@@ -1,5 +1,6 @@
 package com.marvens.capstone.controller;
 
+import com.marvens.capstone.security.AuthenticatedUser;
 import java.util.List;
 import com.marvens.capstone.entity.CreditAccount;
 import com.marvens.capstone.exception.AccessDeniedException;
@@ -74,7 +75,7 @@ class AdminControllerTest {
             account.setStatus(state);
             when(accounts.changeStatus(13L, 7L, state)).thenReturn(account);
             mvc.perform(patch("/api/admin/accounts/7/status").principal(new AuthenticatedUser(13L))
-                            .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"" + state + "\",\"userId\":1}"))
+                            .param("status", state.name()).param("userId", "1"))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value(state.name()))
                     .andExpect(jsonPath("$.id").value(7)).andExpect(jsonPath("$.ownerId").value(9));
             verify(accounts).changeStatus(13L, 7L, state);
@@ -83,12 +84,12 @@ class AdminControllerTest {
 
     @Test
     void invalidStatusPathsAndPageArgumentsNeverReachTheServices() throws Exception {
-        for (String body : new String[] {"{}", "{\"status\":null}", "{\"status\":\"CLOSED\"}", "{\"status\":0}", "{"}) {
+        for (String state : new String[] {"", "null", "CLOSED", "0"}) {
             mvc.perform(patch("/api/admin/accounts/7/status").principal(new AuthenticatedUser(13L))
-                            .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+                            .param("status", state)).andExpect(status().isBadRequest());
         }
         mvc.perform(patch("/api/admin/accounts/0/status").principal(new AuthenticatedUser(13L))
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"ACTIVE\"}"))
+                        .param("status", "ACTIVE"))
                 .andExpect(status().isBadRequest());
         for (String route : new String[] {"accounts", "transactions"}) {
             for (String query : new String[] {"page=-1", "size=0", "size=-1", "size=bad"}) {

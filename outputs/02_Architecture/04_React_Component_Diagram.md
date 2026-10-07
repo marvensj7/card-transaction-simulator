@@ -5,7 +5,7 @@
 
 ## Overview
 
-The frontend is one Vite and React application written in plain JavaScript/JSX. The current entry path is `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. The home page explains that the simulation uses fictional cards and balances.
+The frontend is one Vite and React application written in plain JavaScript/JSX. The current entry path is `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. `main.jsx` also imports `styles.css` for the responsive layout. The home page explains that the simulation uses fictional cards and balances. It has no forms, sign-in links, or transaction controls yet.
 
 The remaining hierarchy below is planned. `App` will set up routing and the signed-in user. Each page will own the data and form state it needs, while a small API helper will handle requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
 
@@ -110,4 +110,4 @@ frontend/
     styles.css
 ```
 
-Only `main.jsx`, `App.jsx`, and `pages/HomePage.jsx` are implemented so far. The `components/`, `auth/`, and `api/` directories contain only `.gitkeep` files until they are used. Small pieces stay in their page file. Shared components will have their own files. Each page will use plain React state; the design has one frontend and no separate 3D service.
+Only `main.jsx`, `App.jsx`, `pages/HomePage.jsx`, and `styles.css` are implemented so far. The `components/`, `auth/`, and `api/` directories contain only `.gitkeep` files until they are used. Small pieces stay in their page file. Shared components will have their own files. Each page will use plain React state; the design has one frontend and no separate 3D service.

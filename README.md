@@ -34,6 +34,20 @@ The frontend uses Vite, React, and plain JavaScript/JSX. `main.jsx` renders `App
 
 Start with the [document index](outputs/README.md) or the [submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md).
 
+## Local setup
+
+With Node.js 20.19+ on the 20.x line, or 22.12+ on a newer line, and npm installed, run from the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The home page runs at `http://127.0.0.1:5173/` without the backend. `npm run build` creates the frontend production build. Vite forwards `/api` to Spring Boot at `http://localhost:8080`; the optional `API_PROXY_TARGET` setting is described in the [frontend setup](frontend/README.md). No browser environment variables or secrets are needed.
+
+For API work, follow the [SQL setup](sql/README.md) and start Spring Boot in a separate terminal using the [backend setup](backend/README.md). Keep datasource credentials in backend environment variables or the ignored `application-local.properties` profile.
+
 ## Demonstration
 
 The application will run locally with fictional test credentials and balances. AWS deployment and a Jira board are outside this capstone's approved scope.

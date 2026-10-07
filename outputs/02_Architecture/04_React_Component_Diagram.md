@@ -11,6 +11,8 @@ The remaining hierarchy below is planned. `App` will set up routing and the sign
 
 The virtual card is part of the purchase page. It previews masked test-card details and flips when the user presses a button. It does not replace the normal form or make its own API calls.
 
+Vite's local development proxy forwards `/api` to Spring Boot at `http://localhost:8080` without changing the path. The optional `API_PROXY_TARGET` variable changes that origin in local configuration and is not exposed to browser code. The home page makes no API calls. Practical run commands are in the [frontend setup](../../frontend/README.md).
+
 ## Planned component hierarchy
 
 ```mermaid

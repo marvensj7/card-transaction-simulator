@@ -12,5 +12,6 @@
 - [Entity-relationship diagram](02_Architecture/02_Entity_Relationship_Diagram.md) — four tables, fields, keys, cardinality, and balance examples.
 - [API design](02_Architecture/03_API_Design.md) — endpoints, request and response shapes, access rules, and error behavior.
 - [React component diagram](02_Architecture/04_React_Component_Diagram.md) — routes, component hierarchy, and state ownership.
+- [Backend walkthrough](02_Architecture/05_Backend_Walkthrough.md) — plain-language study guide, purchase/refund traces, file tour, and instructor questions for the implemented backend.
 
 The diagrams describe the full application design. The API design records the implemented controller and shared error contracts and identifies the authentication endpoints that are still planned.

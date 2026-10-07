@@ -7,7 +7,7 @@
 
 I will build a web application that simulates credit card purchases with fictional accounts and test cards. A customer will be able to sign in, see their available credit, submit a purchase, and review the result in a transaction history. The application will approve or decline the purchase based on the account’s status and available credit. Customers will also be able to request a full refund. An administrator will be able to review activity and freeze or reactivate accounts.
 
-The application will use React for the interface, Spring Boot for the API and transaction rules, and MySQL for persistent data. The database mappings, repositories, and account and transaction services are implemented. The HTTP API, authentication, and React interface are planned. It is an independent simulation. It will not connect to Capital One, Accenture systems, a payment network, or real money.
+The application will use React for the interface, Spring Boot for the API and transaction rules, and MySQL for persistent data. The database mappings, repositories, account and transaction services, HTTP controllers, and shared error handling are implemented. Authentication and the React interface are planned. It is an independent simulation. It will not connect to Capital One, Accenture systems, a payment network, or real money.
 
 ## Problem and business case
 

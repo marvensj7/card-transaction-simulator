@@ -1,6 +1,6 @@
 # Card simulator frontend
 
-I built one React application with Vite and plain JavaScript/JSX. `index.html` loads `src/main.jsx`, which imports `styles.css` and renders `App.jsx`. `App` renders `pages/HomePage.jsx`, a public introduction to the fictional simulation. Plain CSS keeps the page readable on desktop and mobile, with no UI framework or inactive controls.
+I built one React application with Vite and plain JavaScript/JSX. `index.html` loads `src/main.jsx`, which imports `styles.css` and renders `App.jsx`. `App` renders `pages/HomePage.jsx`, a public introduction to the transaction journey. The home page uses a navy and peach layout, a static CSS illustration, and three short explanations of purchases, decisions, and balance history. A single footer note identifies the fictional data. Plain CSS keeps the page readable on desktop and mobile, with no UI framework or inactive controls.
 
 The `components/`, `auth/`, and `api/` folders are reserved for shared components, authentication, and API calls. They contain only `.gitkeep` files so Git retains the empty folders. Routing, sign-in, account data, purchase forms, and the 3D card are planned separately.
 

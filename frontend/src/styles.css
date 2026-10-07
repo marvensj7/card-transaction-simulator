@@ -1,7 +1,7 @@
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #20302d;
-  background: #f5f6f2;
+  color: #202a39;
+  background: #f7f6f2;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   line-height: 1.6;
@@ -17,117 +17,263 @@ body {
 }
 
 .app-shell {
-  width: min(100% - 3rem, 68rem);
+  width: min(100% - 3rem, 72rem);
   margin-inline: auto;
 }
 
-.site-header {
+.site-header,
+.project-name,
+.site-footer {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.site-header {
   justify-content: space-between;
-  gap: 0.75rem;
-  padding-block: 1.5rem;
-  border-bottom: 1px solid #d4ddd6;
+  gap: 1rem;
+  padding-block: 1.75rem;
 }
 
 .project-name {
-  font-weight: 700;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
 }
 
-.simulation-label {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #b5cec5;
-  border-radius: 2rem;
-  background: #e6efe9;
-  color: #225244;
-  font-size: 0.85rem;
+.brand-mark {
+  width: 1.75rem;
+  height: 1.25rem;
+  border: 2px solid #202a39;
+  border-radius: 0.25rem;
+  box-shadow: 4px -4px 0 #ed997b;
 }
 
-.home-page {
-  padding-block: clamp(2.5rem, 7vw, 5rem);
+.project-label {
+  color: #626975;
+  font-size: 0.8rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(2rem, 5vw, 4rem);
+  border-radius: 1.5rem;
+  background: #172638;
+  color: #faf7f0;
+  overflow: hidden;
 }
 
 .eyebrow {
-  margin: 0 0 1rem;
-  color: #3d6659;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  margin: 0 0 1.75rem;
+  color: #c6cfd9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 h1,
 h2,
 h3 {
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 h1 {
-  max-width: 18ch;
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3.75rem);
-  letter-spacing: -0.035em;
+  max-width: 10ch;
+  font-size: clamp(2.75rem, 6vw, 5.5rem);
+  font-weight: 650;
+  letter-spacing: -0.065em;
+}
+
+h1 span {
+  color: #f3ac8d;
 }
 
 .introduction {
-  max-width: 55ch;
-  margin: 1.5rem 0 1rem;
-  color: #4c5e58;
-  font-size: 1.15rem;
+  max-width: 37ch;
+  margin: 1.75rem 0 0;
+  color: #c6cfd9;
+  font-size: 1.05rem;
 }
 
-.simulation-notice {
-  margin: 0;
-  color: #225244;
-  font-weight: 650;
-}
-
-.about-section {
-  margin-top: 3rem;
-}
-
-h2 {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
-}
-
-.about-grid {
+/* A static illustration, separate from the planned interactive purchase card. */
+.transaction-art {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  justify-items: center;
+  align-content: center;
+  min-height: 23rem;
 }
 
-.about-panel {
-  padding: 1.5rem;
-  border: 1px solid #d4ddd6;
-  border-radius: 0.75rem;
-  background: #fff;
+.art-orbit {
+  position: absolute;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid #ffffff15;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3rem #ffffff03, 0 0 0 6rem #ffffff03;
 }
 
-h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+.illustrated-card {
+  position: relative;
+  width: min(100%, 20rem);
+  padding: 1.75rem;
+  border: 1px solid #ffceb2;
+  border-radius: 1rem;
+  background: linear-gradient(125deg, #f8c6a7, #e8957b);
+  color: #352c32;
+  transform: rotate(-7deg);
+  box-shadow: 0 1.5rem 3rem #08111c55;
 }
 
-.about-panel p {
+.card-caption,
+.card-symbol,
+.card-title,
+.card-line {
+  display: block;
+}
+
+.card-caption {
+  font-size: 0.6rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.card-symbol {
+  margin-block: 0.75rem;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.card-title {
+  font-size: 1.35rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+
+.card-line {
+  width: 2.75rem;
+  margin-top: 1.75rem;
+  border-top: 3px solid #352c32;
+}
+
+.journey-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 2.25rem;
+  color: #c6cfd9;
+  font-size: 0.75rem;
+}
+
+.journey-label span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #f3ac8d;
+}
+
+.journey {
+  padding-block: 3.5rem;
+}
+
+.section-heading h2 {
   margin: 0;
-  color: #4c5e58;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  letter-spacing: -0.04em;
+}
+
+.section-heading p {
+  margin: 0.5rem 0 0;
+  color: #626975;
+}
+
+.journey-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.journey-step {
+  padding-top: 1rem;
+  border-top: 1px solid #d7d8d8;
+}
+
+.step-number {
+  color: #8c4836;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.journey-step h3 {
+  margin: 0.75rem 0;
+  font-size: 1.05rem;
+}
+
+.journey-step p {
+  max-width: 33ch;
+  margin: 0;
+  color: #626975;
+  font-size: 0.9rem;
 }
 
 .site-footer {
-  padding-block: 1.5rem;
-  border-top: 1px solid #d4ddd6;
-  color: #4c5e58;
-  font-size: 0.875rem;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-block: 1.25rem;
+  border-top: 1px solid #d7d8d8;
+  color: #626975;
+  font-size: 0.75rem;
 }
 
-@media (max-width: 40rem) {
+@media (max-width: 48rem) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .transaction-art {
+    min-height: 21rem;
+    margin-top: 1rem;
+  }
+
+  .journey-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .journey-step p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 30rem) {
   .app-shell {
     width: calc(100% - 2rem);
   }
 
-  .about-grid {
-    grid-template-columns: 1fr;
+  .hero {
+    padding: 1.5rem;
+  }
+
+  .illustrated-card {
+    width: 90%;
+    padding: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+
+  .journey-label {
+    font-size: 0.65rem;
   }
 }

@@ -22,6 +22,8 @@ From `backend/` in PowerShell:
 
 On macOS/Linux, use `./mvnw` instead. `JAVA_HOME` should point to your JDK 17 installation.
 
+If the datasource values are in the ignored `application-local.properties` file, start with `./mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"` in PowerShell. Keep the environment-variable placeholders in the tracked `application.properties`; local values belong only in the ignored file or backend environment variables.
+
 The first command builds the executable JAR and runs entity, service, DTO, identity-filter, and MVC tests without a database. Error tests cover each implemented status, malformed and invalid requests, spoofed identity, safe messages and logs, and unexpected failures. The second also runs entity mapping, repository, service, and controller integration tests against MySQL. These checks cover ownership, roles, approvals and declines, full refunds, retries, `201` versus `200`, validation, response fields, page ordering, concurrent requests, and rollback. Controller error checks confirm that invalid purchases, conflicting retries, and ineligible refunds preserve balances and history.
 
 A missing database or schema fails verification. Entity and repository tests roll back their fictional rows. Service and controller tests commit fresh fictional fixtures, then delete only those fixtures after each test. Controller integration tests map responses after the service transaction closes. Existing rows are not changed; MySQL auto-increment counters can advance.

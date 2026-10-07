@@ -17,7 +17,9 @@ The design follows a direct path: React page → API request → controller → 
 
 The backend has four JPA entities, repositories, two services, and REST controllers over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. Validated request DTOs and dedicated response DTOs keep money, UTC dates, masked cards, and pagination consistent. New purchases and refunds return `201`; saved retries return `200`. Account locks and request IDs protect balance changes.
 
-Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. Errors use consistent status, code, message, and UTC timestamp fields, including requests blocked by the identity filter. JWT sign-in and the React interface are planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
+Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. Errors use consistent status, code, message, and UTC timestamp fields, including requests blocked by the identity filter. JWT sign-in is planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
+
+The frontend uses Vite, React, and plain JavaScript/JSX. `main.jsx` renders `App.jsx`, which renders a home page identifying the fictional simulation. Routing, authentication, account data, purchase flows, and the 3D card are planned separately. See the [frontend setup](frontend/README.md).
 
 ## Repository layout
 
@@ -25,7 +27,7 @@ Protected API routes require a server-established identity and currently return 
 | --- | --- |
 | [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
 | [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
-| `frontend/` | React application, to be added. |
+| [`frontend/`](frontend/) | Vite and React application with a public home page. |
 | [`backend/`](backend/) | Spring Boot REST API, DTOs, entities, repositories, services, and verification checks. |
 | [`sql/`](sql/) | MySQL schema and fictional seed data. |
 | `work/` | Local scratch files; ignored by Git. |

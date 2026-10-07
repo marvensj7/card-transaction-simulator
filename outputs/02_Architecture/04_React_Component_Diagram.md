@@ -1,15 +1,17 @@
 # React Component Diagram
 
 **Credit Card Transaction Simulator**<br>
-**October 6, 2026**
+**October 7, 2026**
 
 ## Overview
 
-The planned frontend is one React application. `App` sets up routing and the signed-in user. Each page owns the data and form state it needs, while a small API helper handles requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
+The frontend is one Vite and React application written in plain JavaScript/JSX. The current entry path is `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. The home page explains that the simulation uses fictional cards and balances.
+
+The remaining hierarchy below is planned. `App` will set up routing and the signed-in user. Each page will own the data and form state it needs, while a small API helper will handle requests to Spring Boot. This follows the layout of the banking app we used in class: pages and small components call an API helper, and the backend remains responsible for account rules.
 
 The virtual card is part of the purchase page. It previews masked test-card details and flips when the user presses a button. It does not replace the normal form or make its own API calls.
 
-## Component hierarchy
+## Planned component hierarchy
 
 ```mermaid
 flowchart TD
@@ -49,7 +51,7 @@ flowchart TD
 
 The dotted lines represent API calls. The other arrows show which component renders another component. The route checks in React keep the interface clear, but Spring Security and service ownership checks make the actual access decision.
 
-## Routes and page responsibilities
+## Planned routes and page responsibilities
 
 | Route | Access | Page | Main responsibility |
 | --- | --- | --- | --- |
@@ -62,7 +64,7 @@ The dotted lines represent API calls. The other arrows show which component rend
 
 `AppLayout` renders the header, navigation, and shared notices. A small protected-route component directs signed-out users to `/login` and keeps USER pages separate from the ADMIN page. API responses still determine what the user may actually access.
 
-## State and data flow
+## Planned state and data flow
 
 | State | Owner | Why it lives there |
 | --- | --- | --- |
@@ -83,7 +85,8 @@ frontend/
   src/
     main.jsx
     App.jsx
-    api.js
+    api/
+      api.js
     auth/
       AuthContext.jsx
     pages/
@@ -107,4 +110,4 @@ frontend/
     styles.css
 ```
 
-Small pieces stay in their page file. Shared components have their own files. Each page uses plain React state; the design has one frontend and no separate 3D service.
+Only `main.jsx`, `App.jsx`, and `pages/HomePage.jsx` are implemented so far. The `components/`, `auth/`, and `api/` directories contain only `.gitkeep` files until they are used. Small pieces stay in their page file. Shared components will have their own files. Each page will use plain React state; the design has one frontend and no separate 3D service.

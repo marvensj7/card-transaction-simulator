@@ -92,7 +92,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/AppUser"
                 }
               }
             }
@@ -252,7 +252,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/AppUser"
                 }
               }
             }
@@ -624,7 +624,7 @@
           "password"
         ]
       },
-      "UserResponse": {
+      "AppUser": {
         "type": "object",
         "properties": {
           "id": {
@@ -632,10 +632,15 @@
             "format": "int64"
           },
           "displayName": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email",
+            "maxLength": 150,
+            "minLength": 0
           },
           "role": {
             "type": "string",
@@ -644,7 +649,12 @@
               "ADMIN"
             ]
           }
-        }
+        },
+        "required": [
+          "displayName",
+          "email",
+          "role"
+        ]
       },
       "LoginRequest": {
         "type": "object",
@@ -671,7 +681,7 @@
         "type": "object",
         "properties": {
           "user": {
-            "$ref": "#/components/schemas/UserResponse"
+            "$ref": "#/components/schemas/AppUser"
           },
           "accessToken": {
             "type": "string"

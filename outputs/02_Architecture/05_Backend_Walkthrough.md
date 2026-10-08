@@ -36,7 +36,7 @@ React holds the token in a ref. Sign-out/reload/expiration discard it. A copied 
 | Repository | Named JPA searches, page queries, explicit queries when needed. |
 | Entity | Private mapped fields/getters/setters. JPA needs its no-argument constructor. |
 | Request DTO | Input fields and annotations. Sensitive fields are write-only. |
-| Response DTO | Safe fields copied inside the service transaction. |
+| Response DTO | Account/card/transaction display fields and login token details. Authentication reuses AppUser; @JsonIgnore excludes its password hash. |
 | PageResponse | items/page/size/totals for list navigation. |
 | Exceptions/handler | Safe missing-resource/conflict/shared errors. |
 | Security configuration | One stateless JWT path and explicit route/CORS/CSRF settings. |

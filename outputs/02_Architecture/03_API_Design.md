@@ -12,9 +12,9 @@ POST register/login share ten attempts per remote IP per minute in one process. 
 
 | Method and path | Access | Input | Success |
 | --- | --- | --- | --- |
-| POST /api/auth/register | Public | JSON displayName, email, password | 201 UserResponse |
+| POST /api/auth/register | Public | JSON displayName, email, password | 201 AppUser JSON |
 | POST /api/auth/login | Public | JSON email, password | 200 LoginResponse |
-| GET /api/auth/me | Signed in | Bearer header | 200 UserResponse |
+| GET /api/auth/me | Signed in | Bearer header | 200 AppUser JSON |
 | GET /api/accounts | USER | Bearer header | 200 AccountResponse array |
 | GET /api/accounts/{accountId}/cards | Owning USER | Positive account ID | 200 CardResponse array |
 | POST /api/accounts/{accountId}/purchases | Owning USER | PurchaseRequest JSON | 201 new outcome, 200 identical retry |
@@ -34,7 +34,7 @@ Account/card arrays remain small because one customer has one of each. History/a
 
 Registration validates nonblank displayName up to 100 characters, email up to 150, and password of 12–72 characters within BCrypt's 72 UTF-8-byte limit. Email is trimmed/lowercased. Unknown fields, including role, are rejected. Registration always creates USER, an ACTIVE $1,000 account with zero outstanding balance, and one DEMO_4242 card in one transaction. Duplicate email returns safe 409. ADMIN is provisioned privately rather than selected by registration.
 
-UserResponse contains id, displayName, email, role. LoginResponse contains user, accessToken, expiresAt, tokenType=Bearer. Incorrect email/password combinations receive one 401 message. HS256 uses an external random key of at least 256 bits. Validation checks signature/algorithm, issuer=credit-circuit, exact audience=credit-circuit-api, positive numeric subject, USER/ADMIN role, issue time, and expiration. Default lifetime is 900 seconds.
+AppUser JSON contains id, displayName, email, role. Its passwordHash field and getter are excluded with @JsonIgnore. Registration, current-user reads, and the user inside LoginResponse share this representation. LoginResponse also contains accessToken, expiresAt, tokenType=Bearer. Incorrect email/password combinations receive one 401 message. HS256 uses an external random key of at least 256 bits. Validation checks signature/algorithm, issuer=credit-circuit, exact audience=credit-circuit-api, positive numeric subject, USER/ADMIN role, issue time, and expiration. Default lifetime is 900 seconds.
 
 ## Purchases, refunds, and results
 

@@ -14,7 +14,7 @@ Start with the [beginner walkthrough](outputs/02_Architecture/05_Backend_Walkthr
 
 ## Current status
 
-The account, purchase, decline, history, refund, retry, and admin rules are implemented in the backend. The frontend opens with Credit Circuit's wordmark, a fictional display card, and a Request → Checks → Outcome teaser. Registration, sign-in, and the customer/admin React screens are unfinished.
+The account, purchase, decline, history, refund, retry, and admin rules are implemented in the backend. The frontend has six routes with shared navigation. The home page keeps Credit Circuit's wordmark, fictional display card, and Request → Checks → Outcome teaser. Login explains that sign-in is still being built; the customer/admin pages show access-unavailable notices. Registration, session sign-in, CSRF protection, and the React banking flows remain unfinished.
 
 Authentication will use a server session and cookie with BCrypt password checks. The current session filter closes `/api` to external callers because no sign-in endpoint establishes a session yet. Tests supply a session directly on mock server requests; there is no public user-ID shortcut. JWTs and card animation are outside this MVP. AWS and a Jira board are not required.
 
@@ -36,8 +36,10 @@ From `frontend/`:
 npm install
 npm run dev
 npm run build
+npm run check:props
+npm run check:routes
 ```
 
-The home page runs at `http://127.0.0.1:5173/`. Vite forwards `/api` to Spring Boot on port 8080. See the [frontend setup](frontend/README.md).
+The frontend runs at `http://127.0.0.1:5173/`. All current routes work without the backend. Vite forwards future `/api` calls to Spring Boot on port 8080. See the [frontend setup](frontend/README.md).
 
 The [document index](outputs/README.md) links the proposal, ERD, API design, and React plan. This repository is public by the owner's choice. `work/`, local credentials, dependencies, and generated builds are ignored.

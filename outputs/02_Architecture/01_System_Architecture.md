@@ -15,7 +15,7 @@ flowchart LR
 
 | Part | Job |
 | --- | --- |
-| React page | Collect input and display the result using ordinary page state. Only the home page exists today. |
+| React page | Six routes share navigation today. Home introduces Credit Circuit; login and protected pages explain that account access is unavailable. Later pages will collect input and display results using ordinary page state. |
 | Controller | Read HTTP input, obtain the server session's user ID, and call a service. |
 | Service | Check role/ownership/input, decide approval/decline/refund, and coordinate writes. |
 | Repository | Find and save rows through Spring Data JPA. |

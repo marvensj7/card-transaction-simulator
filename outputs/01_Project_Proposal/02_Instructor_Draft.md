@@ -1,28 +1,7 @@
-# Credit Card Transaction Simulator
+# Credit Circuit instructor description
 
-**Capstone project idea**<br>
-**Presentation:** October 13, 2026
+I built a classroom credit card simulator using fictional cards/balances. Customers register, sign in, view credit, submit purchases, review paged history, and request one full refund. Administrators review account/activity pages and freeze/reactivate accounts.
 
-## The idea
+The flow is React page → API call → Spring controller → service → JPA repository → MySQL. I used the class banking app as a learning reference without copying its supplied solution. Signed JWT and BCrypt protect access. Ownership, request IDs, account locks, and database transactions protect the financial workflows.
 
-I want to build a small web app that simulates how a credit card purchase moves through a banking system. A customer would sign in, use a fictional test card to submit a purchase, and immediately see whether it was approved or declined. The app would update the account's available credit, save the transaction, and show it in a history view. Customers could also request a full refund. An admin could review activity and freeze or reactivate an account.
-
-This connects with the credit card transaction work I'll be seeing on the Capital One project. I want the app to show both the customer experience and the rules behind a transaction, while keeping the scope small enough to build and explain well.
-
-## What I plan to build
-
-- A React interface with a dashboard, purchase form, transaction history, and admin view.
-- A Spring Boot API and MySQL database for users, fictional cards, credit accounts, and transactions.
-- Customer and admin access, with customers limited to their own accounts.
-- Passwords stored with BCrypt and signed tokens for protected requests.
-- Purchase checks for card-field format, positive amounts, available credit, and frozen accounts. The server will perform the checks even when the form has already checked them.
-- A full-refund action that can be used once for an approved purchase.
-- Protection against accidentally submitting the same purchase twice.
-
-I also want to make the card form more engaging with a **flippable 3D virtual card**. The card would show masked test details as the user fills out the form. The regular form would still work without the animation. My goal is to finish the purchase flow first, then spend a dedicated day on the 3D interaction before the October 12 trial presentation.
-
-## Demo and boundaries
-
-The planned demo shows a successful purchase, a decline when available credit is too low, the updated history, a refund, and an admin freezing the account. I will also retry the same request and show that it does not create a second charge.
-
-This is a **simulation**, with fictional users, card numbers, and balances. It will not connect to a real bank or payment processor. Full card numbers and CVV values stay out of the database, logs, and responses. AWS implementation and a Jira board are outside the approved scope.
+AWS and related deployment/DevOps work are waived. Jira and branch protection are outside this pass. JWT, validation, pagination, coverage, Postman, and SonarQube remain required. The [proposal](03_Submission_Proposal.md) and [evidence](../03_Verification/01_Completion_Checklist.md) describe the current scope. The flippable 3D card remains planned.

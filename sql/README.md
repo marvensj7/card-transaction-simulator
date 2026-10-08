@@ -18,4 +18,4 @@ Follow the [backend setup and verification instructions](../backend/README.md) t
 
 ## Application rules
 
-The service maps `DEMO_4242` to the fictional test number `4242424242424242` in memory. MySQL stores the profile and last four digits, never the full number or test security code. Services check card/account ownership and refund eligibility and commit each balance change with its history row. The existing account/request-ID and original-purchase uniqueness rules back retry handling and the one-refund limit.
+The service maps `DEMO_4242` to the fictional profile described as 4242 repeated four times in memory. MySQL stores the profile and last four digits, never the full number or test security code. Services check card/account ownership and refund eligibility and commit each balance change with its history row. The existing account/request-ID and original-purchase uniqueness rules back retry handling and the one-refund limit.

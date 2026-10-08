@@ -1,68 +1,55 @@
-# API design — the basic MVP
+# API design
 
-Updated October 8, 2026. These routes use one Spring Boot API under `/api`.
+Local base URL: `http://127.0.0.1:8080`. JSON bodies are listed below. Public generated documentation is at /v3/api-docs and /swagger-ui/index.html. The [OpenAPI snapshot](../03_Verification/Credit_Circuit.openapi.json) records the running API. The exported [Postman collection](../03_Verification/Credit_Circuit.postman_collection.json) exercises every application endpoint.
 
-## Common rules
+## Access
 
-## Implemented routes
+Protected requests explicitly send `Authorization: Bearer <access token>`. React holds access only in memory. The API accepts no login session/authentication cookie. Missing, invalid, or expired credentials return 401. Wrong roles return 403. Services check the stored role and account owner. Inaccessible customer resources use the same safe 404 as missing resources.
 
-| Method and path | Access | Input | Response |
+POST register/login share ten attempts per remote IP per minute in one process. Limits return 429 and Retry-After. The bounded map expires entries and resets on restart; it does not trust forwarded IP headers. CORS permits configured localhost origins without cookie credentials.
+
+## Endpoints
+
+| Method and path | Access | Input | Success |
 | --- | --- | --- | --- |
-| GET `/api/accounts` | USER | None | Account array with only the current customer's account |
-| GET `/api/accounts/{accountId}/cards` | Account owner | Account ID | Masked card array |
-| POST `/api/accounts/{accountId}/purchases` | Account owner | Purchase JSON below | TransactionResult |
-| GET `/api/accounts/{accountId}/transactions` | Account owner | Account ID | Transaction array, newest first |
-| POST `/api/transactions/{purchaseId}/refund?requestId=<UUID>` | Purchase owner | Purchase ID and requestId; no body | TransactionResult |
-| GET `/api/admin/accounts` | ADMIN | None | Account array ordered by account ID ascending |
-| GET `/api/admin/transactions` | ADMIN | None | Transaction array, newest first |
-| PATCH `/api/admin/accounts/{accountId}/status?status=FROZEN` | ADMIN | Account ID and ACTIVE/FROZEN; no body | Updated Account |
+| POST /api/auth/register | Public | JSON displayName, email, password | 201 UserResponse |
+| POST /api/auth/login | Public | JSON email, password | 200 LoginResponse |
+| GET /api/auth/me | Signed in | Bearer header | 200 UserResponse |
+| GET /api/accounts | USER | Bearer header | 200 AccountResponse array |
+| GET /api/accounts/{accountId}/cards | Owning USER | Positive account ID | 200 CardResponse array |
+| POST /api/accounts/{accountId}/purchases | Owning USER | PurchaseRequest JSON | 201 new outcome, 200 identical retry |
+| GET /api/accounts/{accountId}/transactions | Owning USER | page and size query | 200 transaction page |
+| POST /api/transactions/{purchaseId}/refund | Owning USER | UUID requestId query, no body | 201 new refund, 200 identical retry |
+| GET /api/admin/accounts | ADMIN | page and size query | 200 account page |
+| GET /api/admin/transactions | ADMIN | page and size query | 200 transaction page |
+| PATCH /api/admin/accounts/{accountId}/status | ADMIN | status=ACTIVE or FROZEN query, no body | 200 AccountResponse |
 
-Customer and admin endpoints use the same safe response classes. Account summaries contain the owner's display name. An admin matches a transaction's accountId to the account list. There are no separate admin response types or owner email fields.
+Account/card arrays remain small because one customer has one of each. History/admin pages default to page=0 and size=10. Page is zero based, 0–10000; size is 1–50. Invalid bounds return 400. History/activity order by descending transaction ID; accounts by ascending account ID. A valid page beyond the end has empty items and accurate totals.
 
-## Purchase JSON
+```json
+{"items":[],"page":0,"size":10,"totalElements":0,"totalPages":0}
+```
 
-| Field | Rule |
-| --- | --- |
-| cardId | Positive ID of the assigned card within this account |
-| testCardNumber | The assigned DEMO_4242 fictional number only: 4242424242424242 |
-| expiryMonth | Integer 1–12 matching the card |
-| expiryYear | Integer 2000–9999 matching the card |
-| testSecurityCode | Three or four digits; format only, never stored/logged/returned |
-| merchantName | Nonblank, at most 100 characters |
-| amount | Positive, at most 12 whole digits and two decimal places, without rounding |
-| requestId | UUID created once for this submission; reuse it for an uncertain retry |
+## Registration and login
 
-The service checks input in one place. Missing/malformed fields return 400 and create no history. A card lookup verifies that the card belongs to the owned account; its number/profile/expiry must match. A matching card is valid through its expiry month in UTC.
+Registration validates nonblank displayName up to 100 characters, email up to 150, and password of 12–72 characters within BCrypt's 72 UTF-8-byte limit. Email is trimmed/lowercased. Unknown fields, including role, are rejected. Registration always creates USER, an ACTIVE $1,000 account with zero outstanding balance, and one DEMO_4242 card in one transaction. Duplicate email returns safe 409. ADMIN is provisioned privately rather than selected by registration.
 
-A valid new attempt checks CARD_EXPIRED, ACCOUNT_FROZEN, and INSUFFICIENT_CREDIT in that order. A business-rule decline is saved with DECLINED and leaves the balance unchanged. An approval adds the amount to the outstanding balance. Available credit equals credit limit minus outstanding balance.
+UserResponse contains id, displayName, email, role. LoginResponse contains user, accessToken, expiresAt, tokenType=Bearer. Incorrect email/password combinations receive one 401 message. HS256 uses an external random key of at least 256 bits. Validation checks signature/algorithm, issuer=credit-circuit, exact audience=credit-circuit-api, positive numeric subject, USER/ADMIN role, issue time, and expiration. Default lifetime is 900 seconds.
 
-Under the account lock, a matching account/request ID returns the saved transaction after checking its type, card ID, exact merchant, and numeric amount. UUIDs normalize to lowercase. Changed details or reuse across purchase/refund types return 409. A retry preserves the transaction's original timestamp/balance snapshot and returns the current account summary alongside it. Amounts 50 and 50.00 compare equal.
+## Purchases, refunds, and results
 
-## Full refund
+PurchaseRequest contains cardId, testCardNumber, expiryMonth, expiryYear, testSecurityCode, merchantName, amount, and requestId. IDs are positive. The number has 16 fictional digits and must match the assigned DEMO_4242 profile, described as 4242 repeated four times. Month is 1–12, year 2000–9999, security code 3–4 fictional digits, merchant nonblank/up to 100 characters, amount positive with at most 12 whole digits/two decimals, and requestId a UUID. The security code checks format only and is discarded. Full numbers/codes never appear in stored rows, responses, or logs.
 
-The purchase must be owned, approved, and not already refunded. The server copies its amount, merchant, account, and card; the caller supplies no refund amount. The refund subtracts the original amount and adds one linked REFUND row. An identical retry returns that row. Another request ID cannot refund the purchase again. A frozen account can receive a refund.
+Results contain transaction and account. AccountResponse contains id, ownerName, creditLimit, outstandingBalance, availableCredit, status. CardResponse contains id, label, maskedNumber, expiryMonth, expiryYear. TransactionResponse contains id, accountId, type, status, amount, outstandingAfter, merchantName, reasonCode, createdAt, originalPurchaseId, refunded. Money is JSON numbers backed by BigDecimal and formatted as USD in React. Timestamps use UTC with whole-second service precision.
 
-Purchases/refunds use an account write lock and a READ_COMMITTED database transaction. Balance and history commit together or roll back together. MySQL keeps the unique account/request-ID and original-purchase rules.
+Malformed/mismatched card input returns 400 without history. An assigned expired card, frozen account, or insufficient credit saves DECLINED with CARD_EXPIRED, ACCOUNT_FROZEN, or INSUFFICIENT_CREDIT and returns 201. Approval also returns 201 and increases outstanding balance. Declines preserve it. These are financial outcomes, distinct from HTTP/network failures.
 
-## Safe response fields
+Request IDs are unique per account across purchases/refunds. An identical retry returns 200, the original transaction, and the account's current summary without another write. Changed purchase details under the same ID return 409. The browser preserves the UUID/body during uncertain retries. A full refund copies the original owned approved purchase's amount, subtracts it, and creates one linked reversal. A new ID for an already-refunded purchase returns 409. Frozen accounts can receive eligible refunds. History marks originals refunded even across separate pages.
 
-| DTO | Fields |
-| --- | --- |
-| AccountResponse | id, ownerName, creditLimit, outstandingBalance, availableCredit, status |
-| CardResponse | id, label, maskedNumber, expiryMonth, expiryYear |
-| TransactionResponse | id, accountId, cardId, type, status, amount, outstandingAfter, merchantName, reasonCode, createdAt, originalPurchaseId |
-| TransactionResultResponse | transaction and account |
+## Errors and logout
 
-reasonCode and originalPurchaseId may be null. maskedNumber contains only the last four digits, such as `•••• 4242`. No response includes a password hash, full card number, security code, or request ID. Mapping happens inside service transactions; controllers return DTOs directly.
+Errors use `{"message":"safe explanation"}`. Bean Validation adds fields, a field-name/message map. Rejected values, SQL details, passwords, and tokens never appear. Common statuses: 400 format/parameters, 401 authentication, 403 role, 404 inaccessible/missing resource, 409 duplicate/state conflict, 429 auth limit, safe 500 unexpected error. Unexpected logging contains only exception type.
 
-## Errors
+Sign-out/reload/expiry timer/visibility recheck/protected 401 discard React access. No logout endpoint, refresh token, or revocation list exists. A copied token remains usable until expiration. Leaving/reloading an uncertain page loses memory-only retry details; inspect history after signing in before starting another purchase.
 
-Services use Spring's ResponseStatusException with fixed messages. ApiExceptionHandler returns those messages for expected failures and safe generic messages for framework/unexpected failures. It preserves Spring's status and headers. Unexpected failures log only exception type, excluding messages, causes, and request values. Request, SQL, and bind-value logging remain disabled.
-
-## Planned sign-in
-
-## Scope correction - October 8, 2026
-
-The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
-
-The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).
+CSRF ignores only /api/** because identity uses an explicit bearer header and cookie/Basic/form authentication is disabled. CORS disallows cookie credentials. Adding automatic browser credentials would require revisiting this decision. The actual Postman run verifies allowed/untrusted origins and cookie-only 401 behavior.

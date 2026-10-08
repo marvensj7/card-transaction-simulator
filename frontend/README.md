@@ -27,15 +27,38 @@ I kept the shared pieces small. `SiteNavigation` uses `NavLink` to mark the curr
 
 `auth/UserUiContext.jsx` holds one shared `user` value in memory. It starts as `null`, meaning anonymous. `UserUiProvider` uses `useState`; navigation and access notices read the value with `useContext` through `useUserUi`. They currently show “Not signed in” and “Secure sign-in comes first.” All six page links remain available, and protected pages keep their unavailable notices without showing account data or actions.
 
-The context allows safe user details (`id`, `displayName`, and `role`) for display. Nothing in the application calls `setUser` yet. Only a later response from a verified server session may establish those details. This value is not authentication, and changing it cannot open the unfinished account tools or grant API access. A reload starts anonymous again. There are no API calls, browser-storage reads or writes, browser tokens, or simulated signed-in users in the application. The `api/` folder still contains only `.gitkeep`.
+The context allows safe user details (`id`, `displayName`, and `role`) for display. Nothing in the application calls `setUser` yet. Only a later response from a verified server session may establish those details. This value is not authentication, and changing it cannot open the unfinished account tools or grant API access. A reload starts anonymous again. The pages make no API calls and use no browser storage, browser tokens, or simulated signed-in users. The API functions under `src/api/` are tested separately with mocked `fetch`.
 
 `SiteNavigation` keeps `isMenuOpen` in its own `useState`. `useEffect` closes it on a route change and manages Escape and desktop-resize listeners while it is open, removing them on close or unmount. `useRef` returns focus to the button after Escape or selecting the current page. Selecting another page closes the menu and moves focus to its content through `RouteFocus`. The button supports Enter and Space, reports `aria-expanded`, and points to the navigation with `aria-controls`. Closed links are hidden on phones and stay out of the tab order.
 
 I kept ordinary functions and simple state updates. There is no complex transition that needs `useReducer`, and no expensive calculation or measured rendering issue that needs `useMemo` or `useCallback`.
 
-Registration, BCrypt password checks, server sessions, and CSRF protection come before enabling browser sign-in. The future sign-in/current-user calls will update shared user details only after verification; sign-out or session expiry will clear them. Form fields, loading, errors, purchase request IDs, and API results will belong to their pages when those workflows exist. Later pages will use a small fetch helper, with plain arrays for history and admin lists. Account ownership and administrator permissions will still be checked by the server. Card animation is outside this MVP.
+Registration, BCrypt password checks, server sessions, and CSRF protection come before enabling browser sign-in. The future sign-in/current-user calls will update shared user details only after verification; sign-out or session expiry will clear them. Form fields, loading, errors, purchase request IDs, and API results will belong to their pages when those workflows exist. The pages will then call the API functions described below. Account ownership and administrator permissions will still be checked by the server. Card animation is outside this MVP.
 
 The [React architecture document](../outputs/02_Architecture/04_React_Component_Diagram.md) describes the component relationships and remaining page behavior.
+
+## API integration — section 3.4
+
+I use one small helper, `src/api/fetchJson.js`, to send relative `/api` requests with `credentials: 'same-origin'`. The browser will carry its server session cookie. The helper asks for JSON and adds `Content-Type: application/json` only when sending a JSON body. It parses successful JSON directly, including plain arrays and purchase/refund results. An HTTP 200 purchase can be APPROVED or DECLINED; a decline is a saved result, not an HTTP error.
+
+`src/api/creditCircuitApi.js` exports these ordinary named functions:
+
+| Function | Request |
+| --- | --- |
+| `getAccounts()` | GET `/api/accounts` |
+| `getCards(accountId)` | GET `/api/accounts/{accountId}/cards` |
+| `submitPurchase(accountId, purchase)` | POST `/api/accounts/{accountId}/purchases` with the eight purchase fields as JSON |
+| `getTransactions(accountId)` | GET `/api/accounts/{accountId}/transactions` |
+| `refundPurchase(purchaseId, requestId)` | POST `/api/transactions/{purchaseId}/refund?requestId=<UUID>`, without a body |
+| `getAdminAccounts()` | GET `/api/admin/accounts` |
+| `getAdminTransactions()` | GET `/api/admin/transactions` |
+| `updateAccountStatus(accountId, status)` | PATCH `/api/admin/accounts/{accountId}/status?status=ACTIVE` or `FROZEN`, without a body |
+
+Account, card, history, and admin lists return arrays without a paging wrapper. Purchase/refund results contain `transaction` and `account`; a status change returns the updated account. The [API design](../outputs/02_Architecture/03_API_Design.md) defines their fields. The purchase caller supplies `cardId`, `testCardNumber`, `expiryMonth`, `expiryYear`, `testSecurityCode`, `merchantName`, `amount`, and `requestId`. The helper keeps that request ID and amount type unchanged. A later purchase page must create the ID once for a new submission and keep the same details for an uncertain retry. Refunds also take a caller-supplied ID and never send an amount. Query values are URL-encoded.
+
+On an HTTP error, the helper throws an `Error` with the server's safe `message`. A missing, invalid, or unreadable error message falls back to a message containing the HTTP status. A message that repeats the submitted full fictional card number or security code also uses that fallback. Network failures say “Cannot reach Credit Circuit. Check your connection and try again.” Unreadable successful JSON has its own clear error. Raw failure details, request bodies, and response objects are not attached to errors or logged.
+
+I can exercise these functions with `npm run check:api` now. The pages still make no protected requests on load and keep their unavailable notices. There is no browser sign-in or verified session yet. The backend sign-in work must establish the CSRF cookie/header contract before browser writes are enabled; these functions do not invent one. Protected browser flows cannot run end to end until session authentication and CSRF protection are complete. I use no Axios, caching layer, bearer tokens, or browser token storage.
 
 ## Local setup
 
@@ -54,6 +77,7 @@ npm run build
 npm run check:props
 npm run check:routes
 npm run check:state
+npm run check:api
 npm run preview
 ```
 
@@ -61,15 +85,17 @@ The production build goes into `dist/`. `preview` serves that build locally. Dep
 
 `check:routes` uses Node's test runner and Vite's JSX loader. Its 13 checks cover route headings, one current navigation link, anonymous status, the unknown-route fallback, the home artwork labels, and unavailable pages without banking controls or credential fields.
 
-`check:state` uses the same test runner and JSX loader, with JSDOM to mount the real components in React StrictMode. Its 7 checks cover shared user UI state without unlocking tools, anonymous remounts, navigation while browser storage is blocked, menu toggling, Escape focus, current-page selection, route and query changes, browser back/forward, desktop resizing, and listener cleanup. JSDOM is only a development dependency. It has no layout engine, so I check phone layout and keyboard behavior in the browser too.
+`check:state` uses the same test runner and JSX loader, with JSDOM to mount the real components in React StrictMode. Its 8 checks cover direct page loads, shared user UI state without unlocking tools, anonymous remounts, navigation while browser storage is blocked, menu toggling, Escape focus, current-page selection, route and query changes, browser back/forward, desktop resizing, and listener cleanup. Every state check verifies that no `fetch` call occurs. JSDOM is only a development dependency. It has no layout engine, so I check phone layout and keyboard behavior in the browser too.
 
-On October 8, I checked the production preview at 1440 × 900, 390 × 844, and 320 × 844. Direct URLs and refresh worked for all six routes and an unknown nested route. All pages fit the phone widths without horizontal scrolling, with the menu closed or open. I also checked Tab, Shift+Tab, Enter, Space, Escape, visible focus, the skip link, content focus after navigation, browser back/forward, and switching between phone and desktop navigation. The build, props check, all 13 route checks, and all 7 state checks passed.
+`check:api` runs 33 checks with Node's test runner and mocked `fetch`, without Spring Boot or MySQL. They cover all eight endpoint paths and methods, same-origin credentials, JSON bodies, body-free query parameters, plain arrays, approved/declined results, unchanged retry IDs and bodies, HTTP errors including 400/401, network failure, unreadable JSON, safe error messages, and no console logging. The build, props check, 13 route checks, 8 state checks, and 33 API checks pass. These checks verify the API functions and the unavailable interface; they do not establish a server session or complete a browser transaction.
+
+On October 8, I checked the production preview at 1440 × 900, 390 × 844, and 320 × 844. Direct URLs and refresh worked for all six routes and an unknown nested route. All pages fit the phone widths without horizontal scrolling, with the menu closed or open. I also checked Tab, Shift+Tab, Enter, Space, Escape, visible focus, the skip link, content focus after navigation, browser back/forward, and switching between phone and desktop navigation.
 
 React Router uses regular URL paths. A deployed web server would need to serve `index.html` for frontend routes so direct links and refresh work. API and asset requests need their own handling. Local Vite development and preview already provide the frontend fallback.
 
 ### Local API connection
 
-Vite forwards paths beginning with `/api` to `http://localhost:8080`, keeping the path intact. For example, `/api/accounts` goes to Spring Boot's `/api/accounts`. Future API calls can use relative paths. The current pages make no API requests.
+Vite forwards paths beginning with `/api` to `http://localhost:8080`, keeping the path intact. For example, `/api/accounts` goes to Spring Boot's `/api/accounts`. The API functions use these relative paths. The current pages make no API requests.
 
 Start Spring Boot in a second terminal using the [backend setup](../backend/README.md). The API currently returns `401` for protected requests because sign-in is not implemented.
 

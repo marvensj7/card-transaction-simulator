@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check:props": "tsc -p jsconfig.json",
     "check:routes": "node --test checks/routes.test.mjs",
-    "check:state": "node --test checks/state.test.mjs"
+    "check:state": "node --test checks/state.test.mjs",
+    "check:api": "node --test checks/api.test.mjs"
   },
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24.0.0"

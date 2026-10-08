@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { afterEach, before, beforeEach, test } from 'node:test'
+import { afterEach, before, beforeEach, mock, test } from 'node:test'
 import { act, createElement, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createMemoryRouter, RouterProvider } from 'react-router'
@@ -16,6 +16,7 @@ let root
 let router
 let phoneLayout
 let mediaListeners
+let fetchMock
 
 before(async () => {
   const server = await createServer({
@@ -37,6 +38,9 @@ before(async () => {
 })
 
 beforeEach(() => {
+  fetchMock = mock.method(globalThis, 'fetch', async () => {
+    throw new Error('Unavailable pages must not request protected data.')
+  })
   dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
   globalThis.window = dom.window
   globalThis.document = dom.window.document
@@ -70,6 +74,8 @@ afterEach(async () => {
   delete globalThis.window
   delete globalThis.document
   delete globalThis.IS_REACT_ACT_ENVIRONMENT
+  assert.equal(fetchMock.mock.callCount(), 0, 'page loads, UI state, and navigation must not make API requests')
+  mock.restoreAll()
 })
 
 async function mount(path = '/', element = createElement(App)) {
@@ -95,6 +101,19 @@ function assertMenu(open) {
 async function click(element) {
   await act(async () => element.click())
 }
+
+test('direct page loads keep sign-in and account tools unavailable without fetching', async () => {
+  for (const path of ['/', '/login', '/dashboard', '/purchase', '/transactions', '/admin', '/missing']) {
+    await mount(path)
+    assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
+    assert.equal(document.querySelectorAll('main form, main input, main button, main table').length, 0)
+    assert.equal(fetchMock.mock.callCount(), 0)
+    await act(async () => root.unmount())
+    router.dispose()
+    root = null
+    router = null
+  }
+})
 
 test('starts anonymous and stays unavailable across links, history, and a remount', async () => {
   await mount()

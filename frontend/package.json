@@ -10,7 +10,10 @@
     "check:props": "tsc -p jsconfig.json",
     "check:routes": "node --test checks/routes.test.mjs",
     "check:state": "node --test checks/state.test.mjs",
-    "check:api": "node --test checks/api.test.mjs"
+    "check:api": "node --test checks/api.test.mjs",
+    "check:browser": "node checks/browser.mjs",
+    "check:postman": "node checks/postman.mjs",
+    "demo:admin": "node checks/createAdmin.mjs"
   },
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
@@ -27,10 +30,14 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "bcryptjs": "^3.0.3",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0",
     "jsdom": "^29.1.1",
     "mysql2": "^3.24.5",
     "postman-cli": "^1.71.0",
     "typescript": "^7.0.2",
+    "v8-to-istanbul": "^9.3.0",
     "vite": "^8.3.3"
   }
 }

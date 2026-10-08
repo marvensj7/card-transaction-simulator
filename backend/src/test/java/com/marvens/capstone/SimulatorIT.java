@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Opt in with -Pmysql-verification. Uses the existing database and only removes its own fixtures.
 @SpringBootTest
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
-class SimulatorIT {
+class SimulatorIT extends SecurityTestSupport {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired AppUserRepository users;
@@ -109,11 +109,11 @@ class SimulatorIT {
     void ownershipAndRolesAreEnforcedByRealRepositoryQueries() throws Exception {
         Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 200)
                 .path("transaction").path("id").asLong();
-        response(get("/api/accounts/" + accountId + "/cards").sessionAttr("userId", otherId), 404);
-        response(get("/api/accounts/" + accountId + "/transactions").sessionAttr("userId", otherId), 404);
+        response(get("/api/accounts/" + accountId + "/cards").with(identity(otherId, "USER")), 404);
+        response(get("/api/accounts/" + accountId + "/transactions").with(identity(otherId, "USER")), 404);
         response(purchase(otherId, TestData.purchase(cardId, "1.00")), 404);
         response(refund(otherId, purchaseId, id()), 404);
-        response(get("/api/admin/accounts").sessionAttr("userId", ownerId).header("X-Role", "ADMIN"), 403);
+        response(get("/api/admin/accounts").with(identity(ownerId, "USER")).header("X-Role", "ADMIN"), 403);
         response(purchase(adminId, TestData.purchase(cardId, "1.00")), 403);
         assertThat(balance()).isEqualByComparingTo("201.00");
         assertThat(historyCount()).isEqualTo(1);
@@ -124,16 +124,16 @@ class SimulatorIT {
         Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "50.00")), 200)
                 .path("transaction").path("id").asLong();
         response(patch("/api/admin/accounts/" + accountId + "/status")
-                .sessionAttr("userId", adminId).param("status", "FROZEN"), 200);
+                .with(identity(adminId, "ADMIN")).param("status", "FROZEN"), 200);
         JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 200);
         assertThat(declined.path("transaction").path("reasonCode").asText()).isEqualTo("ACCOUNT_FROZEN");
         response(refund(ownerId, purchaseId, id()), 200);
         assertThat(balance()).isEqualByComparingTo("200.00");
         response(patch("/api/admin/accounts/" + accountId + "/status")
-                .sessionAttr("userId", adminId).param("status", "ACTIVE"), 200);
-        JsonNode accountList = response(get("/api/admin/accounts").sessionAttr("userId", adminId), 200);
+                .with(identity(adminId, "ADMIN")).param("status", "ACTIVE"), 200);
+        JsonNode accountList = response(get("/api/admin/accounts").with(identity(adminId, "ADMIN")), 200);
         assertThat(accountList.isArray()).isTrue();
-        JsonNode activity = response(get("/api/admin/transactions").sessionAttr("userId", adminId), 200);
+        JsonNode activity = response(get("/api/admin/transactions").with(identity(adminId, "ADMIN")), 200);
         assertThat(activity.isArray()).isTrue();
     }
 
@@ -155,7 +155,7 @@ class SimulatorIT {
             service.purchase(ownerId, accountId, TestData.purchase(cardId, "1.00"));
         }
         JsonNode history = response(get("/api/accounts/" + accountId + "/transactions")
-                .sessionAttr("userId", ownerId), 200);
+                .with(identity(ownerId, "USER")), 200);
         assertThat(history.isArray()).isTrue();
         assertThat(history.size()).isEqualTo(51);
         assertThat(history.get(0).path("id").asLong()).isGreaterThan(history.get(50).path("id").asLong());
@@ -208,12 +208,12 @@ class SimulatorIT {
     }
 
     private MockHttpServletRequestBuilder purchase(Long userId, PurchaseRequest request) {
-        return post("/api/accounts/" + accountId + "/purchases").sessionAttr("userId", userId)
+        return post("/api/accounts/" + accountId + "/purchases").with(identity(userId, userId.equals(adminId) ? "ADMIN" : "USER"))
                 .contentType(MediaType.APPLICATION_JSON).content(TestData.purchaseJson(request).toString());
     }
 
     private MockHttpServletRequestBuilder refund(Long userId, Long purchaseId, String requestId) {
-        return post("/api/transactions/" + purchaseId + "/refund").sessionAttr("userId", userId)
+        return post("/api/transactions/" + purchaseId + "/refund").with(identity(userId, userId.equals(adminId) ? "ADMIN" : "USER"))
                 .param("requestId", requestId);
     }
 

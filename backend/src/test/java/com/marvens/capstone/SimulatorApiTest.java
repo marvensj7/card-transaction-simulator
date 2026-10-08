@@ -46,9 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Real controllers and service decisions; repositories are replaced by controlled test data.
 @WebMvcTest({AccountController.class, TransactionController.class, AdminController.class})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
-@Import({AccountService.class, TransactionService.class})
+@Import({AccountService.class, TransactionService.class, com.marvens.capstone.security.SecurityConfiguration.class})
 @ExtendWith(OutputCaptureExtension.class)
-class SimulatorApiTest {
+class SimulatorApiTest extends SecurityTestSupport {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @MockitoBean AppUserRepository users;
@@ -86,11 +86,11 @@ class SimulatorApiTest {
 
     @Test
     void accountAndCardResponsesContainOnlySafeDisplayFields() throws Exception {
-        String summary = mvc.perform(get("/api/accounts").sessionAttr("userId", 1L))
+        String summary = mvc.perform(get("/api/accounts").with(identity(1L, "USER")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].ownerName").value("Demo Customer"))
                 .andExpect(jsonPath("$[0].availableCredit").value(800))
                 .andReturn().getResponse().getContentAsString();
-        String masked = mvc.perform(get("/api/accounts/7/cards").sessionAttr("userId", 1L))
+        String masked = mvc.perform(get("/api/accounts/7/cards").with(identity(1L, "USER")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].maskedNumber").value("\u2022\u2022\u2022\u2022 4242"))
                 .andReturn().getResponse().getContentAsString();
         assertThat(summary + masked).doesNotContain("passwordHash", "$2b$", TestData.testNumber(), "testSecurityCode");
@@ -159,7 +159,7 @@ class SimulatorApiTest {
                 "testSecurityCode", "merchantName", "amount", "requestId"}) {
             ObjectNode body = TestData.purchaseJson(TestData.purchase(8L, "1.00"));
             body.remove(field);
-            mvc.perform(post("/api/accounts/7/purchases").sessionAttr("userId", 1L)
+            mvc.perform(post("/api/accounts/7/purchases").with(identity(1L, "USER"))
                             .contentType(MediaType.APPLICATION_JSON).content(body.toString()))
                     .andExpect(status().isBadRequest());
         }
@@ -191,13 +191,13 @@ class SimulatorApiTest {
 
     @Test
     void anotherCustomerAndTheWrongRoleCannotUseAnAccount() throws Exception {
-        mvc.perform(get("/api/accounts/7/cards").sessionAttr("userId", 3L))
+        mvc.perform(get("/api/accounts/7/cards").with(identity(3L, "USER")))
                 .andExpect(status().isNotFound());
-        mvc.perform(get("/api/accounts/7/transactions").sessionAttr("userId", 3L))
+        mvc.perform(get("/api/accounts/7/transactions").with(identity(3L, "USER")))
                 .andExpect(status().isNotFound());
-        mvc.perform(get("/api/admin/accounts").sessionAttr("userId", 1L).header("X-Role", "ADMIN"))
+        mvc.perform(get("/api/admin/accounts").with(identity(1L, "USER")).header("X-Role", "ADMIN"))
                 .andExpect(status().isForbidden());
-        mvc.perform(post("/api/accounts/7/purchases").sessionAttr("userId", 2L)
+        mvc.perform(post("/api/accounts/7/purchases").with(identity(2L, "ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON).content(TestData.purchaseJson(TestData.purchase(8L, "1.00")).toString()))
                 .andExpect(status().isForbidden());
         verify(transactions, never()).save(any());
@@ -235,7 +235,7 @@ class SimulatorApiTest {
         when(transactions.findByIdAndAccount_User_Id(42L, 1L)).thenReturn(purchase);
         account.setStatus(CreditAccount.Status.FROZEN);
         String requestId = UUID.randomUUID().toString();
-        String result = mvc.perform(post("/api/transactions/42/refund").sessionAttr("userId", 1L)
+        String result = mvc.perform(post("/api/transactions/42/refund").with(identity(1L, "USER"))
                         .param("requestId", requestId)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.transaction.originalPurchaseId").value(42))
                 .andExpect(jsonPath("$.transaction.amount").value(50))
@@ -245,11 +245,11 @@ class SimulatorApiTest {
         verify(transactions, times(2)).save(capture.capture());
         CardTransaction refund = capture.getValue();
         when(transactions.findByAccount_IdAndRequestId(7L, requestId)).thenReturn(refund);
-        mvc.perform(post("/api/transactions/42/refund").sessionAttr("userId", 1L)
+        mvc.perform(post("/api/transactions/42/refund").with(identity(1L, "USER"))
                 .param("requestId", requestId)).andExpect(status().isOk());
         verify(transactions, times(2)).save(any());
         when(transactions.findByOriginalPurchase_Id(42L)).thenReturn(refund);
-        mvc.perform(post("/api/transactions/42/refund").sessionAttr("userId", 1L)
+        mvc.perform(post("/api/transactions/42/refund").with(identity(1L, "USER"))
                 .param("requestId", UUID.randomUUID().toString())).andExpect(status().isConflict());
     }
 
@@ -261,13 +261,13 @@ class SimulatorApiTest {
         when(transactions.findByAccount_IdOrderByIdDesc(7L)).thenReturn(List.of(capture.getValue()));
         when(transactions.findAllByOrderByIdDesc()).thenReturn(List.of(capture.getValue()));
         when(accounts.findAllByOrderByIdAsc()).thenReturn(List.of(account));
-        mvc.perform(get("/api/accounts/7/transactions").sessionAttr("userId", 1L))
+        mvc.perform(get("/api/accounts/7/transactions").with(identity(1L, "USER")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(42));
-        mvc.perform(get("/api/admin/transactions").sessionAttr("userId", 2L))
+        mvc.perform(get("/api/admin/transactions").with(identity(2L, "ADMIN")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].accountId").value(7));
-        mvc.perform(get("/api/admin/accounts").sessionAttr("userId", 2L))
+        mvc.perform(get("/api/admin/accounts").with(identity(2L, "ADMIN")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].ownerName").value("Demo Customer"));
-        mvc.perform(patch("/api/admin/accounts/7/status").sessionAttr("userId", 2L).param("status", "FROZEN"))
+        mvc.perform(patch("/api/admin/accounts/7/status").with(identity(2L, "ADMIN")).param("status", "FROZEN"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FROZEN"));
     }
 
@@ -282,7 +282,7 @@ class SimulatorApiTest {
     }
 
     @Test
-    void invalidSessionValuesAreRejectedBeforeAnyRepositoryCall() throws Exception {
+    void oldSessionValuesAreRejectedBeforeAnyRepositoryCall() throws Exception {
         mvc.perform(get("/api/accounts").sessionAttr("userId", "1")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/accounts").sessionAttr("userId", 0L)).andExpect(status().isUnauthorized());
         verifyNoInteractions(users, accounts, cards, transactions);
@@ -290,18 +290,18 @@ class SimulatorApiTest {
 
     @Test
     void invalidHttpRequestsUseSafeMessagesAndCorrectStatuses() throws Exception {
-        mvc.perform(post("/api/accounts/7/purchases").sessionAttr("userId", 1L)
+        mvc.perform(post("/api/accounts/7/purchases").with(identity(1L, "USER"))
                 .contentType(MediaType.APPLICATION_JSON).content("{")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/accounts/1.5/cards").sessionAttr("userId", 1L))
+        mvc.perform(get("/api/accounts/1.5/cards").with(identity(1L, "USER")))
                 .andExpect(status().isBadRequest());
-        mvc.perform(post("/api/transactions/42/refund").sessionAttr("userId", 1L))
+        mvc.perform(post("/api/transactions/42/refund").with(identity(1L, "USER")))
                 .andExpect(status().isBadRequest());
-        mvc.perform(patch("/api/admin/accounts/7/status").sessionAttr("userId", 2L).param("status", "CLOSED"))
+        mvc.perform(patch("/api/admin/accounts/7/status").with(identity(2L, "ADMIN")).param("status", "CLOSED"))
                 .andExpect(status().isBadRequest());
-        mvc.perform(get("/api/missing").sessionAttr("userId", 1L)).andExpect(status().isNotFound());
-        mvc.perform(delete("/api/accounts").sessionAttr("userId", 1L))
+        mvc.perform(get("/api/missing").with(identity(1L, "USER"))).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/accounts").with(identity(1L, "USER")))
                 .andExpect(status().isMethodNotAllowed()).andExpect(header().exists("Allow"));
-        mvc.perform(post("/api/accounts/7/purchases").sessionAttr("userId", 1L)
+        mvc.perform(post("/api/accounts/7/purchases").with(identity(1L, "USER"))
                 .contentType(MediaType.TEXT_PLAIN).content("fictional-marker")).andExpect(status().isUnsupportedMediaType());
     }
 
@@ -316,7 +316,7 @@ class SimulatorApiTest {
     }
 
     private String submit(PurchaseRequest request, int expectedStatus) throws Exception {
-        return mvc.perform(post("/api/accounts/7/purchases").sessionAttr("userId", 1L)
+        return mvc.perform(post("/api/accounts/7/purchases").with(identity(1L, "USER"))
                         .contentType(MediaType.APPLICATION_JSON).content(TestData.purchaseJson(request).toString()))
                 .andExpect(status().is(expectedStatus)).andReturn().getResponse().getContentAsString();
     }

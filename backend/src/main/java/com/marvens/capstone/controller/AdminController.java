@@ -1,6 +1,7 @@
 package com.marvens.capstone.controller;
 
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.TransactionResponse;
@@ -26,21 +27,21 @@ public class AdminController {
     }
 
     @GetMapping("/accounts")
-    public List<AccountResponse> accounts(HttpSession session) {
-        Long adminId = (Long) session.getAttribute("userId");
+    public List<AccountResponse> accounts(@AuthenticationPrincipal Jwt principal) {
+        Long adminId = Long.valueOf(principal.getSubject());
         return accounts.getAdminAccounts(adminId);
     }
 
     @GetMapping("/transactions")
-    public List<TransactionResponse> transactions(HttpSession session) {
-        Long adminId = (Long) session.getAttribute("userId");
+    public List<TransactionResponse> transactions(@AuthenticationPrincipal Jwt principal) {
+        Long adminId = Long.valueOf(principal.getSubject());
         return transactions.getAdminTransactions(adminId);
     }
 
     @PatchMapping("/accounts/{accountId}/status")
-    public AccountResponse changeStatus(HttpSession session,
+    public AccountResponse changeStatus(@AuthenticationPrincipal Jwt principal,
             @PathVariable Long accountId, @RequestParam CreditAccount.Status status) {
-        Long adminId = (Long) session.getAttribute("userId");
+        Long adminId = Long.valueOf(principal.getSubject());
         return accounts.changeStatus(adminId, accountId, status);
     }
 }

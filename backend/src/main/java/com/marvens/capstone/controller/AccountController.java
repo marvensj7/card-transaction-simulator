@@ -1,6 +1,7 @@
 package com.marvens.capstone.controller;
 
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.CardResponse;
@@ -20,14 +21,14 @@ public class AccountController {
     }
 
     @GetMapping
-    public List<AccountResponse> getAccounts(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+    public List<AccountResponse> getAccounts(@AuthenticationPrincipal Jwt principal) {
+        Long userId = Long.valueOf(principal.getSubject());
         return accounts.getAccounts(userId);
     }
 
     @GetMapping("/{accountId}/cards")
-    public List<CardResponse> getCards(HttpSession session, @PathVariable Long accountId) {
-        Long userId = (Long) session.getAttribute("userId");
+    public List<CardResponse> getCards(@AuthenticationPrincipal Jwt principal, @PathVariable Long accountId) {
+        Long userId = Long.valueOf(principal.getSubject());
         return accounts.getCards(userId, accountId);
     }
 }

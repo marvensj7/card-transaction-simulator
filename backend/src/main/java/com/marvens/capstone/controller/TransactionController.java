@@ -1,6 +1,7 @@
 package com.marvens.capstone.controller;
 
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 import com.marvens.capstone.dto.PurchaseRequest;
 import com.marvens.capstone.dto.TransactionResponse;
@@ -24,22 +25,22 @@ public class TransactionController {
     }
 
     @PostMapping("/accounts/{accountId}/purchases")
-    public TransactionResultResponse purchase(HttpSession session,
+    public TransactionResultResponse purchase(@AuthenticationPrincipal Jwt principal,
             @PathVariable Long accountId, @RequestBody PurchaseRequest request) {
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = Long.valueOf(principal.getSubject());
         return transactions.purchase(userId, accountId, request);
     }
 
     @GetMapping("/accounts/{accountId}/transactions")
-    public List<TransactionResponse> history(HttpSession session, @PathVariable Long accountId) {
-        Long userId = (Long) session.getAttribute("userId");
+    public List<TransactionResponse> history(@AuthenticationPrincipal Jwt principal, @PathVariable Long accountId) {
+        Long userId = Long.valueOf(principal.getSubject());
         return transactions.getHistory(userId, accountId);
     }
 
     @PostMapping("/transactions/{purchaseId}/refund")
-    public TransactionResultResponse refund(HttpSession session,
+    public TransactionResultResponse refund(@AuthenticationPrincipal Jwt principal,
             @PathVariable Long purchaseId, @RequestParam String requestId) {
-        Long userId = (Long) session.getAttribute("userId");
+        Long userId = Long.valueOf(principal.getSubject());
         return transactions.refund(userId, purchaseId, requestId);
     }
 }

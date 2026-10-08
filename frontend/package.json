@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check:props": "tsc -p jsconfig.json"
+    "check:props": "tsc -p jsconfig.json",
+    "check:routes": "node --test checks/routes.test.mjs"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

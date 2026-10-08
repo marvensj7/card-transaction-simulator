@@ -9,28 +9,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "card_transactions", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_card_transactions_request", columnNames = {"account_id", "request_id"}),
-        @UniqueConstraint(name = "uq_card_transactions_original_purchase", columnNames = "original_purchase_id")
-}, indexes = @Index(name = "idx_card_transactions_account_history", columnList = "account_id, id"))
+@Table(name = "card_transactions")
 public class CardTransaction {
     public enum Type { PURCHASE, REFUND }
     public enum Status { APPROVED, DECLINED }
@@ -41,64 +29,45 @@ public class CardTransaction {
     private Long id;
 
     @JsonIgnore
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "account_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_card_transactions_account"))
+    @JoinColumn(name = "account_id", nullable = false)
     private CreditAccount account;
 
     @JsonIgnore
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "card_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_card_transactions_card"))
+    @JoinColumn(name = "card_id", nullable = false)
     private DemoCard card;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Type type;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Status status;
 
-    @NotNull
-    @DecimalMin(value = "0", inclusive = false)
-    @Digits(integer = 12, fraction = 2)
     @Column(name = "amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal amount;
 
-    @NotNull
-    @DecimalMin("0")
-    @Digits(integer = 12, fraction = 2)
     @Column(name = "outstanding_after", nullable = false, precision = 14, scale = 2)
     private BigDecimal outstandingAfter;
 
-    @NotBlank
-    @Size(max = 100)
     @Column(name = "merchant_name", nullable = false, length = 100)
     private String merchantName;
 
-    @Size(max = 40)
     @Column(name = "reason_code", length = 40)
     private String reasonCode;
 
-    // MySQL DATETIME has no zone. The service supplies UTC with microsecond precision.
-    @NotNull
+    // MySQL DATETIME has no zone. The service supplies UTC, using whole seconds.
     @Column(name = "created_at", nullable = false, columnDefinition = "datetime(6)")
     private LocalDateTime createdAt;
 
-    @NotNull
-    @Pattern(regexp = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
     @Column(name = "request_id", nullable = false, length = 36, columnDefinition = "char(36)")
     private String requestId;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "original_purchase_id",
-            foreignKey = @ForeignKey(name = "fk_card_transactions_purchase"))
+    @JoinColumn(name = "original_purchase_id")
     private CardTransaction originalPurchase;
 
     public CardTransaction() {

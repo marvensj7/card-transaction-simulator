@@ -2,10 +2,18 @@ package com.marvens.capstone.dto;
 
 import com.marvens.capstone.entity.DemoCard;
 
-public record CardResponse(Long id, String label, String maskedNumber, int expiryMonth,
-                           int expiryYear, String testProfile) {
-    public static CardResponse from(DemoCard card) {
-        return new CardResponse(card.getId(), card.getLabel(), "•••• " + card.getLastFour(),
-                card.getExpiryMonth(), card.getExpiryYear(), card.getTestProfile());
+public class CardResponse {
+    public final Long id;
+    public final String label;
+    public final String maskedNumber;
+    public final int expiryMonth;
+    public final int expiryYear;
+
+    public CardResponse(DemoCard card) {
+        id = card.getId();
+        label = card.getLabel();
+        maskedNumber = "•••• " + card.getLastFour();
+        expiryMonth = card.getExpiryMonth();
+        expiryYear = card.getExpiryYear();
     }
 }

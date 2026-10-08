@@ -1,17 +1,18 @@
 package com.marvens.capstone.controller;
 
-import java.security.Principal;
-
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
+import com.marvens.capstone.dto.AccountResponse;
+import com.marvens.capstone.dto.TransactionResponse;
 import com.marvens.capstone.entity.CreditAccount;
-import com.marvens.capstone.dto.AdminAccountResponse;
-import com.marvens.capstone.dto.AdminTransactionResponse;
-import com.marvens.capstone.dto.PageResponse;
-import com.marvens.capstone.security.AuthenticatedUser;
 import com.marvens.capstone.service.AccountService;
 import com.marvens.capstone.service.TransactionService;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,24 +26,21 @@ public class AdminController {
     }
 
     @GetMapping("/accounts")
-    public PageResponse<AdminAccountResponse> accounts(Principal principal,
-            @RequestParam(defaultValue = "0") @Min(0) Integer page,
-            @RequestParam(defaultValue = "20") @Min(1) Integer size) {
-        return PageResponse.from(accounts.getAdminAccounts(AuthenticatedUser.id(principal), page, Math.min(size, 50)),
-                AdminAccountResponse::from);
+    public List<AccountResponse> accounts(HttpSession session) {
+        Long adminId = (Long) session.getAttribute("userId");
+        return accounts.getAdminAccounts(adminId);
     }
 
     @GetMapping("/transactions")
-    public PageResponse<AdminTransactionResponse> transactions(Principal principal,
-            @RequestParam(defaultValue = "0") @Min(0) Integer page,
-            @RequestParam(defaultValue = "20") @Min(1) Integer size) {
-        return PageResponse.from(transactions.getAdminTransactions(AuthenticatedUser.id(principal), page, Math.min(size, 50)),
-                AdminTransactionResponse::from);
+    public List<TransactionResponse> transactions(HttpSession session) {
+        Long adminId = (Long) session.getAttribute("userId");
+        return transactions.getAdminTransactions(adminId);
     }
 
     @PatchMapping("/accounts/{accountId}/status")
-    public AdminAccountResponse changeStatus(Principal principal,
-            @PathVariable @Positive Long accountId, @RequestParam CreditAccount.Status status) {
-        return AdminAccountResponse.from(accounts.changeStatus(AuthenticatedUser.id(principal), accountId, status));
+    public AccountResponse changeStatus(HttpSession session,
+            @PathVariable Long accountId, @RequestParam CreditAccount.Status status) {
+        Long adminId = (Long) session.getAttribute("userId");
+        return accounts.changeStatus(adminId, accountId, status);
     }
 }

@@ -1,10 +1,15 @@
 package com.marvens.capstone.dto;
 
-import com.marvens.capstone.service.TransactionOutcome;
+import com.marvens.capstone.entity.CardTransaction;
+import com.marvens.capstone.entity.CreditAccount;
 
-public record TransactionResultResponse(TransactionResponse transaction, AccountResponse account) {
-    public static TransactionResultResponse from(TransactionOutcome outcome) {
-        return new TransactionResultResponse(TransactionResponse.from(outcome.transaction()),
-                AccountResponse.from(outcome.account()));
+// One purchase/refund result plus the account's current balance.
+public class TransactionResultResponse {
+    public final TransactionResponse transaction;
+    public final AccountResponse account;
+
+    public TransactionResultResponse(CardTransaction savedTransaction, CreditAccount currentAccount) {
+        transaction = new TransactionResponse(savedTransaction);
+        account = new AccountResponse(currentAccount);
     }
 }

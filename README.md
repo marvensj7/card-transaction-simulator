@@ -1,55 +1,43 @@
 # Credit Card Transaction Simulator
 
-A full-stack capstone project that simulates credit card purchases with fictional users, cards, and balances. Customers will be able to submit a purchase, see an approval or decline, review transaction history, and request a full refund. Administrators will be able to review activity and freeze or reactivate accounts.
+A small UCI 2123 capstone using React, Java/Spring Boot, and MySQL with fictional cards and balances.
 
-The project is independent and uses only its assigned fictional test cards. It does not connect to a bank, payment network, or real money.
+The core workflows are account summary, masked card, purchase approval/decline, transaction history, one full refund, and admin freeze/reactivate. Request IDs stop a repeated submission from adding another purchase. The database has four tables.
 
-## Planned application
-
-- **Frontend:** React with Vite, plain page state, and React Router when screens are added. Card animation is deferred.
-- **Backend:** Java, Spring Boot, Spring Security, and Spring Data JPA.
-- **Database:** MySQL with users, credit accounts, demo cards, and transaction history.
-- **Security:** BCrypt password hashes, signed JWTs, role and account-ownership checks, and no stored full card numbers or security codes.
-
-The design follows a direct path: React page → API request → controller → service → repository → MySQL. The backend services make the purchase and refund decisions.
-
-## Current application
-
-The backend has four JPA entities, repositories, two services, and REST controllers over the MySQL schema. Purchases record approvals or declines, full refunds link to their original purchases, and customer lookups enforce ownership. Admin operations list accounts and activity and freeze or reactivate accounts. One purchase request DTO passes directly to its service; refund/status operations use scalar query parameters. Dedicated safe responses keep money, UTC dates, masked cards, and pagination consistent. The controller package contains only controllers. New purchases and refunds return `201`; saved retries return `200`. Account locks and request IDs protect balance changes.
-
-Protected API routes require a server-established identity and currently return `401` to external callers because authentication is not implemented. IDs supplied by the browser cannot establish identity. Errors use consistent status, code, message, and UTC timestamp fields, including requests blocked by the identity filter in the security package. JWT sign-in is planned. See the [SQL setup](sql/README.md) and [backend setup and verification](backend/README.md).
-
-The frontend uses Vite, React, and plain JavaScript/JSX. `main.jsx` renders `App.jsx`, which renders a home page identifying the fictional simulation. Routing, authentication, account data, and purchase flows are planned separately. Card animation is deferred polish. See the [frontend setup](frontend/README.md).
-
-## Repository layout
-
-| Path | Contents |
-| --- | --- |
-| [`outputs/01_Project_Proposal/`](outputs/01_Project_Proposal/) | Submission proposal and retained drafts. |
-| [`outputs/02_Architecture/`](outputs/02_Architecture/) | System architecture, ERD, API design, and React component diagram. |
-| [`frontend/`](frontend/) | Vite and React application with a public home page. |
-| [`backend/`](backend/) | Spring Boot REST API, DTOs, entities, repositories, services, and verification checks. |
-| [`sql/`](sql/) | MySQL schema and fictional seed data. |
-| `work/` | Local scratch files; ignored by Git. |
-
-For the simple package map, reasons for each DTO, and a purchase you can explain aloud, start with the [backend walkthrough](outputs/02_Architecture/05_Backend_Walkthrough.md).
-
-See the [document index](outputs/README.md) or the [submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md).
-
-## Local setup
-
-With Node.js 20.19+ on the 20.x line, or 22.12+ on a newer line, and npm installed, run from the repository root:
-
-```powershell
-cd frontend
-npm install
-npm run dev
+```text
+React page → API request → controller → service → JPA repository → MySQL
 ```
 
-The home page runs at `http://127.0.0.1:5173/` without the backend. `npm run build` creates the frontend production build. Vite forwards `/api` to Spring Boot at `http://localhost:8080`; the optional `API_PROXY_TARGET` setting is described in the [frontend setup](frontend/README.md). No browser environment variables or secrets are needed.
+The backend uses ordinary Java classes, explicit if/else decisions and loops, one place for input validation, and five small DTOs. Customer/admin views share safe responses. Lists are plain arrays with no paging. Successful purchases/refunds return 200; their APPROVED/DECLINED field explains the financial outcome. Amounts use BigDecimal in Java and DECIMAL(14,2) in MySQL; response money uses JSON numbers.
 
-For API work, follow the [SQL setup](sql/README.md) and start Spring Boot in a separate terminal using the [backend setup](backend/README.md). Keep datasource credentials in backend environment variables or the ignored `application-local.properties` profile.
+Start with the [beginner walkthrough](outputs/02_Architecture/05_Backend_Walkthrough.md). It explains each remaining file, follows one $50 purchase, and gives short practice questions.
 
-## Demonstration
+## Current status
 
-The application will run locally with fictional test credentials and balances. AWS deployment and a Jira board are outside this capstone's approved scope.
+The account, purchase, decline, history, refund, retry, and admin rules are implemented in the backend. The frontend is only a public home page. Registration, sign-in, and the customer/admin React screens are unfinished.
+
+Authentication will use a server session and cookie with BCrypt password checks. The current session filter closes `/api` to external callers because no sign-in endpoint establishes a session yet. Tests supply a session directly on mock server requests; there is no public user-ID shortcut. JWTs and card animation are outside this MVP. AWS and a Jira board are not required.
+
+## Run and verify
+
+Follow the [MySQL setup](sql/README.md), then the [backend setup](backend/README.md). From `backend/`:
+
+```powershell
+.\mvnw.cmd verify
+.\mvnw.cmd verify -Pmysql-verification "-Dspring.profiles.active=local"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
+```
+
+The local profile reads the ignored credential file. Omit the profile arguments when using backend environment variables. No credentials belong in Git, terminal commands, or logs.
+
+From `frontend/`:
+
+```powershell
+npm install
+npm run dev
+npm run build
+```
+
+The home page runs at `http://127.0.0.1:5173/`. Vite forwards `/api` to Spring Boot on port 8080. See the [frontend setup](frontend/README.md).
+
+The [document index](outputs/README.md) links the proposal, ERD, API design, and React plan. This repository is public by the owner's choice. `work/`, local credentials, dependencies, and generated builds are ignored.

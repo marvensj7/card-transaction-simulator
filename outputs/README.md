@@ -14,4 +14,6 @@
 - [React component diagram](02_Architecture/04_React_Component_Diagram.md) — routes, component hierarchy, and state ownership.
 - [Backend walkthrough](02_Architecture/05_Backend_Walkthrough.md) — plain-language study guide, purchase/refund traces, file tour, and instructor questions for the implemented backend.
 
-The current architecture and walkthrough reflect the October 7 MVP simplification. Earlier proposal drafts are historical references. Card animation and optional tooling are deferred. The API design records the implemented controller and shared error contracts and identifies the authentication endpoints that are still planned.
+The current architecture and walkthrough reflect the October 8 beginner MVP simplification. Earlier proposal drafts are historical references. Card animation and optional tooling are deferred. The API design records the implemented controller and shared error contracts and identifies the authentication endpoints that are still planned.
+
+Current scope uses server sessions (sign-in unfinished), five plain DTOs, array lists without paging, and one-message errors. The walkthrough is the starting point for learning the Java workflow. The earlier working/instructor drafts are historical and may describe features no longer in the MVP.

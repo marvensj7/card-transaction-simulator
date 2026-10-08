@@ -9,15 +9,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "app_users", uniqueConstraints =
-        @UniqueConstraint(name = "uq_app_users_email", columnNames = "email"))
+@Table(name = "app_users")
 public class AppUser {
     public enum Role { USER, ADMIN }
 
@@ -26,24 +20,16 @@ public class AppUser {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @NotBlank
-    @Size(max = 100)
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
-    @NotBlank
-    @Email
-    @Size(max = 150)
     @Column(name = "email", nullable = false, length = 150)
     private String email;
 
     @JsonIgnore
-    @NotBlank
-    @Size(max = 100)
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Role role;

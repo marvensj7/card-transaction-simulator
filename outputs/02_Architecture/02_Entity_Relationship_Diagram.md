@@ -116,7 +116,7 @@ The full fictional number is mapped from `test_profile` in the application’s s
 | `request_id` | `CHAR(36)` | Required; unique with `account_id` | Identifies one submission so a retry cannot create another purchase. |
 | `original_purchase_id` | `BIGINT` | Optional foreign key → `card_transactions.id`; unique | Links a refund to its purchase. Null for purchases. |
 
-The history is append-only in normal use. An approved purchase remains in the table after a refund; the linked REFUND row shows what reversed it. A declined purchase keeps the account's previous `outstanding_after` value. An expired assigned card, frozen account, or insufficient credit produces a decline. Malformed or mismatched input creates no transaction. Timestamps are UTC values with microsecond precision.
+The history is append-only in normal use. An approved purchase remains in the table after a refund; the linked REFUND row shows what reversed it. A declined purchase keeps the account's previous `outstanding_after` value. An expired assigned card, frozen account, or insufficient credit produces a decline. Malformed or mismatched input creates no transaction. Timestamps are UTC; the simpler service writes whole seconds into the existing DATETIME(6) column.
 
 ## Relationships and constraints
 
@@ -135,3 +135,5 @@ Java entities follow the foreign keys in one direction. The ERD still describes 
 ## Balance examples
 
 If the credit limit is **$1,000.00** and the outstanding balance is **$200.00**, available credit is **$800.00**. An approved **$50.00** purchase changes the outstanding balance to **$250.00** and records `outstanding_after = 250.00`. A declined **$900.00** purchase records the decline but leaves the outstanding balance at **$250.00**. A full refund of the approved $50.00 purchase creates a linked REFUND row and returns the outstanding balance to **$200.00**.
+
+The October 8 simplification keeps this SQL schema unchanged. Input rules live in services and table constraints remain in SQL; entities only map stored fields/relationships. Pagination and API formatting helpers are removed, and response money uses JSON numbers backed by Java BigDecimal.

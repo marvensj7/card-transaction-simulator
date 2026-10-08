@@ -1,147 +1,147 @@
-# Backend walkthrough — the MVP
+# Explain the project from one purchase
 
-Updated October 7, 2026 after instructor feedback. Start with one purchase. You do not need to explain every annotation before explaining what the program does.
+Updated October 8, 2026. The application uses fictional cards and balances and runs locally.
 
-## 1. The application in one sentence
+## 1. Start with the result
 
-> A customer submits a fictional purchase; the server checks the account and card, approves or declines it, saves the outcome, and returns the balance.
+> My application simulates a card purchase. The server checks the account and card, approves or declines the purchase, saves the outcome, and returns the account balance.
 
-The same application can show history, reverse one approved purchase with a full refund, and let an admin freeze or reactivate an account.
+Start with a $1,000 credit limit and a $200 outstanding balance. Available credit is $800. A $50 approval changes the balance to $250 and available credit to $750. A $900 decline keeps those balances unchanged. Refunding the $50 purchase returns them to $200 and $800.
 
-The backend is implemented and tested. Login/JWT verification and the React customer/admin screens are still unfinished. The current frontend is only a home page. External API requests currently receive 401 because no authentication component establishes the caller yet. Tests supply that caller on mock server requests; they do not prove browser login works.
-
-## 2. The path to follow
-
-```mermaid
-flowchart LR
-    R[React page — planned] --> A[API call — planned]
-    A --> C[Controller: HTTP]
-    C --> S[Service: rules]
-    S --> J[JPA repository: reads and writes]
-    J --> D[(MySQL: four tables)]
-```
-
-The result comes back through the same layers. Authentication will identify the caller before the controller runs.
-
-| Package | What belongs here | Files |
-| --- | --- | --- |
-| Root | Start Spring Boot. | `CardSimulatorApplication` |
-| `controller` | Receive HTTP input, call a service, return a safe response. | `AccountController`, `TransactionController`, `AdminController` only |
-| `service` | Decide what may happen and coordinate database writes. | `AccountService`, `TransactionService` |
-| `service` support | Check request IDs/page sizes; carry a saved result and whether it was a retry. | `RequestChecks`, `TransactionOutcome` |
-| `repository` | Find and save rows. Spring implements these interfaces. | `AppUserRepository`, `CreditAccountRepository`, `DemoCardRepository`, `CardTransactionRepository` |
-| `entity` | Map Java fields to the four database tables. | `AppUser`, `CreditAccount`, `DemoCard`, `CardTransaction` |
-| `dto` | Define input and safe response fields. | Listed individually below. |
-| `security` | Require a server-established caller and extract its ID. | `ApiIdentityFilter`, `AuthenticatedUser` |
-| `exception` | Name a failure and translate it into an HTTP error. | `ApiExceptionHandler` and the seven exceptions below |
-| `config` | Supply the UTC clock used for expiry and timestamps. | `UtcClockConfiguration` |
-
-The entities follow foreign keys in one direction: account → user, card → account, transaction → account/card/original purchase. There are no reverse Java collections or user → account/card links. Repositories retrieve accounts, cards, and history when needed. The SQL relationships and four tables are unchanged.
-
-## 3. Why these DTOs remain
-
-A DTO is a small object describing data crossing the API boundary. An entity describes stored data. These jobs differ: the browser needs available credit and masked card details, and must never receive a password hash or an entire relationship graph.
-
-There is **one request DTO**. A purchase has eight related inputs and validation rules, so keeping them together is useful. A refund and a status change each supply one parameter and have no request DTO.
-
-| File in `dto` | Exact purpose |
-| --- | --- |
-| `PurchaseRequest` | Holds the eight purchase fields; validates their format. The controller passes this same object to the service. Card number and security code are write-only and excluded from `toString()`. |
-| `AccountResponse` | Returns limit, outstanding balance, available credit, and status. |
-| `CardResponse` | Returns only masked display details and fictional profile information. |
-| `TransactionResponse` | Returns one saved purchase/refund outcome, date, reason, and balance snapshot. |
-| `TransactionResultResponse` | Returns the transaction and current account summary together after a purchase/refund. |
-| `AdminAccountResponse` | Adds owner ID, name, and email to the account summary for admin review. |
-| `AdminTransactionResponse` | Adds owner email to a transaction summary for admin review. |
-| `PageResponse` | Gives all three paginated lists the same items and total-count fields. |
-| `ApiError` | Gives failures the same status, code, message, and UTC timestamp. |
-| `ApiFormats` | A formatting helper, not a DTO: formats money and UTC timestamps for responses. |
-
-`from(...)` methods copy the needed fields into a response. They do not approve purchases or update balances. Java `record` is shorthand for a small data carrier with a constructor and accessors; it does not add another framework.
-
-Removed: `PurchaseCommand` (duplicated the purchase input), `RefundRequest`, `AccountStatusRequest`, `DecimalStringDeserializer`, and `CurrentUser` (ID extraction now lives on `AuthenticatedUser`). Swagger annotations/dependency and detailed request-context logging were also removed. Money uses Spring/Jackson's normal `BigDecimal` binding, accepting `"25.00"` or `25.00`; positive value, size, and decimal-place checks remain.
-
-## 4. Follow one purchase in the actual code
-
-Open these files under `backend/src/main/java/com/marvens/capstone/` in this order:
-
-1. `controller/TransactionController.java`: `purchase()` receives the account ID and validated purchase body. It gets the caller's ID from `AuthenticatedUser` and calls `transactions.purchase(...)`.
-2. `dto/PurchaseRequest.java`: identify the eight inputs. There is no conversion to a second command object.
-3. `service/TransactionService.java`: read `purchase()` from top to bottom. It checks the stored customer role, locks the owned account, validates input, and looks for an existing request ID. A matching retry returns the saved transaction. Otherwise it verifies the assigned card and checks expiry, frozen status, and available credit.
-4. `repository/CreditAccountRepository.java`: `findOwnedForUpdate()` requires both account ID and owner ID. Its write lock makes balance changes take turns.
-5. `repository/DemoCardRepository.java`: finds the selected card within this account.
-6. `repository/CardTransactionRepository.java`: looks up a previous request and saves the history row through JPA.
-7. Back in `TransactionService.purchase()`: approval adds to the outstanding balance. A decline leaves it alone. Both create one history row. `@Transactional` commits the balance and history together or rolls them back together.
-8. Back in `TransactionController.result()`: response DTOs select safe fields. New outcomes return 201; saved retries return 200.
-
-> The controller handles the request. The service makes the decision. The repositories read and save the data. MySQL keeps it after the request ends.
-
-## 5. Use these numbers when you practice
-
-Start with a $1,000 limit and $200 outstanding balance. Available credit is $800.
-
-| Action | Outstanding | Available | History |
+| Action | Outstanding balance | Available credit | History |
 | --- | --- | --- | --- |
-| Purchase $50 with request A | $250 | $750 | One approved purchase |
-| Retry the same purchase with request A | $250 | $750 | No new row |
-| Purchase $900 with request B | $250 | $750 | One decline: insufficient credit |
-| Refund the approved $50 purchase with request C | $200 | $800 | One refund linked to purchase A |
+| Start | $200 | $800 | Existing demo starting balance |
+| Purchase $50, request A | $250 | $750 | Approved purchase A |
+| Retry request A | $250 | $750 | No additional purchase |
+| Purchase $900, request B | $250 | $750 | Decline: insufficient credit |
+| Refund purchase A, request C | $200 | $800 | Linked refund C |
 
-Say what changes and what stays the same before pointing at code. Then point to the service lines that make that happen.
+## 2. Follow six steps
 
-Two different meanings of “transaction”: `CardTransaction` is one history row; a database transaction is the all-or-nothing boundary around multiple writes. A lock prevents two requests from using the same old balance. A request ID prevents one submission from creating two purchases. These three protections have different jobs.
-
-## 6. The other workflows
-
-| Workflow | Controller → service → repository |
-| --- | --- |
-| Account summary | `AccountController.getAccounts()` → `AccountService.getAccounts()` checks customer role → account by user ID → `AccountResponse`. |
-| Masked card | `AccountController.getCards()` → `AccountService.getCards()` checks account ownership → card by account ID → `CardResponse`. |
-| History | `TransactionController.history()` → `TransactionService.getHistory()` checks ownership → newest-first transaction page → `PageResponse<TransactionResponse>`. |
-| Full refund | `TransactionController.refund()` takes purchase ID and `requestId` query parameter → `TransactionService.refund()` locks the owned account, verifies an approved purchase with no previous refund, subtracts the original amount, and saves a linked refund → transaction/account response. |
-| Admin review | `AdminController` → the corresponding service checks ADMIN role → account or transaction page with owner details. |
-| Freeze/reactivate | `AdminController.changeStatus()` takes account ID and `status` query parameter → `AccountService.changeStatus()` checks ADMIN role, locks account, saves ACTIVE/FROZEN → admin account response. |
-
-Refunds copy their amount from the purchase. A frozen account may receive a refund. A purchase checks decline reasons in this order: expired card, frozen account, insufficient credit. Invalid input creates no history.
-
-Pages start at 0, default to 20 rows, and cap at 50. Customer and admin transaction history use descending transaction ID; admin accounts use ascending account ID.
-
-## 7. Explain errors without getting lost in support code
-
-| Exception | Meaning | HTTP result |
-| --- | --- | --- |
-| `AuthenticationRequiredException` | No trusted caller | 401 |
-| `AccessDeniedException` | Wrong stored role | 403 |
-| `ResourceNotFoundException` | Missing or unowned resource | 404 |
-| `InvalidPurchaseException` | Invalid purchase details | 400 |
-| `InvalidRequestException` | Invalid request ID, page, size, or status | 400 |
-| `RequestConflictException` | Request ID reused for different details | 409 |
-| `RefundNotEligibleException` | Purchase cannot receive this full refund | 409 |
-
-`ApiExceptionHandler` translates these failures and Spring input errors into `ApiError`. It uses fixed messages rather than repeating rejected values. Unexpected errors return 500; only their exception type and source locations are logged. The identity filter returns the same error shape before MVC runs. Full card numbers, security codes, passwords, and JWTs are never logged.
-
-## 8. What to show as evidence
-
-`TransactionServiceTest` demonstrates approval, decline, ownership, retries, expiry, and refund rules. `ControllerIT` follows mock HTTP requests through real services and MySQL. `ServiceIT` checks concurrent requests and rollback. Entity/repository checks verify the existing schema and queries. Tests use fictional fixtures and clean up only their own rows.
-
-From `backend/`:
-
-```powershell
-.\mvnw.cmd verify
-.\mvnw.cmd verify -Pmysql-verification "-Dspring.profiles.active=local"
+```text
+React page → API request → controller → service → repository → MySQL
 ```
 
-The second command assumes credentials are in the ignored local profile; omit the profile argument if using environment variables. These commands do not prove browser authentication or measure a coverage percentage.
+1. The **React page** collects the card, merchant, and amount. This page is still unfinished.
+2. The **API request** sends those fields as JSON to the purchase URL.
+3. The **controller** reads the request, gets the user ID from the server session, and calls one service method.
+4. The **service** checks the role, ownership, input, card, request ID, expiry, account status, and available credit. It decides the outcome.
+5. The **repository** reads/saves Java entities through JPA. Spring implements the repository interface.
+6. **MySQL** keeps the rows so the account and history remain after the request ends.
 
-Verified October 7 after simplification: 99 checks without a database and 27 MySQL integration checks passed (126 total, no failures/errors/skips). The frontend production build also passed.
+The service builds a safe response and the controller returns it as JSON. The future React page will display it.
 
-## 9. The remaining MVP, in order
+## 3. Read the actual purchase code
 
-1. Implement sign-in/registration with BCrypt and JWT verification. Keep a single clear authentication path; no browser-supplied user-ID shortcut.
-2. Build the account dashboard and purchase form with page-owned React state and a small `fetch` helper.
-3. Add history/refund and a simple admin page using the existing endpoints.
-4. Rehearse approval → decline → refund → freeze with fictional data and write the corresponding Postman requests.
+Open [TransactionController.java](../../backend/src/main/java/com/marvens/capstone/controller/TransactionController.java), then [PurchaseRequest.java](../../backend/src/main/java/com/marvens/capstone/dto/PurchaseRequest.java), then [TransactionService.java](../../backend/src/main/java/com/marvens/capstone/service/TransactionService.java).
 
-Card animation, extra component extraction, login rate limiting, CI, SonarQube, and a numerical coverage target are deferred polish. AWS and Jira are outside the approved project. Build the working path before adding polish.
+The controller's purchase method has three inputs: the server session, an account ID from the URL, and the purchase body. It puts the session's user ID in a variable and calls `transactions.purchase(userId, accountId, request)`.
 
-For practice, explain one row of the workflow table without code, trace it in code, then change one input and predict the outcome. If the prediction is hard, stay with that workflow before moving on.
+Read the service's purchase method from top to bottom:
+
+1. requireRole checks the user's stored role.
+2. validatePurchase checks the input once, using ordinary if statements.
+3. checkRequestId checks/normalizes the submission's UUID.
+4. lockOwnedAccount finds this customer's account and makes other balance-changing requests wait.
+5. The card repository finds the assigned card within this account. validateAssignedCard checks its fictional details.
+6. An existing identical request returns the saved result. Reusing the ID for different details throws a conflict.
+7. availableCredit is calculated by subtracting the outstanding balance from the limit.
+8. if/else checks expiry, frozen status, and insufficient credit.
+9. Approval adds the amount to the balance. A decline leaves it unchanged.
+10. fillHistory sets the common history fields, the repository saves the transaction, and the method returns the transaction plus the current account summary.
+
+`request.amount.compareTo(availableCredit) > 0` means the purchase amount is larger than available credit. `balance.add(amount)` returns a new BigDecimal, so setOutstandingBalance stores that new value on the account object. A credit card purchase increases the amount owed.
+
+`@Transactional` makes the balance change and history save one database operation: both succeed or both roll back. The account lock makes simultaneous changes take turns. READ_COMMITTED means a waiting retry sees the earlier committed result. The request ID identifies one submission so a repeated request creates no second purchase. These are three distinct jobs.
+
+## 4. The Java building blocks in this code
+
+| Code idea | What to say |
+| --- | --- |
+| Class | A definition of an object: its fields and methods. CreditAccount describes an account. |
+| Object | One instance of a class, such as the current customer's account. |
+| Field / variable | A named value. request.amount is input; availableCredit is a calculated local value. |
+| Constructor | Sets up a new object. Spring passes repositories to a service constructor. A response constructor copies safe fields from an entity. |
+| Method | A named action with inputs and a return value. purchase accepts IDs/input and returns a result. |
+| if/else | Chooses a path when a condition is true or false. |
+| List and for loop | Hold several results and visit each one. There are no stream pipelines or generic page wrappers. |
+| null | A missing value. A repository lookup may return null when no row matches. |
+| enum | A small allowed set: ACTIVE/FROZEN or APPROVED/DECLINED. |
+| throw | Stops the normal path with an error. Spring's ResponseStatusException carries an HTTP status and a fixed message. |
+| BigDecimal | Java's decimal number type for money calculations; SQL stores DECIMAL(14,2). |
+| DTO | A plain class carrying API input or safe output. Its fields are the JSON fields. |
+| Entity | A Java class mapped to a database table. Its private fields use getters/setters. |
+| Foreign key | A stored ID connecting one row to another, such as a card's account_id. |
+
+`final` on a response field means its value is assigned in the constructor and cannot be reassigned afterward. `List<AccountResponse>` means a list whose items are AccountResponse objects. `users.findById(id).orElse(null)` uses Spring's standard lookup and gives us null if that user does not exist.
+
+The `@` annotations tell Spring/JPA what a class or field does. Know their purpose: RestController handles HTTP, Service supplies a service object, Entity/Table/Column map stored data, and Transactional groups database work. Repository method names describe their searches; findByAccount_IdOrderByIdDesc means this account's transactions with newest IDs first.
+
+The remaining small expressions have concrete meanings:
+
+- public makes a field/method accessible to other classes; private keeps it inside its class.
+- `(Long) session.getAttribute("userId")` reads the server's stored value as a Long integer. The session filter checks its type first; a browser header cannot set a session attribute.
+- `instanceof` checks an object's type. A cast tells Java which type to use after that check.
+- `try/catch` handles a failed UUID parse and returns the fixed input error.
+- A UUID is the submission's unique string ID. The database transaction ID identifies the saved history row. Reusing the submission ID identifies a retry.
+- `[0-9]{16}` means exactly 16 digits; `[0-9]{3,4}` means three or four digits.
+- amount.signum() checks whether the number is positive, zero, or negative; amount.scale() tells how many decimal places it has. setScale(2) gives a validated amount two places.
+- `account.getUser().getDisplayName()` follows the account's user reference to read its name. OneToOne/ManyToOne describe those database relationships. LAZY loads related data when it is needed inside the service transaction.
+
+## 5. Every remaining application file has one job
+
+All Java paths below start under `backend/src/main/java/com/marvens/capstone/`.
+
+| Files | Job |
+| --- | --- |
+| CardSimulatorApplication | Starts Spring Boot. |
+| controller/AccountController | Account and masked-card HTTP routes. |
+| controller/TransactionController | Purchase, history, and refund HTTP routes. |
+| controller/AdminController | Admin list/status HTTP routes. |
+| service/AccountService | Role checks, owned-account lookup, account/card summaries, and admin status changes. |
+| service/TransactionService | Purchase/refund decisions, duplicate-request checks, and history. |
+| repository/AppUserRepository | Find users. |
+| repository/CreditAccountRepository | Find accounts and lock one for a balance/status change. |
+| repository/DemoCardRepository | Find a card by its account. |
+| repository/CardTransactionRepository | Find/save history, previous requests, and purchase/refund links. |
+| entity/AppUser | app_users: name, email, BCrypt hash, role. |
+| entity/CreditAccount | credit_accounts: owner, limit, outstanding balance, status. |
+| entity/DemoCard | demo_cards: account, fictional profile, last four digits, expiry. |
+| entity/CardTransaction | card_transactions: purchase/refund outcome and balance snapshot. |
+| dto/PurchaseRequest | Eight purchase inputs. Card number/code are write-only and excluded from toString. |
+| dto/AccountResponse | Six safe fields, including owner name and calculated available credit; shared by customer/admin. |
+| dto/CardResponse | Five masked card display fields. |
+| dto/TransactionResponse | One history outcome with scalar IDs, amount, reason, and UTC date; shared by customer/admin. |
+| dto/TransactionResultResponse | A transaction response plus the current account response. |
+| security/SessionAccessFilter | Requires a server session before reading protected requests. |
+| exception/ApiExceptionHandler | Returns one safe error message with the HTTP status. |
+
+That is 21 application classes and five DTOs. The response classes prevent password hashes and entity relationships from reaching the browser. Response constructors run in the service transaction, so related data can be read there. Entities follow their foreign keys; there are no reverse collections.
+
+## 6. Explain the other workflows in one sentence each
+
+- **Account:** check the customer role, find their account, return the limit/balance/available credit.
+- **Card:** check account ownership, find its card, return masked details.
+- **History:** check account ownership, read its transactions newest first, return an array.
+- **Refund:** check the owned approved purchase has no refund, lock the account, subtract the original amount, save a linked refund. A frozen account may receive it.
+- **Admin:** check ADMIN role, list safe summaries, or lock an account and save ACTIVE/FROZEN.
+
+Every successful operation returns HTTP 200. APPROVED/DECLINED describes the financial result. Errors have one message; HTTP 400/401/403/404/409/500 says what kind of failure happened. There is no separate error-code catalog or timestamp wrapper to learn.
+
+## 7. What is finished and what is still planned
+
+The backend business workflows above are implemented. The current frontend is only HomePage. Registration/sign-in and the customer/admin pages still need implementation.
+
+The smaller login plan is a BCrypt password check plus a server session cookie, with CSRF protection before browser sign-in is enabled. A session lets the server remember the signed-in user ID. No JWTs or token-refresh workflow are planned. The current filter checks a session, but no login endpoint creates one yet; normal external API calls receive 401. Test sessions are set on mock server requests and cannot be supplied by an HTTP user-ID header.
+
+There is no paging: the local demo reads plain arrays. Money responses are JSON numbers; React will format two decimal places for display. Java performs all balance calculations. UTC dates use seconds. Animation, extra component frameworks, rate limiting, CI, SonarQube, AWS, and Jira are outside this MVP.
+
+## 8. Tests and practice
+
+There are three test files under `backend/src/test/java/com/marvens/capstone/`: TestData creates fictional fixtures; SimulatorApiTest checks HTTP/service behavior with mocked repositories; SimulatorIT checks real MySQL persistence, ownership, retries, refunds, concurrent purchases, and rollback. Mocked-repository checks cannot prove database transactions work; MySQL checks provide that evidence. Test fixtures are cleaned up after each integration test.
+
+From backend, run `mvnw.cmd verify`. Add `-Pmysql-verification "-Dspring.profiles.active=local"` to include MySQL when credentials are in the ignored local profile. Frontend verification is `npm run build`.
+
+Verified October 8 after this simplification: 16 HTTP/service checks and eight MySQL integration checks passed, with no failures/errors/skips. The frontend production build passed too. The old multi-layer test suite was consolidated around the retained business workflows; this count is not a coverage percentage.
+
+Practice in this order: explain the $50 example without code; trace the controller/service/repository calls; change one amount and predict the result; run the matching test. Then repeat for a decline and a refund. Stay on one workflow until you can say what each line changes and why.

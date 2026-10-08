@@ -8,4 +8,8 @@ Follow the simple pattern from the banking app we used in class: React page → 
 
 Use fictional test cards and balances only. Never store or log a full card number, test security code, password, or JWT. Use BCrypt for passwords. SHA-256 alone is not a password hash.
 
-Work on one numbered capstone section at a time. Inspect nearby files, make a complete small change, run the relevant local checks, and report what passed. Commit cohesive changes with specific, natural messages and push verified work to the private repository. Avoid unrelated rewrites and extra services.
+Work on one numbered capstone section at a time. Inspect nearby files, make a complete small change, run the relevant local checks, and report what passed. Commit cohesive changes with specific, natural messages and push verified work to this public repository. Avoid unrelated rewrites and extra services.
+
+Keep the implementation at a beginner level: ordinary Java classes, explicit if/else decisions and loops, and direct service calls. Keep new abstractions only when the current workflow needs them. Prefer one clear place for validation and reuse the same simple response for customer/admin views when the fields are safe.
+
+The October 8 MVP uses server sessions with BCrypt password checks and CSRF protection before browser sign-in is enabled; JWT support is out of scope. History/admin lists are plain arrays for the local dataset. Keep account ownership, role checks, request-ID duplicate protection, full-refund rules, and all-or-nothing balance/history writes.

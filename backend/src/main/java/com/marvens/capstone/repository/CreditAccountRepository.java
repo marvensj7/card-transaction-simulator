@@ -1,32 +1,24 @@
 package com.marvens.capstone.repository;
 
-import java.util.Optional;
-import jakarta.persistence.LockModeType;
-
+import java.util.List;
 import com.marvens.capstone.entity.CreditAccount;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CreditAccountRepository extends JpaRepository<CreditAccount, Long> {
-    Optional<CreditAccount> findByUser_Id(Long userId);
+    CreditAccount findByUser_Id(Long userId);
+    CreditAccount findByIdAndUser_Id(Long accountId, Long userId);
+    List<CreditAccount> findAllByOrderByIdAsc();
 
-    Optional<CreditAccount> findByIdAndUser_Id(Long accountId, Long userId);
-
+    // A balance-changing request waits until the previous one releases this account.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from CreditAccount a where a.id = :accountId and a.user.id = :userId")
-    Optional<CreditAccount> findOwnedForUpdate(@Param("accountId") Long accountId,
-                                             @Param("userId") Long userId);
+    CreditAccount findOwnedForUpdate(@Param("accountId") Long accountId, @Param("userId") Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = "user")
     @Query("select a from CreditAccount a where a.id = :accountId")
-    Optional<CreditAccount> findForUpdate(@Param("accountId") Long accountId);
-
-    @EntityGraph(attributePaths = "user")
-    Page<CreditAccount> findAllByOrderByIdAsc(Pageable pageable);
+    CreditAccount findForUpdate(@Param("accountId") Long accountId);
 }

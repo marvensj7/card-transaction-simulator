@@ -12,7 +12,7 @@ Spring Security verifies signed JWTs and BCrypt checks passwords. Access tokens 
 
 ## Run locally
 
-Follow the [local run and demo guide](outputs/05_Submission/01_Local_Run_and_Demo.md) for MySQL, private configuration, key generation, startup, checks, and the demo. Do not commit credentials, signing keys, demo passwords, or issued tokens.
+Follow the [backend setup](backend/README.md), [SQL setup](sql/README.md), and [frontend setup](frontend/README.md). Do not commit credentials, signing keys, demo passwords, or issued tokens.
 
 From frontend, use `npm ci` and `npm run dev`. From backend, use `mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"` after creating ignored local configuration. The browser runs at [localhost](http://127.0.0.1:5173). Vite forwards /api to port 8080.
 
@@ -21,8 +21,6 @@ From frontend, use `npm ci` and `npm run dev`. From backend, use `mvnw.cmd sprin
 - [Verified results and rubric checklist](outputs/03_Verification/01_Completion_Checklist.md)
 - [Submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md)
 - [Architecture, ERD, API, React diagram, and walkthrough](outputs/README.md)
-- [Authentication decision](outputs/04_Decisions/01_Authentication.md)
 - [Postman collection](outputs/03_Verification/Credit_Circuit.postman_collection.json)
-- [Presentation and remaining submission actions](outputs/05_Submission/README.md)
 
-AWS and related deployment/DevOps requirements are waived by my instructor. Jira and branch protection are outside this pass. JWT, validation, pagination, OpenAPI, coverage, Postman, and SonarQube remain required. The planned 3D card follows the required application work. Peer reviews and my rehearsal/presentation/submission require my participation. Rehearsal is October 12; presentation and submission are October 13.
+AWS and related deployment/DevOps requirements are waived by my instructor. Jira and branch protection are outside this pass. JWT, validation, pagination, OpenAPI, coverage, Postman, and SonarQube remain required. The planned 3D card follows the required application work.

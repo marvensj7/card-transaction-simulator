@@ -14,12 +14,8 @@
 - [React components and hooks](02_Architecture/04_React_Component_Diagram.md)
 - [Backend walkthrough](02_Architecture/05_Backend_Walkthrough.md)
 
-## Evidence and submission
+## Verification
 
 - [Rubric checklist and measured results](03_Verification/01_Completion_Checklist.md)
-- [Authentication ADR](04_Decisions/01_Authentication.md)
-- [Financial consistency ADR](04_Decisions/02_Financial_Consistency.md)
-- [Pagination/local demo ADR](04_Decisions/03_Pagination_and_Local_Demo.md)
-- [Run guide, presentation, self-assessment, peer-review worksheet](05_Submission/README.md)
 
-Documents distinguish implemented/verified behavior, planned work, and personal actions. AWS/related deployment work are waived. Jira and branch protection are outside this pass. The 3D card remains planned.
+Documents describe implemented behavior, verification results, and planned application work. AWS/related deployment work are waived. Jira and branch protection are outside this pass. The 3D card remains planned.

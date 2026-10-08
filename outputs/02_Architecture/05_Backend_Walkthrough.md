@@ -18,7 +18,7 @@ AuthController validates register/login JSON and calls AuthService. Registration
 
 Login checks BCrypt, including a dummy comparison for unknown email, and returns safe user/token/expiration. Incorrect credentials share one 401 message. Spring/Nimbus handle signatures and intended claims. JWT_SECRET remains in ignored config/environment. No invented cryptography or refresh-token system exists.
 
-React holds the token in a ref. Sign-out/reload/expiration discard it. A copied token remains valid until expiry. See the [authentication ADR](../04_Decisions/01_Authentication.md) for CORS/CSRF/rate-limit/logout reasoning.
+React holds the token in a ref. Sign-out/reload/expiration discard it. A copied token remains valid until expiry. See the [API contract](03_API_Design.md) for CORS/CSRF/rate-limit/logout behavior.
 
 ## Other workflows
 
@@ -47,4 +47,4 @@ Entities follow foreign keys in one direction with no reverse collections or del
 
 Trace register/login/purchase/retry/decline/refund/freeze from page to database. Explain HTTP 201 versus financial DECLINED. Explain why UUID, lock, and transaction are each necessary. Predict balances before running examples.
 
-HTTP/security tests use mocked repositories; separate MySQL tests prove persistence/concurrency/rollback behavior. Mocks alone cannot prove atomicity. [Verification](../03_Verification/01_Completion_Checklist.md) includes coverage, Postman, and SonarQube. The [demo guide](../05_Submission/01_Local_Run_and_Demo.md) gives a sequence without publishing credentials.
+HTTP/security tests use mocked repositories; separate MySQL tests prove persistence/concurrency/rollback behavior. Mocks alone cannot prove atomicity. [Verification](../03_Verification/01_Completion_Checklist.md) includes coverage, Postman, and SonarQube.

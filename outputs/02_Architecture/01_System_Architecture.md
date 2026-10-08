@@ -40,10 +40,10 @@ sequenceDiagram
 
 React owns controlled fields, loading/errors, confirmations, and memory-only access. fetchJson adds Authorization and expires UI access on a protected 401. Context shares safe identity. The server authorizes and calculates balances.
 
-Spring Security verifies HS256 signature/algorithm, expiry, issuer, exact audience, numeric subject, role, and issue/expiry claims. Public register/login and USER/ADMIN routes are explicit. No login session or authentication cookie is accepted. CORS allows local origins without credentials. Authentication has a bounded ten-attempt/minute limit per IP/process. The [authentication ADR](../04_Decisions/01_Authentication.md) explains CSRF and logout limits.
+Spring Security verifies HS256 signature/algorithm, expiry, issuer, exact audience, numeric subject, role, and issue/expiry claims. Public register/login and USER/ADMIN routes are explicit. No login session or authentication cookie is accepted. CORS allows local origins without credentials. Authentication has a bounded ten-attempt/minute limit per IP/process. The [API contract](03_API_Design.md) explains CSRF and logout limits.
 
 Controllers validate request shape/page bounds and call services directly. AuthService atomically creates user/account/card and checks BCrypt. AccountService handles role/ownership/summaries. TransactionService handles purchases/refunds/history. Repositories query rows and lock accounts. MySQL enforces foreign keys, allowed values, balance bounds, and uniqueness.
 
 Balance/history share a transaction. READ_COMMITTED and pessimistic account locks protect concurrent changes/retries. Account, card, and transaction response DTOs copy display fields inside service transactions. Authentication returns AppUser directly: it has no entity relationships, and @JsonIgnore excludes its passwordHash field and getter. No cascade deletes financial history. Four tables remain sufficient.
 
-The [local run guide](../05_Submission/01_Local_Run_and_Demo.md) replaces waived AWS deployment instructions. No cloud infrastructure, pipeline, cloud monitoring, Jira, or branch-protection change belongs to this implementation.
+The application runs locally using the [backend](../../backend/README.md), [frontend](../../frontend/README.md), and [SQL](../../sql/README.md) setup instructions. AWS deployment is waived.

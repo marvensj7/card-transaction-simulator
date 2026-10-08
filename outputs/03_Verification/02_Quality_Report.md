@@ -49,9 +49,9 @@ I addressed Java readability findings, React nested conditionals, semantic statu
 
 Two findings were reviewed and marked false positive with explanations saved in SonarQube, rather than hidden through rule exclusions:
 
-1. **java:S4502, API CSRF scope.** The application accepts explicit bearer headers and no automatic authentication cookies, sessions, Basic, or form login. React uses credentials=omit; CORS disallows cookie credentials. Cookie-only requests returned 401, an untrusted preflight returned 403, and allowed local preflight passed. The [authentication ADR](../04_Decisions/01_Authentication.md) requires revisiting CSRF if credential transport changes. This was a local technical review, not a peer-review claim.
+1. **java:S4502, API CSRF scope.** The application accepts explicit bearer headers and no automatic authentication cookies, sessions, Basic, or form login. React uses credentials=omit; CORS disallows cookie credentials. Cookie-only requests returned 401, an untrusted preflight returned 403, and allowed local preflight passed. The [API contract](../02_Architecture/03_API_Design.md) requires revisiting CSRF if credential transport changes.
 2. **javascript:S6845, focusable table region.** The named native section is an interactive horizontal scroll container. Its tabIndex enables keyboard access; the tablet test verifies ArrowRight changes scrollLeft. Removing focusability would reduce accessibility. The saved review cites [MDN's overflow accessibility guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow).
 
 ## Limits and remaining actions
 
-No cloud deployment, production load test, universal accessibility certification, peer feedback, rehearsal, or Canvas submission is represented as completed. The rate limiter is local and resets on restart. A copied JWT remains valid until expiration after browser sign-out. Personal review on the classroom machine and the human actions in the [self-assessment](../05_Submission/03_Self_Assessment_and_Next_Steps.md) remain necessary.
+No cloud deployment, production load test, or universal accessibility certification is represented as completed. The rate limiter is local and resets on restart. A copied JWT remains valid until expiration after browser sign-out.

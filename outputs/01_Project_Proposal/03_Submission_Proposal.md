@@ -72,6 +72,6 @@ The tables are app_users, credit_accounts, demo_cards, and card_transactions. Se
 
 ## Approved scope and remaining work
 
-My instructor waived AWS and related infrastructure, deployment pipelines, and cloud monitoring. Jira and branch protection are outside this pass. Other written application/quality requirements remain required. I demonstrate locally using the run guide.
+My instructor waived AWS and related infrastructure, deployment pipelines, and cloud monitoring. Jira and branch protection are outside this pass. Other written application/quality requirements remain required. The application runs locally.
 
-The flippable 3D card remains planned after required application work. I need reviews from two peers, constructive feedback on their projects, and incorporation of findings. I need to explain the code, provide demo credentials privately, rehearse October 12, and present/submit October 13. These human actions are not represented as completed.
+The flippable 3D card remains planned after required application work.

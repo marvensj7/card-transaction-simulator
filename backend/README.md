@@ -4,7 +4,7 @@ I use Java 17, Spring Boot, Spring Security, Spring Data JPA, Bean Validation, a
 
 ## Setup and checks
 
-Run the [SQL setup](../sql/README.md), then configure database credentials and a random Base64 signing key of at least 32 bytes through environment variables or ignored src/main/resources/application-local.properties. The [local guide](../outputs/05_Submission/01_Local_Run_and_Demo.md) has complete steps. Tracked application.properties contains environment placeholders.
+Run the [SQL setup](../sql/README.md), then configure database credentials and a random Base64 signing key of at least 32 bytes through environment variables or ignored src/main/resources/application-local.properties. Tracked application.properties contains environment placeholders.
 
 From this folder:
 
@@ -28,4 +28,4 @@ Bean Validation checks format at the request boundary. Services check the assign
 
 Errors have fixed safe messages and optional field messages. ConflictException and ResourceNotFoundException distinguish common failures. Unexpected errors log only exception type. Request bodies, passwords, issued tokens, full card numbers, security codes, SQL, and bind values are never logged. DTOs expose safe fields only.
 
-CORS allows listed localhost origins without cookie credentials. Authentication POSTs share ten attempts per remote IP per minute in one process. CSRF ignores /api/** because authentication accepts only explicitly attached bearer headers. [The security ADR](../outputs/04_Decisions/01_Authentication.md) explains transport and logout limits.
+CORS allows listed localhost origins without cookie credentials. Authentication POSTs share ten attempts per remote IP per minute in one process. CSRF ignores /api/** because authentication accepts only explicitly attached bearer headers. The [API contract](../outputs/02_Architecture/03_API_Design.md) explains transport and logout limits.

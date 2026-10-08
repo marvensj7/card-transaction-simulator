@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.controller</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.net.URI;
+import com.marvens.capstone.dto.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import com.marvens.capstone.dto.UserResponse;
+import com.marvens.capstone.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+public class AuthController {
+    private final AuthService auth;
+
+<span class="fc" id="L21">    public AuthController(AuthService auth) { this.auth = auth; }</span>
+
+    @Operation(summary = &quot;Register a USER with a credit account and fictional card&quot;)
+    @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Customer, account, and fictional card created together&quot;)
+    @PostMapping(&quot;/register&quot;)
+    public ResponseEntity&lt;UserResponse&gt; register(@Valid @RequestBody RegisterRequest request) {
+<span class="fc" id="L27">        return ResponseEntity.created(URI.create(&quot;/api/auth/me&quot;)).body(auth.register(request));</span>
+    }
+    @Operation(summary = &quot;Check BCrypt credentials and issue a 15-minute access token&quot;)
+    @PostMapping(&quot;/login&quot;)
+<span class="fc" id="L31">    public LoginResponse login(@Valid @RequestBody LoginRequest request) { return auth.login(request); }</span>
+
+    @Operation(summary = &quot;Read the current user&quot;)
+    @SecurityRequirement(name = &quot;bearerAuth&quot;)
+    @GetMapping(&quot;/me&quot;)
+    public UserResponse me(@AuthenticationPrincipal Jwt principal) {
+<span class="fc" id="L37">        return auth.currentUser(Long.valueOf(principal.getSubject()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

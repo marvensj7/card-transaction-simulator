@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.service</a> &gt; <span class="el_source">TransactionService.java</span></div><h1>TransactionService.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import com.marvens.capstone.dto.PageResponse;
+import java.util.UUID;
+import com.marvens.capstone.dto.PurchaseRequest;
+import com.marvens.capstone.dto.TransactionResponse;
+import com.marvens.capstone.dto.TransactionResultResponse;
+import com.marvens.capstone.entity.AppUser;
+import com.marvens.capstone.entity.CardTransaction;
+import com.marvens.capstone.entity.CreditAccount;
+import com.marvens.capstone.entity.DemoCard;
+import com.marvens.capstone.repository.CardTransactionRepository;
+import com.marvens.capstone.repository.CreditAccountRepository;
+import com.marvens.capstone.repository.DemoCardRepository;
+import com.marvens.capstone.exception.ConflictException;
+import com.marvens.capstone.exception.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+@Transactional(readOnly = true)
+public class TransactionService {
+    private final AccountService accountService;
+    private final CreditAccountRepository accounts;
+    private final DemoCardRepository cards;
+    private final CardTransactionRepository transactions;
+
+    public TransactionService(AccountService accountService, CreditAccountRepository accounts,
+<span class="fc" id="L40">            DemoCardRepository cards, CardTransactionRepository transactions) {</span>
+<span class="fc" id="L41">        this.accountService = accountService;</span>
+<span class="fc" id="L42">        this.accounts = accounts;</span>
+<span class="fc" id="L43">        this.cards = cards;</span>
+<span class="fc" id="L44">        this.transactions = transactions;</span>
+<span class="fc" id="L45">    }</span>
+
+    // Commit balance + history together. After waiting for a lock, read the committed result.
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public TransactionResultResponse purchase(Long userId, Long accountId, PurchaseRequest request) {
+<span class="fc" id="L50">        accountService.requireRole(userId, AppUser.Role.USER);</span>
+<span class="fc" id="L51">        String requestId = checkRequestId(request.requestId);</span>
+<span class="fc" id="L52">        CreditAccount account = lockOwnedAccount(userId, accountId);</span>
+<span class="fc" id="L53">        DemoCard card = cards.findByIdAndAccount_Id(request.cardId, accountId);</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (card == null) {</span>
+<span class="nc" id="L55">            throw new ResourceNotFoundException(&quot;Card is unavailable.&quot;);</span>
+        }
+<span class="fc" id="L57">        validateAssignedCard(request, card);</span>
+
+        // Reusing the same request ID must not add another purchase.
+<span class="fc" id="L60">        CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (saved != null) {</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if (saved.getType() != CardTransaction.Type.PURCHASE</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">                    || !saved.getCard().getId().equals(request.cardId)</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                    || !saved.getMerchantName().equals(request.merchantName)</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                    || saved.getAmount().compareTo(request.amount) != 0) {</span>
+<span class="fc" id="L66">                throw new ConflictException(&quot;Request ID is already used for different details.&quot;);</span>
+            }
+<span class="fc" id="L68">            return new TransactionResultResponse(saved, account, true);</span>
+        }
+
+<span class="fc" id="L71">        String reason = null;</span>
+<span class="fc" id="L72">        YearMonth expiry = YearMonth.of(card.getExpiryYear(), card.getExpiryMonth());</span>
+<span class="fc" id="L73">        BigDecimal availableCredit = account.getCreditLimit().subtract(account.getOutstandingBalance());</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (expiry.isBefore(YearMonth.now(ZoneOffset.UTC))) {</span>
+<span class="fc" id="L75">            reason = &quot;CARD_EXPIRED&quot;;</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        } else if (account.getStatus() == CreditAccount.Status.FROZEN) {</span>
+<span class="fc" id="L77">            reason = &quot;ACCOUNT_FROZEN&quot;;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        } else if (request.amount.compareTo(availableCredit) &gt; 0) {</span>
+<span class="fc" id="L79">            reason = &quot;INSUFFICIENT_CREDIT&quot;;</span>
+        }
+
+<span class="fc" id="L82">        CardTransaction purchase = new CardTransaction();</span>
+<span class="fc" id="L83">        purchase.setType(CardTransaction.Type.PURCHASE);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (reason == null) {</span>
+<span class="fc" id="L85">            account.setOutstandingBalance(account.getOutstandingBalance().add(request.amount));</span>
+<span class="fc" id="L86">            accounts.save(account);</span>
+<span class="fc" id="L87">            purchase.setStatus(CardTransaction.Status.APPROVED);</span>
+        } else {
+<span class="fc" id="L89">            purchase.setStatus(CardTransaction.Status.DECLINED);</span>
+        }
+<span class="fc" id="L91">        purchase.setReasonCode(reason);</span>
+<span class="fc" id="L92">        fillHistory(purchase, account, card, request.amount, request.merchantName, requestId);</span>
+<span class="fc" id="L93">        transactions.save(purchase);</span>
+<span class="fc" id="L94">        return new TransactionResultResponse(purchase, account);</span>
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public TransactionResultResponse refund(Long userId, Long purchaseId, String rawRequestId) {
+<span class="fc" id="L99">        accountService.requireRole(userId, AppUser.Role.USER);</span>
+<span class="fc" id="L100">        String requestId = checkRequestId(rawRequestId);</span>
+<span class="fc" id="L101">        Long accountId = transactions.findOwnedAccountId(purchaseId, userId);</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (accountId == null) {</span>
+<span class="fc" id="L103">            throw new ResourceNotFoundException(&quot;Purchase is unavailable.&quot;);</span>
+        }
+<span class="fc" id="L105">        CreditAccount account = lockOwnedAccount(userId, accountId);</span>
+<span class="fc" id="L106">        CardTransaction purchase = transactions.findByIdAndAccount_User_Id(purchaseId, userId);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (purchase == null) {</span>
+<span class="nc" id="L108">            throw new ResourceNotFoundException(&quot;Purchase is unavailable.&quot;);</span>
+        }
+
+<span class="fc" id="L111">        CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (saved != null) {</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">            if (saved.getType() != CardTransaction.Type.REFUND</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">                    || !saved.getOriginalPurchase().getId().equals(purchaseId)) {</span>
+<span class="nc" id="L115">                throw new ConflictException(&quot;Request ID is already used for different details.&quot;);</span>
+            }
+<span class="fc" id="L117">            return new TransactionResultResponse(saved, account, true);</span>
+        }
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (purchase.getType() != CardTransaction.Type.PURCHASE</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">                || purchase.getStatus() != CardTransaction.Status.APPROVED</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">                || transactions.findByOriginalPurchase_Id(purchaseId) != null) {</span>
+<span class="fc" id="L122">            throw new ConflictException(&quot;Only an approved purchase without a refund can be refunded.&quot;);</span>
+        }
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (!purchase.getCard().getAccount().getId().equals(accountId)</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">                || account.getOutstandingBalance().compareTo(purchase.getAmount()) &lt; 0) {</span>
+<span class="nc" id="L126">            throw new ConflictException(&quot;This purchase cannot be refunded against this account.&quot;);</span>
+        }
+
+        // A full refund copies the purchase amount, including when the account is frozen.
+<span class="fc" id="L130">        account.setOutstandingBalance(account.getOutstandingBalance().subtract(purchase.getAmount()));</span>
+<span class="fc" id="L131">        accounts.save(account);</span>
+<span class="fc" id="L132">        CardTransaction refund = new CardTransaction();</span>
+<span class="fc" id="L133">        refund.setType(CardTransaction.Type.REFUND);</span>
+<span class="fc" id="L134">        refund.setStatus(CardTransaction.Status.APPROVED);</span>
+<span class="fc" id="L135">        refund.setOriginalPurchase(purchase);</span>
+<span class="fc" id="L136">        fillHistory(refund, account, purchase.getCard(), purchase.getAmount(), purchase.getMerchantName(), requestId);</span>
+<span class="fc" id="L137">        transactions.save(refund);</span>
+<span class="fc" id="L138">        return new TransactionResultResponse(refund, account);</span>
+    }
+
+    public PageResponse&lt;TransactionResponse&gt; getHistory(Long userId, Long accountId, int page, int size) {
+<span class="fc" id="L142">        accountService.getOwnedAccount(userId, accountId);</span>
+<span class="fc" id="L143">        return historyResponse(transactions.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size)));</span>
+    }
+
+    public PageResponse&lt;TransactionResponse&gt; getAdminTransactions(Long adminId, int page, int size) {
+<span class="fc" id="L147">        accountService.requireRole(adminId, AppUser.Role.ADMIN);</span>
+<span class="fc" id="L148">        return historyResponse(transactions.findAllByOrderByIdDesc(PageRequest.of(page, size)));</span>
+    }
+
+    private PageResponse&lt;TransactionResponse&gt; historyResponse(Page&lt;CardTransaction&gt; rows) {
+<span class="fc" id="L152">        List&lt;Long&gt; ids = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        for (CardTransaction row : rows) ids.add(row.getId());</span>
+<span class="fc" id="L154">        List&lt;Long&gt; refunded = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if (!ids.isEmpty()) refunded = transactions.findRefundedPurchaseIds(ids);</span>
+<span class="fc" id="L156">        List&lt;TransactionResponse&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        for (CardTransaction row : rows) result.add(new TransactionResponse(row, refunded.contains(row.getId())));</span>
+<span class="fc" id="L158">        return new PageResponse&lt;&gt;(result, rows);</span>
+    }
+
+    private CreditAccount lockOwnedAccount(Long userId, Long accountId) {
+<span class="fc" id="L162">        CreditAccount account = accounts.findLockedByIdAndUser_Id(accountId, userId);</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        if (account == null) {</span>
+<span class="fc" id="L164">            throw new ResourceNotFoundException(&quot;Account is unavailable.&quot;);</span>
+        }
+<span class="fc" id="L166">        return account;</span>
+    }
+
+    private void validateAssignedCard(PurchaseRequest request, DemoCard card) {
+<span class="pc bpc" id="L170" title="2 of 4 branches missed.">        if (!&quot;DEMO_4242&quot;.equals(card.getTestProfile()) || !&quot;4242&quot;.equals(card.getLastFour())</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">                || !&quot;4242&quot;.repeat(4).equals(request.testCardNumber)</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">                || request.expiryMonth.intValue() != card.getExpiryMonth().intValue()</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">                || request.expiryYear.intValue() != card.getExpiryYear().intValue()) {</span>
+<span class="fc" id="L174">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Use the assigned fictional card and expiry.&quot;);</span>
+        }
+<span class="fc" id="L176">    }</span>
+
+    private String checkRequestId(String value) {
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (value != null) {</span>
+            try {
+<span class="fc" id="L181">                String normalized = UUID.fromString(value).toString();</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">                if (normalized.equalsIgnoreCase(value)) {</span>
+<span class="fc" id="L183">                    return normalized;</span>
+                }
+<span class="nc" id="L185">            } catch (IllegalArgumentException ignored) {</span>
+                // The fixed error below explains the rule without printing the input.
+<span class="nc" id="L187">            }</span>
+        }
+<span class="nc" id="L189">        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Request ID must be a UUID.&quot;);</span>
+    }
+
+    private void fillHistory(CardTransaction transaction, CreditAccount account, DemoCard card,
+            BigDecimal amount, String merchant, String requestId) {
+<span class="fc" id="L194">        transaction.setAccount(account);</span>
+<span class="fc" id="L195">        transaction.setCard(card);</span>
+<span class="fc" id="L196">        transaction.setAmount(amount.setScale(2));</span>
+<span class="fc" id="L197">        transaction.setOutstandingAfter(account.getOutstandingBalance());</span>
+<span class="fc" id="L198">        transaction.setMerchantName(merchant);</span>
+<span class="fc" id="L199">        transaction.setRequestId(requestId);</span>
+<span class="fc" id="L200">        transaction.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC).withNano(0));</span>
+<span class="fc" id="L201">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

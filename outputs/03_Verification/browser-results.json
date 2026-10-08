@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-08T19:26:34.423Z",
+  "realBackend": true,
+  "database": "MySQL",
+  "injectedFailures": [
+    "lost purchase response after real save",
+    "lost refund response after real save",
+    "401 expiration response",
+    "503 dashboard load",
+    "empty account/card/admin lists"
+  ],
+  "viewports": [
+    "1440x900",
+    "768x1024",
+    "390x844",
+    "320x844"
+  ],
+  "results": [
+    {
+      "name": "Home teaser, desktop layout, skip link and keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Registration, controlled sign-in, loading skeleton and empty history",
+      "passed": true
+    },
+    {
+      "name": "Recoverable load failure and empty account/card states",
+      "passed": true
+    },
+    {
+      "name": "Customer route, backend role and account ownership protection",
+      "passed": true
+    },
+    {
+      "name": "Purchase field errors, pending controls and identical retry after a lost response",
+      "passed": true
+    },
+    {
+      "name": "Saved insufficient-credit decline is an outcome on a phone layout",
+      "passed": true
+    },
+    {
+      "name": "Refund modal focus, Escape and unchanged retry after a lost refund response",
+      "passed": true
+    },
+    {
+      "name": "Real pagination and refunded status across separate history pages on tablet",
+      "passed": true
+    },
+    {
+      "name": "Admin account/activity paging and freeze",
+      "passed": true
+    },
+    {
+      "name": "Frozen account decline, refund while frozen, and admin reactivation",
+      "passed": true
+    },
+    {
+      "name": "401 expiration feedback, reload clears access and signed-out URLs stay protected",
+      "passed": true
+    }
+  ]
+}

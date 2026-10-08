@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PurchaseRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.dto</a> &gt; <span class="el_source">PurchaseRequest.java</span></div><h1>PurchaseRequest.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.dto;
+
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+// Request format is checked by @Valid; account/card/financial rules stay in the service.
+<span class="fc" id="L8">public class PurchaseRequest {</span>
+    @NotNull @Positive
+    public Long cardId;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @NotBlank @Pattern(regexp = &quot;\\d{16}&quot;, message = &quot;must contain 16 fictional digits&quot;)
+    public String testCardNumber;
+    @NotNull @Min(1) @Max(12)
+    public Integer expiryMonth;
+    @NotNull @Min(2000) @Max(9999)
+    public Integer expiryYear;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @NotBlank @Pattern(regexp = &quot;\\d{3,4}&quot;, message = &quot;must contain 3 or 4 fictional digits&quot;)
+    public String testSecurityCode;
+    @NotBlank @Size(max = 100)
+    public String merchantName;
+    @NotNull @DecimalMin(&quot;0.01&quot;) @Digits(integer = 12, fraction = 2)
+    public BigDecimal amount;
+    @NotBlank @Pattern(regexp = &quot;[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}&quot;, message = &quot;must be a UUID&quot;)
+    public String requestId;
+
+    @Override
+    public String toString() {
+<span class="nc" id="L30">        return &quot;PurchaseRequest&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

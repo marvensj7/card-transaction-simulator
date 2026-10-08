@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppUser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.entity</a> &gt; <span class="el_source">AppUser.java</span></div><h1>AppUser.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;app_users&quot;)
+public class AppUser {
+<span class="fc" id="L17">    public enum Role { USER, ADMIN }</span>
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;id&quot;, nullable = false)
+    private Long id;
+
+    @Column(name = &quot;display_name&quot;, nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
+    private String displayName;
+
+    @Column(name = &quot;email&quot;, nullable = false, length = 150)
+    @NotBlank @Email @Size(max = 150)
+    private String email;
+
+    @JsonIgnore
+    @Column(name = &quot;password_hash&quot;, nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;role&quot;, nullable = false, length = 20, columnDefinition = &quot;varchar(20)&quot;)
+    @NotNull
+    private Role role;
+
+<span class="fc" id="L42">    public AppUser() {</span>
+        // JPA needs a no-argument constructor to load existing rows.
+<span class="fc" id="L44">    }</span>
+
+<span class="fc" id="L46">    public Long getId() { return id; }</span>
+<span class="fc" id="L47">    public String getDisplayName() { return displayName; }</span>
+<span class="fc" id="L48">    public void setDisplayName(String displayName) { this.displayName = displayName; }</span>
+<span class="fc" id="L49">    public String getEmail() { return email; }</span>
+<span class="fc" id="L50">    public void setEmail(String email) { this.email = email; }</span>
+    @JsonIgnore
+<span class="fc" id="L52">    public String getPasswordHash() { return passwordHash; }</span>
+<span class="fc" id="L53">    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }</span>
+<span class="fc" id="L54">    public Role getRole() { return role; }</span>
+<span class="fc" id="L55">    public void setRole(Role role) { this.role = role; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

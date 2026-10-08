@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.controller</a> &gt; <span class="el_source">TransactionController.java</span></div><h1>TransactionController.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import com.marvens.capstone.dto.PageResponse;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
+import com.marvens.capstone.dto.PurchaseRequest;
+import com.marvens.capstone.dto.TransactionResponse;
+import com.marvens.capstone.dto.TransactionResultResponse;
+import com.marvens.capstone.service.TransactionService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+@RestController
+@RequestMapping(&quot;/api&quot;)
+public class TransactionController {
+    private final TransactionService transactions;
+
+<span class="fc" id="L33">    public TransactionController(TransactionService transactions) {</span>
+<span class="fc" id="L34">        this.transactions = transactions;</span>
+<span class="fc" id="L35">    }</span>
+
+    @Operation(summary = &quot;Save an approved or declined fictional purchase&quot;)
+    @ApiResponse(responseCode = &quot;201&quot;, description = &quot;New saved outcome&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Identical retry; no new write&quot;)
+    @PostMapping(&quot;/accounts/{accountId}/purchases&quot;)
+    public ResponseEntity&lt;TransactionResultResponse&gt; purchase(@AuthenticationPrincipal Jwt principal,
+            @PathVariable @Positive Long accountId, @Valid @RequestBody PurchaseRequest request) {
+<span class="fc" id="L43">        Long userId = Long.valueOf(principal.getSubject());</span>
+<span class="fc" id="L44">        TransactionResultResponse result = transactions.purchase(userId, accountId, request);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        return ResponseEntity.status(result.replayed ? 200 : 201).body(result);</span>
+    }
+
+    @Operation(summary = &quot;Page owned history newest first&quot;)
+    @GetMapping(&quot;/accounts/{accountId}/transactions&quot;)
+    public PageResponse&lt;TransactionResponse&gt; history(@AuthenticationPrincipal Jwt principal,
+            @PathVariable @Positive Long accountId, @RequestParam(defaultValue = &quot;0&quot;) @Min(0) @Max(10000) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) @Min(1) @Max(50) int size) {
+<span class="fc" id="L53">        Long userId = Long.valueOf(principal.getSubject());</span>
+<span class="fc" id="L54">        return transactions.getHistory(userId, accountId, page, size);</span>
+    }
+
+    @Operation(summary = &quot;Refund an owned approved purchase in full&quot;)
+    @ApiResponse(responseCode = &quot;201&quot;, description = &quot;New saved outcome&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Identical retry; no new write&quot;)
+    @PostMapping(&quot;/transactions/{purchaseId}/refund&quot;)
+    public ResponseEntity&lt;TransactionResultResponse&gt; refund(@AuthenticationPrincipal Jwt principal,
+            @PathVariable @Positive Long purchaseId, @RequestParam @Pattern(regexp = &quot;[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}&quot;) String requestId) {
+<span class="fc" id="L63">        Long userId = Long.valueOf(principal.getSubject());</span>
+<span class="fc" id="L64">        TransactionResultResponse result = transactions.refund(userId, purchaseId, requestId);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        return ResponseEntity.status(result.replayed ? 200 : 201).body(result);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

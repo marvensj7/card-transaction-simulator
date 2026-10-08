@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-08T19:37:02.997477+00:00",
+  "sourceRevision": "e7c9f1fad8b53372fe5c26505308da9919ea085a",
+  "propCheck": "passed",
+  "apiTests": {
+    "passed": 35,
+    "failed": 0
+  },
+  "routeTests": {
+    "passed": 9,
+    "failed": 0
+  },
+  "stateTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "privateAdminMySQLTest": {
+    "passed": 1,
+    "failed": 0
+  },
+  "productionBuild": "passed",
+  "npmAudit": {
+    "vulnerabilities": 0
+  }
+}

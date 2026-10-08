@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DemoCard.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.entity</a> &gt; <span class="el_source">DemoCard.java</span></div><h1>DemoCard.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;demo_cards&quot;)
+public class DemoCard {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;id&quot;, nullable = false)
+    private Long id;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = &quot;account_id&quot;, nullable = false)
+    @NotNull
+    private CreditAccount account;
+
+    @Column(name = &quot;test_profile&quot;, nullable = false, length = 20)
+    @NotBlank @Size(max = 20)
+    private String testProfile;
+
+    @Column(name = &quot;label&quot;, nullable = false, length = 50)
+    @NotBlank @Size(max = 50)
+    private String label;
+
+    @Column(name = &quot;last_four&quot;, nullable = false, length = 4, columnDefinition = &quot;char(4)&quot;)
+    @NotBlank @Pattern(regexp = &quot;\\d{4}&quot;)
+    private String lastFour;
+
+    @Column(name = &quot;expiry_month&quot;, nullable = false)
+    @NotNull @Min(1) @Max(12)
+    private Byte expiryMonth;
+
+    @Column(name = &quot;expiry_year&quot;, nullable = false)
+    @NotNull @Min(2000) @Max(9999)
+    private Short expiryYear;
+
+<span class="fc" id="L49">    public DemoCard() {</span>
+        // JPA needs a no-argument constructor to load existing rows.
+<span class="fc" id="L51">    }</span>
+
+<span class="fc" id="L53">    public Long getId() { return id; }</span>
+<span class="fc" id="L54">    public CreditAccount getAccount() { return account; }</span>
+<span class="fc" id="L55">    public void setAccount(CreditAccount account) { this.account = account; }</span>
+<span class="fc" id="L56">    public String getTestProfile() { return testProfile; }</span>
+<span class="fc" id="L57">    public void setTestProfile(String testProfile) { this.testProfile = testProfile; }</span>
+<span class="fc" id="L58">    public String getLabel() { return label; }</span>
+<span class="fc" id="L59">    public void setLabel(String label) { this.label = label; }</span>
+<span class="fc" id="L60">    public String getLastFour() { return lastFour; }</span>
+<span class="fc" id="L61">    public void setLastFour(String lastFour) { this.lastFour = lastFour; }</span>
+<span class="fc" id="L62">    public Byte getExpiryMonth() { return expiryMonth; }</span>
+<span class="fc" id="L63">    public void setExpiryMonth(Byte expiryMonth) { this.expiryMonth = expiryMonth; }</span>
+<span class="fc" id="L64">    public Short getExpiryYear() { return expiryYear; }</span>
+<span class="fc" id="L65">    public void setExpiryYear(Short expiryYear) { this.expiryYear = expiryYear; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

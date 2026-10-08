@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-08",
+  "java": "17",
+  "mysql": "8.4.9",
+  "gate": {
+    "metric": "LINE",
+    "minimum": 70,
+    "passed": true
+  },
+  "coverage": {
+    "INSTRUCTION": {
+      "covered": 2199,
+      "missed": 101,
+      "percent": 95.61
+    },
+    "BRANCH": {
+      "covered": 116,
+      "missed": 34,
+      "percent": 77.33
+    },
+    "LINE": {
+      "covered": 472,
+      "missed": 21,
+      "percent": 95.74
+    },
+    "COMPLEXITY": {
+      "covered": 188,
+      "missed": 40,
+      "percent": 82.46
+    },
+    "METHOD": {
+      "covered": 147,
+      "missed": 6,
+      "percent": 96.08
+    },
+    "CLASS": {
+      "covered": 34,
+      "missed": 0,
+      "percent": 100.0
+    }
+  },
+  "tests": [
+    {
+      "name": "com.marvens.capstone.AuthApiTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.SecurityConfigurationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.SimulatorApiTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.AuthIT",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.SimulatorIT",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ]
+}

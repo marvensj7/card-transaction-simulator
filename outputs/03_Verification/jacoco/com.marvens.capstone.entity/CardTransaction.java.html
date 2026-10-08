@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CardTransaction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.entity</a> &gt; <span class="el_source">CardTransaction.java</span></div><h1>CardTransaction.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.entity;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;card_transactions&quot;)
+public class CardTransaction {
+<span class="fc" id="L24">    public enum Type { PURCHASE, REFUND }</span>
+<span class="fc" id="L25">    public enum Status { APPROVED, DECLINED }</span>
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;id&quot;, nullable = false)
+    private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = &quot;account_id&quot;, nullable = false)
+    @NotNull
+    private CreditAccount account;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = &quot;card_id&quot;, nullable = false)
+    @NotNull
+    private DemoCard card;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;type&quot;, nullable = false, length = 20, columnDefinition = &quot;varchar(20)&quot;)
+    @NotNull
+    private Type type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;status&quot;, nullable = false, length = 20, columnDefinition = &quot;varchar(20)&quot;)
+    @NotNull
+    private Status status;
+
+    @Column(name = &quot;amount&quot;, nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin(&quot;0.01&quot;) @Digits(integer = 12, fraction = 2)
+    private BigDecimal amount;
+
+    @Column(name = &quot;outstanding_after&quot;, nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin(&quot;0.00&quot;) @Digits(integer = 12, fraction = 2)
+    private BigDecimal outstandingAfter;
+
+    @Column(name = &quot;merchant_name&quot;, nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
+    private String merchantName;
+
+    @Column(name = &quot;reason_code&quot;, length = 40)
+    private String reasonCode;
+
+    // MySQL DATETIME has no zone. The service supplies UTC, using whole seconds.
+    @Column(name = &quot;created_at&quot;, nullable = false, columnDefinition = &quot;datetime(6)&quot;)
+    @NotNull
+    private LocalDateTime createdAt;
+
+    @Column(name = &quot;request_id&quot;, nullable = false, length = 36, columnDefinition = &quot;char(36)&quot;)
+    @NotBlank @Size(min = 36, max = 36)
+    private String requestId;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = &quot;original_purchase_id&quot;)
+    private CardTransaction originalPurchase;
+
+<span class="fc" id="L83">    public CardTransaction() {</span>
+        // JPA needs a no-argument constructor to load existing rows.
+<span class="fc" id="L85">    }</span>
+
+<span class="fc" id="L87">    public Long getId() { return id; }</span>
+<span class="fc" id="L88">    public CreditAccount getAccount() { return account; }</span>
+<span class="fc" id="L89">    public void setAccount(CreditAccount account) { this.account = account; }</span>
+<span class="fc" id="L90">    public DemoCard getCard() { return card; }</span>
+<span class="fc" id="L91">    public void setCard(DemoCard card) { this.card = card; }</span>
+<span class="fc" id="L92">    public Type getType() { return type; }</span>
+<span class="fc" id="L93">    public void setType(Type type) { this.type = type; }</span>
+<span class="fc" id="L94">    public Status getStatus() { return status; }</span>
+<span class="fc" id="L95">    public void setStatus(Status status) { this.status = status; }</span>
+<span class="fc" id="L96">    public BigDecimal getAmount() { return amount; }</span>
+<span class="fc" id="L97">    public void setAmount(BigDecimal amount) { this.amount = amount; }</span>
+<span class="fc" id="L98">    public BigDecimal getOutstandingAfter() { return outstandingAfter; }</span>
+<span class="fc" id="L99">    public void setOutstandingAfter(BigDecimal outstandingAfter) { this.outstandingAfter = outstandingAfter; }</span>
+<span class="fc" id="L100">    public String getMerchantName() { return merchantName; }</span>
+<span class="fc" id="L101">    public void setMerchantName(String merchantName) { this.merchantName = merchantName; }</span>
+<span class="fc" id="L102">    public String getReasonCode() { return reasonCode; }</span>
+<span class="fc" id="L103">    public void setReasonCode(String reasonCode) { this.reasonCode = reasonCode; }</span>
+<span class="fc" id="L104">    public LocalDateTime getCreatedAt() { return createdAt; }</span>
+<span class="fc" id="L105">    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }</span>
+<span class="nc" id="L106">    public String getRequestId() { return requestId; }</span>
+<span class="fc" id="L107">    public void setRequestId(String requestId) { this.requestId = requestId; }</span>
+<span class="fc" id="L108">    public CardTransaction getOriginalPurchase() { return originalPurchase; }</span>
+<span class="fc" id="L109">    public void setOriginalPurchase(CardTransaction originalPurchase) { this.originalPurchase = originalPurchase; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

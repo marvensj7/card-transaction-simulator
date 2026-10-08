@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthenticationRateLimitFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Card Transaction Simulator</a> &gt; <a href="index.source.html" class="el_package">com.marvens.capstone.security</a> &gt; <span class="el_source">AuthenticationRateLimitFilter.java</span></div><h1>AuthenticationRateLimitFilter.java</h1><pre class="source lang-java linenums">package com.marvens.capstone.security;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+// A local, single-process limit. Never trust a caller-supplied forwarded IP header.
+public class AuthenticationRateLimitFilter extends OncePerRequestFilter {
+<span class="fc" id="L15">    private final Map&lt;String, Window&gt; attempts = new HashMap&lt;&gt;();</span>
+    private final ObjectMapper json;
+    private final int limit;
+
+<span class="fc" id="L19">    public AuthenticationRateLimitFilter(ObjectMapper json, int limit) {</span>
+<span class="pc bpc" id="L20" title="1 of 2 branches missed.">        if (limit &lt; 1) throw new IllegalArgumentException(&quot;Authentication limit must be positive.&quot;);</span>
+<span class="fc" id="L21">        this.json = json;</span>
+<span class="fc" id="L22">        this.limit = limit;</span>
+<span class="fc" id="L23">    }</span>
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+<span class="fc" id="L27">        String path = request.getRequestURI().substring(request.getContextPath().length());</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        return !&quot;POST&quot;.equals(request.getMethod())</span>
+<span class="fc bfc" id="L29" title="All 4 branches covered.">                || !(path.equals(&quot;/api/auth/login&quot;) || path.equals(&quot;/api/auth/register&quot;));</span>
+    }
+
+    private synchronized boolean allow(String address) {
+<span class="fc" id="L33">        long now = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        attempts.entrySet().removeIf(entry -&gt; now &gt;= entry.getValue().endsAt);</span>
+<span class="fc" id="L35">        Window window = attempts.get(address);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (window == null) {</span>
+            // Bound memory even if many different clients contact the application.
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">            if (attempts.size() &gt;= 10000) return false;</span>
+<span class="fc" id="L39">            window = new Window(now + 60000);</span>
+<span class="fc" id="L40">            attempts.put(address, window);</span>
+        }
+<span class="fc" id="L42">        window.count++;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return window.count &lt;= limit;</span>
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+            FilterChain chain) throws ServletException, IOException {
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (!allow(request.getRemoteAddr())) {</span>
+<span class="fc" id="L50">            response.setStatus(429);</span>
+<span class="fc" id="L51">            response.setHeader(&quot;Retry-After&quot;, &quot;60&quot;);</span>
+<span class="fc" id="L52">            response.setContentType(&quot;application/json&quot;);</span>
+<span class="fc" id="L53">            json.writeValue(response.getOutputStream(), Map.of(&quot;message&quot;, &quot;Too many sign-in attempts. Try again in a minute.&quot;));</span>
+<span class="fc" id="L54">            return;</span>
+        }
+<span class="fc" id="L56">        chain.doFilter(request, response);</span>
+<span class="fc" id="L57">    }</span>
+
+    private static class Window {
+        final long endsAt;
+        int count;
+<span class="fc" id="L62">        Window(long endsAt) { this.endsAt = endsAt; }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

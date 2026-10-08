@@ -19,7 +19,7 @@ export class ApiError extends Error {
 }
 
 /** @param {string} path @param {'GET' | 'POST' | 'PATCH'} [method] @param {Record<string, unknown>} [body] */
-export async function fetchJson(path, method = 'GET', body) {
+export async function fetchJson(path, method = 'GET', body = undefined) {
   const publicAuth = path === '/api/auth/login' || path === '/api/auth/register'
   const token = publicAuth ? '' : readToken()
   /** @type {Record<string, string>} */
@@ -42,20 +42,22 @@ export async function fetchJson(path, method = 'GET', body) {
   if (!response.ok) {
     if (response.status === 401 && !publicAuth) onUnauthorized()
     const fallback = `The request failed (HTTP ${response.status}). Please try again.`
-    /** @param {unknown} value */
-    function safeMessage(value) {
-      if (typeof value !== 'string' || !value.trim() || value.length > 300) return fallback
-      for (const secret of [body?.password, body?.testCardNumber, body?.testSecurityCode, token]) {
-        if (typeof secret === 'string' && secret && value.includes(secret)) return fallback
-      }
-      return value.trim()
-    }
+    const secrets = [body?.password, body?.testCardNumber, body?.testSecurityCode, token]
     /** @type {Record<string, string>} */
     const fields = {}
     if (data?.fields && typeof data.fields === 'object') {
-      for (const [key, value] of Object.entries(data.fields)) fields[key] = safeMessage(value)
+      for (const [key, value] of Object.entries(data.fields)) fields[key] = safeMessage(value, fallback, secrets)
     }
-    throw new ApiError(safeMessage(data?.message), response.status, fields)
+    throw new ApiError(safeMessage(data?.message, fallback, secrets), response.status, fields)
   }
   return data
+}
+
+/** @param {unknown} value @param {string} fallback @param {unknown[]} secrets */
+function safeMessage(value, fallback, secrets) {
+  if (typeof value !== 'string' || !value.trim() || value.length > 300) return fallback
+  for (const secret of secrets) {
+    if (typeof secret === 'string' && secret && value.includes(secret)) return fallback
+  }
+  return value.trim()
 }

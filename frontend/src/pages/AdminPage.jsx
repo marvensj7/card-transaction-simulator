@@ -56,23 +56,33 @@ export default function AdminPage() {
     finally { inFlight.current = false; setPending(false) }
   }
 
-  return <main id="main-content" className="content-page" tabIndex={-1}>
-    <PageHeading eyebrow="Credit Circuit / Oversight" title="Administration" description="Review fictional customer accounts and activity. Freeze controls new spending; eligible refunds remain available." />
-    {message && <p role="status">{message}</p>}
-    <Button onClick={() => setReload(reload + 1)} disabled={accountsLoading || activityLoading || pending}>Refresh accounts and activity</Button>
-    <Card title="Customer accounts">
-      {accountsLoading ? <Loading skeleton /> : accountsError ? <p role="alert" className="error">{accountsError}</p> : accounts && <>
+  let accountsContent = null
+  if (accountsLoading) accountsContent = <Loading skeleton />
+  else if (accountsError) accountsContent = <p role="alert" className="error">{accountsError}</p>
+  else if (accounts) accountsContent = <>
         {accounts.items.length ? <Table caption="Credit account oversight" headers={['Account', 'Customer', 'Limit', 'Outstanding', 'Available', 'Status', 'Action']}>
           {accounts.items.map(account => <tr key={account.id}><td>#{account.id}</td><td>{account.ownerName}</td><td>{money(account.creditLimit)}</td><td>{money(account.outstandingBalance)}</td><td>{money(account.availableCredit)}</td><td>{account.status}</td><td><Button disabled={pending} onClick={() => { setSelected(account); setStatusError('') }}>{account.status === 'ACTIVE' ? 'Freeze' : 'Reactivate'} #{account.id}</Button></td></tr>)}
         </Table> : <p>No customer accounts are available.</p>}
         <Pagination page={accountPage} totalPages={accounts.totalPages} pending={pending} onPage={setAccountPage} />
-      </>}
-    </Card>
-    <Card title="Recent activity">
-      {activityLoading ? <Loading skeleton /> : activityError ? <p role="alert" className="error">{activityError}</p> : activity && <>
+      </>
+
+  let activityContent = null
+  if (activityLoading) activityContent = <Loading skeleton />
+  else if (activityError) activityContent = <p role="alert" className="error">{activityError}</p>
+  else if (activity) activityContent = <>
         {activity.items.length ? <TransactionTable items={activity.items} /> : <p>No transaction activity yet.</p>}
         <Pagination page={activityPage} totalPages={activity.totalPages} pending={pending} onPage={setActivityPage} />
-      </>}
+      </>
+
+  return <main id="main-content" className="content-page" tabIndex={-1}>
+    <PageHeading eyebrow="Credit Circuit / Oversight" title="Administration" description="Review fictional customer accounts and activity. Freeze controls new spending; eligible refunds remain available." />
+    {message && <output className="notice">{message}</output>}
+    <Button onClick={() => setReload(reload + 1)} disabled={accountsLoading || activityLoading || pending}>Refresh accounts and activity</Button>
+    <Card title="Customer accounts">
+      {accountsContent}
+    </Card>
+    <Card title="Recent activity">
+      {activityContent}
     </Card>
     <ConfirmModal open={selected !== null} title="Change account status" pending={pending} onConfirm={changeStatus} onClose={() => setSelected(null)}>
       <p>{selected?.status === 'ACTIVE' ? 'Freeze' : 'Reactivate'} account #{selected?.id} for {selected?.ownerName}?</p>

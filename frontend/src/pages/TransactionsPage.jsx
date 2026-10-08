@@ -69,14 +69,19 @@ export default function TransactionsPage() {
     } finally { inFlight.current = false; setPending(false) }
   }
 
-  return <main id="main-content" className="content-page" tabIndex={-1}>
-    <PageHeading eyebrow="Credit Circuit / History" title="Transactions" description="Follow a request through to its outcome. Refunds reverse the full original amount once." />
-    {message && <p role="status">{message}</p>}
-    {uncertain && <Card title="Refund outcome uncertain"><p>Keep this page open. Retry the same refund to confirm the saved result without creating another reversal.</p>{refundError && <p role="alert" className="error">{refundError}</p>}<Button onClick={refund} pending={pending}>Retry same refund</Button></Card>}
-    {loading ? <Loading skeleton /> : error ? <div role="alert"><p className="error">{error}</p><Button onClick={() => setReload(reload + 1)}>Try again</Button></div> : history && <Card title="Your history">
+  let content = null
+  if (loading) content = <Loading skeleton />
+  else if (error) content = <div role="alert"><p className="error">{error}</p><Button onClick={() => setReload(reload + 1)}>Try again</Button></div>
+  else if (history) content = <Card title="Your history">
       {history.items.length ? <TransactionTable items={history.items} pending={pending || uncertain} onRefund={selectRefund} /> : <p>No transactions yet. Your next fictional purchase will appear here.</p>}
       <Pagination page={page} totalPages={history.totalPages} pending={loading || pending || uncertain} onPage={setPage} />
-    </Card>}
+    </Card>
+
+  return <main id="main-content" className="content-page" tabIndex={-1}>
+    <PageHeading eyebrow="Credit Circuit / History" title="Transactions" description="Follow a request through to its outcome. Refunds reverse the full original amount once." />
+    {message && <output className="notice">{message}</output>}
+    {uncertain && <Card title="Refund outcome uncertain"><p>Keep this page open. Retry the same refund to confirm the saved result without creating another reversal.</p>{refundError && <p role="alert" className="error">{refundError}</p>}<Button onClick={refund} pending={pending}>Retry same refund</Button></Card>}
+    {content}
     <ConfirmModal open={selected !== null} title="Confirm full refund" pending={pending} onConfirm={refund} onClose={closeModal}>
       <p>Refund {selected ? money(selected.amount) : ''} for purchase #{selected?.id}? The original purchase stays in history.</p>
       {refundError && <p role="alert" className="error">{refundError}</p>}

@@ -50,18 +50,18 @@ export default function PurchasePage() {
     setFields(previous => ({ ...previous, [name]: '' }))
   }
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
+  /** @param {import('react').SubmitEvent<HTMLFormElement>} event */
   async function submit(event) {
     event.preventDefault()
     if (!card || !account || inFlight.current || phase !== 'editing') return
     /** @type {Record<string, string>} */
     const invalid = {}
-    if (!/^[0-9]{16}$/.test(form.testCardNumber)) invalid.testCardNumber = 'Enter the 16-digit fictional test number.'
-    if (!/^[0-9]{3,4}$/.test(form.testSecurityCode)) invalid.testSecurityCode = 'Enter 3 or 4 fictional digits.'
-    if (!/^[0-9]{1,2}$/.test(form.expiryMonth) || Number(form.expiryMonth) < 1 || Number(form.expiryMonth) > 12) invalid.expiryMonth = 'Enter a month from 1 to 12.'
-    if (!/^[0-9]{4}$/.test(form.expiryYear) || Number(form.expiryYear) < 2000) invalid.expiryYear = 'Enter a four-digit year from 2000.'
+    if (!/^\d{16}$/.test(form.testCardNumber)) invalid.testCardNumber = 'Enter the 16-digit fictional test number.'
+    if (!/^\d{3,4}$/.test(form.testSecurityCode)) invalid.testSecurityCode = 'Enter 3 or 4 fictional digits.'
+    if (!/^\d{1,2}$/.test(form.expiryMonth) || Number(form.expiryMonth) < 1 || Number(form.expiryMonth) > 12) invalid.expiryMonth = 'Enter a month from 1 to 12.'
+    if (!/^\d{4}$/.test(form.expiryYear) || Number(form.expiryYear) < 2000) invalid.expiryYear = 'Enter a four-digit year from 2000.'
     if (!form.merchantName.trim()) invalid.merchantName = 'Enter a fictional merchant.'
-    if (!/^[0-9]{1,12}(\.[0-9]{1,2})?$/.test(form.amount) || Number(form.amount) <= 0) invalid.amount = 'Enter a positive amount with at most 12 whole digits and 2 decimal places.'
+    if (!/^\d{1,12}(\.\d{1,2})?$/.test(form.amount) || Number(form.amount) <= 0) invalid.amount = 'Enter a positive amount with at most 12 whole digits and 2 decimal places.'
     setFields(invalid); setError('')
     if (Object.keys(invalid).length) { setError('Check the highlighted fields.'); return }
     submission.current = { cardId: card.id, ...form, expiryMonth: Number(form.expiryMonth), expiryYear: Number(form.expiryYear), merchantName: form.merchantName.trim(), requestId: crypto.randomUUID() }
@@ -87,16 +87,18 @@ export default function PurchasePage() {
     } finally { inFlight.current = false }
   }
 
-  return <main id="main-content" className="content-page" tabIndex={-1}>
-    <PageHeading eyebrow="Credit Circuit / Request" title="Purchase" description="Every purchase starts a signal. Use fictional test details only." />
-    {loading ? <Loading skeleton /> : loadError ? <div role="alert"><p className="error">{loadError}</p><Button onClick={() => setReload(reload + 1)}>Try again</Button></div> : !account || !card ? <p>No assigned account and card are available.</p> : <>
+  let content
+  if (loading) content = <Loading skeleton />
+  else if (loadError) content = <div role="alert"><p className="error">{loadError}</p><Button onClick={() => setReload(reload + 1)}>Try again</Button></div>
+  else if (!account || !card) content = <p>No assigned account and card are available.</p>
+  else content = <>
       <Card title="Available credit"><AccountSummary account={account} /></Card>
       <Card title="Fictional purchase">
         <p>Assigned card: {card.maskedNumber}. Expiry {card.expiryMonth}/{card.expiryYear}. Test profile: DEMO_4242.</p>
         <p className="hint">For this classroom profile, use 4242 repeated four times. The security code checks format only. Never enter real card details.</p>
         {error && <p className="error" role="alert">{error}</p>}
-        {phase === 'uncertain' && <div role="status"><p>The outcome is uncertain. Keep this page open and retry the same purchase. The request ID and details stay unchanged.</p><Button onClick={send}>Retry same purchase</Button></div>}
-        {result && <div role="status"><h3>Purchase {result.transaction.status === 'APPROVED' ? 'approved' : 'declined'}</h3><p>{money(result.transaction.amount)} · Transaction #{result.transaction.id}</p><p>{reasonLabel(result.transaction.reasonCode)}</p></div>}
+        {phase === 'uncertain' && <section aria-live="polite" aria-label="Uncertain purchase"><p>The outcome is uncertain. Keep this page open and retry the same purchase. The request ID and details stay unchanged.</p><Button onClick={send}>Retry same purchase</Button></section>}
+        {result && <section aria-live="polite" aria-label="Purchase outcome"><h3>Purchase {result.transaction.status === 'APPROVED' ? 'approved' : 'declined'}</h3><p>{money(result.transaction.amount)} · Transaction #{result.transaction.id}</p><p>{reasonLabel(result.transaction.reasonCode)}</p></section>}
         {phase === 'complete' ? <Button onClick={() => { setResult(null); setPhase('editing'); setForm({ ...emptyForm, expiryMonth: String(card.expiryMonth), expiryYear: String(card.expiryYear) }) }}>Start another purchase</Button> : <form onSubmit={submit} noValidate>
           <fieldset disabled={phase !== 'editing'}>
             <Input label="Fictional card number" name="testCardNumber" inputMode="numeric" autoComplete="off" maxLength={16} required value={form.testCardNumber} onChange={change} error={fields.testCardNumber} />
@@ -108,6 +110,10 @@ export default function PurchasePage() {
           </fieldset>
         </form>}
       </Card>
-    </>}
+    </>
+
+  return <main id="main-content" className="content-page" tabIndex={-1}>
+    <PageHeading eyebrow="Credit Circuit / Request" title="Purchase" description="Every purchase starts a signal. Use fictional test details only." />
+    {content}
   </main>
 }

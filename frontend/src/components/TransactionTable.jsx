@@ -9,7 +9,7 @@ export default function TransactionTable({ items, pending = false, onRefund }) {
     {items.map(transaction => <tr key={transaction.id}>
       <td><time dateTime={transaction.createdAt}>{new Date(transaction.createdAt).toLocaleString()}</time></td>
       <td>#{transaction.accountId} / #{transaction.id}</td><td>{transaction.merchantName}</td><td>{transaction.type}</td>
-      <td>{transaction.status}{transaction.refunded && <span> · Refunded</span>}<span className="hint outcome-reason">{reasonLabel(transaction.reasonCode)}</span>{transaction.originalPurchaseId && <span className="hint">Purchase #{transaction.originalPurchaseId}</span>}</td>
+      <td>{transaction.status}{transaction.refunded && <span> · Refunded</span>}<span className="hint outcome-reason">{reasonLabel(transaction.reasonCode)}</span>{transaction.originalPurchaseId != null && <span className="hint">Purchase #{transaction.originalPurchaseId}</span>}</td>
       <td>{money(transaction.amount)}</td><td>{money(transaction.outstandingAfter)}</td>
       {onRefund && <td>{transaction.type === 'PURCHASE' && transaction.status === 'APPROVED' && !transaction.refunded ? <Button disabled={pending} onClick={() => onRefund(transaction)}>Full refund #{transaction.id}</Button> : '—'}</td>}
     </tr>)}

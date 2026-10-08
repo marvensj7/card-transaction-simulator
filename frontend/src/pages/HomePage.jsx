@@ -7,7 +7,7 @@ export default function HomePage() {
         <p className="eyebrow">Credit Card Transaction Simulator</p>
         <h1>Credit<br /><span>Circuit.</span></h1>
         <p className="intro-copy">Every purchase starts a signal.</p>
-        <ol className="signal-route" aria-label="Purchase path" role="list">
+        <ol className="signal-route" aria-label="Purchase path">
           <li><span className="route-node" aria-hidden="true" />Request</li>
           <li><span className="route-node" aria-hidden="true" />Checks</li>
           <li><span className="route-node" aria-hidden="true" />Outcome</li>

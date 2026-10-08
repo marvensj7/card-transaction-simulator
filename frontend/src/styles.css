@@ -535,3 +535,5 @@ th { color: var(--accent); }
 .pagination { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
 dialog { width: min(36rem, calc(100% - 2rem)); border: 1px solid var(--accent); border-radius: .75rem; padding: 1.5rem; background: #1b241e; color: #f2f3ea; }
 dialog::backdrop { background: #080d09cc; }
+
+.notice { display: block; margin-block: 1rem; }

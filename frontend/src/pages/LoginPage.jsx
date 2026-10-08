@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [fields, setFields] = useState(/** @type {Record<string, string>} */ ({}))
   if (user) return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/dashboard'} replace />
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
+  /** @param {import('react').SubmitEvent<HTMLFormElement>} event */
   async function submit(event) {
     event.preventDefault()
     if (pending) return
@@ -48,7 +48,7 @@ export default function LoginPage() {
     <PageHeading eyebrow="Credit Circuit / Access" title={registration ? 'Create account' : 'Sign in'} description="Fictional cards. Real application rules." />
     <Card title={registration ? 'Start your simulation' : 'Welcome back'}>
       <p>Use a fictional identity and a password you do not use elsewhere.</p>
-      {notice && <p role="status">{notice}</p>}{message && <p role="status">{message}</p>}
+      {notice && <output className="notice">{notice}</output>}{message && <output className="notice">{message}</output>}
       {error && <p className="error" role="alert">{error}</p>}
       <form onSubmit={submit}>
         <fieldset disabled={pending}>

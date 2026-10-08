@@ -72,7 +72,7 @@ public class AccountService {
         if (status == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be ACTIVE or FROZEN.");
         }
-        CreditAccount account = accounts.findForUpdate(accountId);
+        CreditAccount account = accounts.findLockedById(accountId);
         if (account == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account is unavailable.");
         }

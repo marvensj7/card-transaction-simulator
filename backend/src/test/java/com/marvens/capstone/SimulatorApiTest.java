@@ -73,8 +73,8 @@ class SimulatorApiTest {
         when(users.findById(3L)).thenReturn(Optional.of(TestData.user(AppUser.Role.USER)));
         when(accounts.findByUser_Id(1L)).thenReturn(account);
         when(accounts.findByIdAndUser_Id(7L, 1L)).thenReturn(account);
-        when(accounts.findOwnedForUpdate(7L, 1L)).thenReturn(account);
-        when(accounts.findForUpdate(7L)).thenReturn(account);
+        when(accounts.findLockedByIdAndUser_Id(7L, 1L)).thenReturn(account);
+        when(accounts.findLockedById(7L)).thenReturn(account);
         when(cards.findByAccount_Id(7L)).thenReturn(card);
         when(cards.findByIdAndAccount_Id(8L, 7L)).thenReturn(card);
         when(transactions.save(any())).thenAnswer(call -> {

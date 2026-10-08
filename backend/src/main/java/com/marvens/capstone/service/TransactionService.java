@@ -153,7 +153,7 @@ public class TransactionService {
     }
 
     private CreditAccount lockOwnedAccount(Long userId, Long accountId) {
-        CreditAccount account = accounts.findOwnedForUpdate(accountId, userId);
+        CreditAccount account = accounts.findLockedByIdAndUser_Id(accountId, userId);
         if (account == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account is unavailable.");
         }

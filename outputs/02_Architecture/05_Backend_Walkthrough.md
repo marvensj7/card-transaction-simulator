@@ -77,6 +77,10 @@ Read the service's purchase method from top to bottom:
 
 The `@` annotations tell Spring/JPA what a class or field does. Know their purpose: RestController handles HTTP, Service supplies a service object, Entity/Table/Column map stored data, and Transactional groups database work. Repository method names describe their searches; findByAccount_IdOrderByIdDesc means this account's transactions with newest IDs first.
 
+`findLockedByIdAndUser_Id` finds an account matching both its ID and its owner's ID. Spring builds the lookup from the words after `By`; `User_Id` follows the account's user reference. `Locked` is a descriptive label. The `@Lock(PESSIMISTIC_WRITE)` annotation is what makes another account-changing request wait until the current transaction finishes. Admin status changes use `findLockedById` because an admin is allowed to change any account.
+
+The refund lookup in CardTransactionRepository uses the one remaining `@Query`. Its text refers to Java entities and fields, and `@Param` connects the method arguments to the named values. It fetches only the owned purchase's account ID first. The service can then lock that account before loading its balance; this avoids holding an earlier account object with an outdated balance.
+
 The remaining small expressions have concrete meanings:
 
 - public makes a field/method accessible to other classes; private keeps it inside its class.
@@ -117,6 +121,20 @@ All Java paths below start under `backend/src/main/java/com/marvens/capstone/`.
 | exception/ApiExceptionHandler | Returns one safe error message with the HTTP status. |
 
 That is 21 application classes and five DTOs. The response classes prevent password hashes and entity relationships from reaching the browser. Response constructors run in the service transaction, so related data can be read there. Entities follow their foreign keys; there are no reverse collections.
+
+This is a reasonable stopping point for structural cuts. The controllers, services, and repositories make the workflow visible. The five DTOs each have the specific input/output job listed above. Merging these files or replacing typed responses with loose maps would reduce the file count without making the workflow easier to read. No custom configuration class is needed today; application.properties holds the runtime settings.
+
+The financial checks also have concrete reasons to stay:
+
+| Keep | What it demonstrates |
+| --- | --- |
+| BigDecimal and available-credit calculation | A purchase increases the amount owed; a refund decreases it, using decimal arithmetic. |
+| Approval/decline rules and saved history | The server applies account rules and records the outcome. |
+| Role and ownership checks | A customer changes only their own account; admins have defined permissions. |
+| Request ID and original-purchase link | A retry cannot charge twice, and a purchase cannot be refunded twice. |
+| Transaction and account lock | Balance/history succeed together, and simultaneous purchases cannot spend the same credit. |
+
+For a short presentation, follow one purchase first, then show a decline, retry, refund, and admin freeze. These are concrete examples of the same small Java workflow. The next development work is finishing sign-in and the React screens, keeping their forms and API calls direct.
 
 ## 6. Explain the other workflows in one sentence each
 

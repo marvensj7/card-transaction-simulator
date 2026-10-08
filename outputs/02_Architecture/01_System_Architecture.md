@@ -45,3 +45,11 @@ Today no endpoint creates a logged-in session, so external `/api` calls receive 
 Money uses BigDecimal and DECIMAL(14,2). Full fictional card numbers/security codes exist only in request memory; responses expose masked details. Passwords, request bodies, card fields, and credentials are excluded from logs. The application runs locally with fictional money and no bank/payment-network integration.
 
 Pagination, card animation, extra frontend component layers, JWTs, rate limiting, CI, SonarQube, AWS, and Jira are outside the current MVP. The [walkthrough](05_Backend_Walkthrough.md) explains the remaining files and the Java concepts needed to follow them.
+
+## MVP design choices
+
+The remaining structure demonstrates three things: Java request handling, relational persistence, and correct credit-card balance behavior. Controllers handle HTTP, services make decisions, and repositories handle storage. Four entities and four repositories match the four tables. Five DTOs cover purchase input, account summary, masked card, history entry, and a purchase/refund result.
+
+Keep BigDecimal, ownership/role checks, duplicate-request checks, one-refund rules, and transactional balance/history updates. Each supports a specific behavior in the demonstration. Combining these layers or returning database entities directly would make the code harder to explain safely. The next step is completing sign-in and the ordinary React forms using this same workflow.
+
+No custom configuration class is currently needed. Runtime settings live in `backend/src/main/resources/application.properties`; the unused empty `config` directory has been removed.

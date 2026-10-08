@@ -524,3 +524,14 @@ input[aria-invalid="true"] { border-color: #ffb6a3; }
 .summary-grid dd { margin: .4rem 0; font-size: clamp(1.25rem, 3vw, 2rem); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
 @media (max-width: 40rem) { .summary-grid, .form-grid { grid-template-columns: minmax(0, 1fr); } .panel { padding: 1rem; } }
+
+.table-scroll { overflow-x: auto; max-width: 100%; margin-block: 1rem; }
+.table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+caption { text-align: left; margin-bottom: 1rem; color: var(--muted); }
+th, td { text-align: left; vertical-align: top; padding: .8rem; border-bottom: 1px solid var(--line); min-width: 7rem; overflow-wrap: anywhere; }
+th { color: var(--accent); }
+.outcome-reason { display: block; }
+.pagination { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+dialog { width: min(36rem, calc(100% - 2rem)); border: 1px solid var(--accent); border-radius: .75rem; padding: 1.5rem; background: #1b241e; color: #f2f3ea; }
+dialog::backdrop { background: #080d09cc; }

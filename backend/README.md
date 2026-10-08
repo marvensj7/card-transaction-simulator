@@ -1,16 +1,12 @@
 # Backend
 
-## Setup
+I use Java 17, Spring Boot, Spring Security, Spring Data JPA, Bean Validation, and MySQL 8.0.16+. The Maven wrapper supplies Maven. SQL scripts own the schema; Hibernate validates rather than changing tables.
 
-Use JDK 17 and MySQL 8.0.16+. `JAVA_HOME` must point to the JDK. The Maven wrapper downloads Maven if needed.
+## Setup and checks
 
-1. Run the [schema and fictional seed scripts](../sql/README.md).
-2. Set `DB_USERNAME` and `DB_PASSWORD` through local environment settings, or use the ignored `src/main/resources/application-local.properties` file with `spring.datasource.username` and `spring.datasource.password`.
-3. Optionally set `DB_URL`. The default is `jdbc:mysql://localhost:3306/card_transaction_simulator?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true`; keep the UTC options.
+Run the [SQL setup](../sql/README.md), then configure database credentials and a random Base64 signing key of at least 32 bytes through environment variables or ignored src/main/resources/application-local.properties. The [local guide](../outputs/05_Submission/01_Local_Run_and_Demo.md) has complete steps. Tracked application.properties contains environment placeholders.
 
-The application database user needs SELECT, INSERT, UPDATE, and DELETE. Use a separate setup login for schema creation. Hibernate validates existing tables, and SQL initialization is disabled. The application never creates or alters the schema.
-
-From `backend/`:
+From this folder:
 
 ```powershell
 .\mvnw.cmd verify
@@ -18,24 +14,18 @@ From `backend/`:
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
-Omit the local-profile arguments when using environment variables. Use `./mvnw` on macOS/Linux. The first command runs HTTP/service checks with mocked repositories; the second also uses real MySQL. Neither implements browser sign-in. Integration tests insert fictional fixtures and delete only those fixtures; auto-increment IDs may advance. Missing MySQL/schema fails integration verification.
+The first command runs HTTP/service/security tests with mocked repositories and applies the JaCoCo 70% line-coverage gate. The MySQL profile also runs real persistence/concurrency/rollback tests. Tests remove only their own fictional rows. Missing MySQL/schema fails integration verification. Omit profile arguments when using environment variables. Use ./mvnw on macOS/Linux.
 
-OneDrive can make generated directories read-only and break Maven `clean`. A checkout outside the synced folder avoids this local issue. After removing/renaming classes, use fresh build output to avoid loading old classes.
+OneDrive can prevent cleaning generated files. Add `"-Dcapstone.build.directory=C:/Users/marve/.cache/credit-circuit-build"` to use output outside OneDrive. Use the same output for packaging, verification, and SonarQube. After removing classes, use fresh output to avoid stale compiled classes.
 
 ## Behavior
 
-All successful API operations return 200. A purchase response contains the saved transaction and current account summary; APPROVED/DECLINED is the financial result. An identical retry returns the saved transaction without another balance change. Changed details under the same account/request ID return 409. History/admin lists are ordinary JSON arrays suitable for the small local dataset. There is no page/size parameter or production-scale history claim.
+Registration creates USER, a $1,000 active account with zero outstanding balance, and one DEMO_4242 card in one transaction. Callers cannot choose ADMIN. Login checks BCrypt and issues an HS256 JWT. Nimbus validates signature, expiration, issuer, exact audience, positive numeric subject, role, and time claims. JWT_SECRET must decode to at least 256 bits. No refresh tokens, sessions, or revocation table exist.
 
-The purchase service checks input in one place. An assigned card may be declined for expiry, a frozen account, or insufficient credit. Approval increases the outstanding balance; a decline preserves it. Refunds use the original amount and add a linked reversal once, including on a frozen account.
+Registration and newly saved purchases/refunds return 201. An identical financial retry returns 200 with the saved transaction and current account summary. A new DECLINED purchase also returns 201. History/admin lists return bounded pages. See the [API contract](../outputs/02_Architecture/03_API_Design.md) and [OpenAPI UI](http://127.0.0.1:8080/swagger-ui/index.html).
 
-BigDecimal handles money. Response DTOs use JSON numbers; the future React screen formats them to two decimal places for display. UTC transaction timestamps use whole-second precision. Table constraints remain in SQL. The service checks the cross-row business rules.
+Bean Validation checks format at the request boundary. Services check the assigned card, stored role, ownership, account status, available credit, duplicate requests, and full-refund eligibility. BigDecimal and DECIMAL(14,2) handle money. Account write locks, READ_COMMITTED, and database transactions keep balance/history consistent. A frozen account can receive an eligible refund.
 
-`@Transactional` keeps balance/history together. The account write lock makes simultaneous balance changes wait their turn. READ_COMMITTED lets a waiting retry see the previous committed result. These protections remain because they prevent incorrect balances and duplicate purchases.
+Errors have fixed safe messages and optional field messages. ConflictException and ResourceNotFoundException distinguish common failures. Unexpected errors log only exception type. Request bodies, passwords, issued tokens, full card numbers, security codes, SQL, and bind values are never logged. DTOs expose safe fields only.
 
-Errors use HTTP status plus `{"message":"..."}`. Services throw Spring's ResponseStatusException with fixed safe messages; one advice class handles the response. Unexpected errors log only exception type. Card numbers/security codes are request-only, write-only, and excluded from toString. Request/SQL/bind logging is disabled. The [API design](../outputs/02_Architecture/03_API_Design.md) records the exact contract.
-
-## Scope correction - October 8, 2026
-
-The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
-
-The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../outputs/03_Verification/01_Completion_Checklist.md).
+CORS allows listed localhost origins without cookie credentials. Authentication POSTs share ten attempts per remote IP per minute in one process. CSRF ignores /api/** because authentication accepts only explicitly attached bearer headers. [The security ADR](../outputs/04_Decisions/01_Authentication.md) explains transport and logout limits.

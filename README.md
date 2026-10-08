@@ -1,45 +1,28 @@
 # Credit Circuit
 
-Credit Card Transaction Simulator — a small UCI 2123 capstone using React, Java/Spring Boot, and MySQL with fictional cards and balances.
-
-The core workflows are account summary, masked card, purchase approval/decline, transaction history, one full refund, and admin freeze/reactivate. Request IDs stop a repeated submission from adding another purchase. The database has four tables.
+My UCI 2123 capstone simulates credit card purchases with fictional identities, cards, and balances. React calls a Spring Boot API backed by four MySQL tables.
 
 ```text
-React page → API request → controller → service → JPA repository → MySQL
+React page → fetch call → Spring controller → service → JPA repository → MySQL
 ```
 
-Start with the [beginner walkthrough](outputs/02_Architecture/05_Backend_Walkthrough.md). It explains each remaining file, follows one $50 purchase, and gives short practice questions.
+Customers register, sign in, view credit and a masked card, make purchases, review paged history, and request one full refund. Administrators review paged account/activity lists and freeze or reactivate accounts. A saved decline is a financial outcome. Repeating an identical request ID returns the saved result without another balance change.
 
-## Current status
+Spring Security verifies signed JWTs and BCrypt checks passwords. Access tokens stay in React memory, expire after 15 minutes, and disappear on sign-out or reload. Services check the stored role and account ownership. The API accepts no authentication cookie. Stateless logout cannot revoke a copied token before expiration.
 
-## Run and verify
+## Run locally
 
-Follow the [MySQL setup](sql/README.md), then the [backend setup](backend/README.md). From `backend/`:
+Follow the [local run and demo guide](outputs/05_Submission/01_Local_Run_and_Demo.md) for MySQL, private configuration, key generation, startup, checks, and the demo. Do not commit credentials, signing keys, demo passwords, or issued tokens.
 
-```powershell
-.\mvnw.cmd verify
-.\mvnw.cmd verify -Pmysql-verification "-Dspring.profiles.active=local"
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
-```
+From frontend, use `npm ci` and `npm run dev`. From backend, use `mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"` after creating ignored local configuration. The browser runs at [localhost](http://127.0.0.1:5173). Vite forwards /api to port 8080.
 
-The local profile reads the ignored credential file. Omit the profile arguments when using backend environment variables. No credentials belong in Git, terminal commands, or logs.
+## Evidence and documents
 
-From `frontend/`:
+- [Verified results and rubric checklist](outputs/03_Verification/01_Completion_Checklist.md)
+- [Submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md)
+- [Architecture, ERD, API, React diagram, and walkthrough](outputs/README.md)
+- [Authentication decision](outputs/04_Decisions/01_Authentication.md)
+- [Postman collection](outputs/03_Verification/Credit_Circuit.postman_collection.json)
+- [Presentation and remaining submission actions](outputs/05_Submission/README.md)
 
-```powershell
-npm install
-npm run dev
-npm run build
-npm run check:props
-npm run check:routes
-```
-
-The frontend runs at `http://127.0.0.1:5173/`. All current routes work without the backend. Vite forwards future `/api` calls to Spring Boot on port 8080. See the [frontend setup](frontend/README.md).
-
-The [document index](outputs/README.md) links the proposal, ERD, API design, and React plan. This repository is public by the owner's choice. `work/`, local credentials, dependencies, and generated builds are ignored.
-
-## Scope correction - October 8, 2026
-
-The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
-
-The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](outputs/03_Verification/01_Completion_Checklist.md).
+AWS and related deployment/DevOps requirements are waived by my instructor. Jira and branch protection are outside this pass. JWT, validation, pagination, OpenAPI, coverage, Postman, and SonarQube remain required. The planned 3D card follows the required application work. Peer reviews and my rehearsal/presentation/submission require my participation. Rehearsal is October 12; presentation and submission are October 13.

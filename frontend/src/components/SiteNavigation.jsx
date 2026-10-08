@@ -6,6 +6,7 @@ export default function SiteNavigation() {
   const { user } = useUserUi()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuButton = useRef(/** @type {HTMLButtonElement | null} */ (null))
+  const navigation = useRef(/** @type {HTMLElement | null} */ (null))
   const location = useLocation()
 
   // Includes back/forward and navigation outside the menu.
@@ -13,12 +14,31 @@ export default function SiteNavigation() {
     setIsMenuOpen(false)
   }, [location])
 
+  // Resizing can hide the focused link or button even when the menu is closed.
+  useEffect(() => {
+    const phoneLayout = window.matchMedia('(max-width: 50rem)')
+
+    function handleResize() {
+      if (phoneLayout.matches) {
+        if (navigation.current?.contains(document.activeElement)) {
+          menuButton.current?.focus()
+        }
+      } else {
+        setIsMenuOpen(false)
+        if (document.activeElement === menuButton.current) {
+          navigation.current?.querySelector('a')?.focus()
+        }
+      }
+    }
+
+    phoneLayout.addEventListener('change', handleResize)
+    return () => phoneLayout.removeEventListener('change', handleResize)
+  }, [])
+
   useEffect(() => {
     if (!isMenuOpen) {
       return
     }
-
-    const phoneLayout = window.matchMedia('(max-width: 50rem)')
 
     /** @param {KeyboardEvent} event */
     function handleKeyDown(event) {
@@ -28,18 +48,10 @@ export default function SiteNavigation() {
       }
     }
 
-    function handleResize() {
-      if (!phoneLayout.matches) {
-        setIsMenuOpen(false)
-      }
-    }
-
     document.addEventListener('keydown', handleKeyDown)
-    phoneLayout.addEventListener('change', handleResize)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
-      phoneLayout.removeEventListener('change', handleResize)
     }
   }, [isMenuOpen])
 
@@ -64,7 +76,7 @@ export default function SiteNavigation() {
         {isMenuOpen ? 'Close menu' : 'Menu'}
       </button>
       <span className="navigation-status">{user ? 'Signed in' : 'Not signed in'}</span>
-      <nav id="main-navigation" className="site-navigation" aria-label="Main navigation" data-open={isMenuOpen}>
+      <nav ref={navigation} id="main-navigation" className="site-navigation" aria-label="Main navigation" data-open={isMenuOpen}>
         <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
         <NavLink to="/login" end onClick={closeMenu}>Sign in</NavLink>
         <NavLink to="/dashboard" end onClick={closeMenu}>Dashboard</NavLink>

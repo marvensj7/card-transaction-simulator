@@ -175,7 +175,7 @@ test('menu toggles; Escape closes it and returns focus, then removes its key lis
   await act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' })))
   assertMenu(false)
   assert.equal(document.activeElement, menuButton())
-  assert.equal(mediaListeners.size, 0)
+  assert.equal(mediaListeners.size, 1)
   document.getElementById('main-content').focus()
   await act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' })))
   assert.equal(document.activeElement.id, 'main-content')
@@ -216,6 +216,32 @@ test('external navigation, query changes, and back/forward close the menu', asyn
   assert.equal(document.querySelector('h1').textContent, 'Sign in')
 })
 
+test('resizing keeps focus on visible navigation and leaves content focus alone', async () => {
+  phoneLayout.matches = false
+  await mount()
+  const firstLink = document.querySelector('nav a')
+  firstLink.focus()
+  phoneLayout.matches = true
+  await act(async () => {
+    for (const listener of mediaListeners) listener()
+  })
+  assertMenu(false)
+  assert.equal(document.activeElement, menuButton(), 'a hidden desktop link hands focus to Menu')
+
+  phoneLayout.matches = false
+  await act(async () => {
+    for (const listener of mediaListeners) listener()
+  })
+  assert.equal(document.activeElement, firstLink, 'a hidden Menu button hands focus to the first desktop link')
+
+  document.getElementById('main-content').focus()
+  phoneLayout.matches = true
+  await act(async () => {
+    for (const listener of mediaListeners) listener()
+  })
+  assert.equal(document.activeElement.id, 'main-content', 'resizing must not steal content focus')
+})
+
 test('switching to desktop closes the menu; an open menu cleans up on unmount', async () => {
   await mount()
   await click(menuButton())
@@ -225,7 +251,7 @@ test('switching to desktop closes the menu; an open menu cleans up on unmount', 
     for (const listener of mediaListeners) listener()
   })
   assertMenu(false)
-  assert.equal(mediaListeners.size, 0)
+  assert.equal(mediaListeners.size, 1)
   phoneLayout.matches = true
   await click(menuButton())
   assertMenu(true)

@@ -518,3 +518,9 @@ input[aria-invalid="true"] { border-color: #ffb6a3; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { to { opacity: .4; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; } }
+
+.summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.summary-grid dt { color: var(--muted); }
+.summary-grid dd { margin: .4rem 0; font-size: clamp(1.25rem, 3vw, 2rem); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+@media (max-width: 40rem) { .summary-grid, .form-grid { grid-template-columns: minmax(0, 1fr); } .panel { padding: 1rem; } }

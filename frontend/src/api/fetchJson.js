@@ -24,9 +24,33 @@ export async function fetchJson(path, method = 'GET', body) {
     throw new Error('Cannot reach Credit Circuit. Check your connection and try again.')
   }
 
-  if (!response.ok) {
-    throw new Error(`The request failed (HTTP ${response.status}). Please try again.`)
+  let data
+  try {
+    data = await response.json()
+  } catch {
+    if (response.ok) {
+      throw new Error('Credit Circuit returned an unreadable response. Please try again.')
+    }
+    // An error page or malformed JSON must not become a displayed error message.
   }
 
-  return response.json()
+  if (!response.ok) {
+    const fallback = `The request failed (HTTP ${response.status}). Please try again.`
+    let message = fallback
+
+    if (typeof data?.message === 'string' && data.message.trim() !== '') {
+      message = data.message.trim()
+      // The API uses fixed messages. Also suppress an accidental echo of submitted card values.
+      for (const value of [body?.testCardNumber, body?.testSecurityCode]) {
+        if (typeof value === 'string' && value !== '' && message.includes(value)) {
+          message = fallback
+          break
+        }
+      }
+    }
+
+    throw new Error(message)
+  }
+
+  return data
 }

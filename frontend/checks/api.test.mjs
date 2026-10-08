@@ -175,3 +175,100 @@ test('query values are encoded so they cannot add extra parameters', async () =>
   assert.equal(fetchMock.mock.calls[0].arguments[0], '/api/transactions/11/refund?requestId=bad%20id%26amount%3D1%3F')
   assert.equal(fetchMock.mock.calls[1].arguments[0], '/api/admin/accounts/7/status?status=FROZEN%26extra%3D1')
 })
+
+const errors = [
+  [400, 'Check the fictional card number and security code format.'],
+  [401, 'Sign in to continue.'],
+  [403, 'This user role cannot perform this operation.'],
+  [404, 'Account is unavailable.'],
+  [409, 'Request ID is already used for different details.'],
+  [500, 'An unexpected error occurred.'],
+]
+
+function assertSafeError(error, expectedMessage) {
+  assert.ok(error instanceof Error)
+  assert.equal(error.message, expectedMessage)
+  const details = JSON.stringify(error, Object.getOwnPropertyNames(error))
+  assert.ok(!details.includes(purchase.testCardNumber), 'errors must not include the submitted card number')
+  assert.ok(!details.includes(purchase.testSecurityCode), 'errors must not include the submitted security code')
+  assert.equal(error.cause, undefined)
+  assert.equal(error.body, undefined)
+  assert.equal(error.response, undefined)
+  return true
+}
+
+for (const [status, message] of errors) {
+  test(`HTTP ${status} surfaces the server message without attaching request or response data`, async () => {
+    mock.method(globalThis, 'fetch', async () => Response.json({
+      message,
+      // Unexpected extra error fields must never be copied into the Error.
+      rejectedValue: purchase.testCardNumber,
+      testSecurityCode: purchase.testSecurityCode,
+    }, { status }))
+
+    await assert.rejects(submitPurchase(7, purchase), (error) => assertSafeError(error, message))
+  })
+}
+
+for (const field of ['testCardNumber', 'testSecurityCode']) {
+  test(`an error message repeating ${field} uses the HTTP fallback`, async () => {
+    mock.method(globalThis, 'fetch', async () => Response.json({
+      message: `Rejected value: ${purchase[field]}`,
+    }, { status: 400 }))
+
+    await assert.rejects(submitPurchase(7, purchase), (error) =>
+      assertSafeError(error, 'The request failed (HTTP 400). Please try again.'))
+  })
+}
+
+for (const message of [undefined, null, 400, '', '   ', { detail: 'Invalid input' }]) {
+  test(`a missing or invalid message (${JSON.stringify(message)}) uses the HTTP fallback`, async () => {
+    mock.method(globalThis, 'fetch', async () => Response.json({ message }, { status: 400 }))
+    await assert.rejects(getAccounts(), { message: 'The request failed (HTTP 400). Please try again.' })
+  })
+}
+
+test('a non-JSON HTTP error uses a fallback without echoing its raw content', async () => {
+  mock.method(globalThis, 'fetch', async () => new Response(
+    `<html>Rejected ${purchase.testCardNumber} / ${purchase.testSecurityCode}</html>`, { status: 401 },
+  ))
+  await assert.rejects(submitPurchase(7, purchase), (error) =>
+    assertSafeError(error, 'The request failed (HTTP 401). Please try again.'))
+})
+
+test('unreadable successful JSON hides the parser failure and card fields', async () => {
+  mock.method(globalThis, 'fetch', async () => ({
+    ok: true,
+    json: async () => { throw new SyntaxError(`Unexpected ${purchase.testCardNumber} / ${purchase.testSecurityCode}`) },
+  }))
+  await assert.rejects(submitPurchase(7, purchase), (error) =>
+    assertSafeError(error, 'Credit Circuit returned an unreadable response. Please try again.'))
+})
+
+test('a network failure gives a clear message and leaves the purchase unchanged for retry', async () => {
+  const fetchMock = mock.method(globalThis, 'fetch', async () => {
+    throw new TypeError(`Failed request: ${purchase.testCardNumber} / ${purchase.testSecurityCode}`)
+  })
+
+  await assert.rejects(submitPurchase(7, purchase), (error) =>
+    assertSafeError(error, 'Cannot reach Credit Circuit. Check your connection and try again.'))
+
+  fetchMock.mock.mockImplementation(async () => Response.json({ transaction, account }))
+  assert.deepEqual(await submitPurchase(7, purchase), { transaction, account })
+  assert.ok(fetchMock.mock.calls[0].arguments[1].body === fetchMock.mock.calls[1].arguments[1].body,
+    'retry after a network failure must preserve the original body')
+})
+
+test('API functions do not log successful card responses, purchases, or failures', async () => {
+  const logMocks = ['log', 'info', 'warn', 'error', 'debug'].map((method) => mock.method(console, method, () => {}))
+  const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json([card]))
+  await getCards(7)
+  fetchMock.mock.mockImplementation(async () => Response.json({ transaction, account }))
+  await submitPurchase(7, purchase)
+  fetchMock.mock.mockImplementation(async () => Response.json({ message: 'Sign in to continue.' }, { status: 401 }))
+  await assert.rejects(submitPurchase(7, purchase))
+
+  for (const logMock of logMocks) {
+    assert.equal(logMock.mock.callCount(), 0, 'API calls must not write to the console')
+  }
+})

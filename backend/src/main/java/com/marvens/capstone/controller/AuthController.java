@@ -1,7 +1,9 @@
 package com.marvens.capstone.controller;
 
 import java.net.URI;
-import com.marvens.capstone.dto.RegisterRequest;
+import com.marvens.capstone.dto.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import com.marvens.capstone.dto.UserResponse;
 import com.marvens.capstone.service.AuthService;
 import jakarta.validation.Valid;
@@ -19,4 +21,12 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.created(URI.create("/api/auth/me")).body(auth.register(request));
     }
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) { return auth.login(request); }
+
+    @GetMapping("/me")
+    public UserResponse me(@AuthenticationPrincipal Jwt principal) {
+        return auth.currentUser(Long.valueOf(principal.getSubject()));
+    }
 }
+

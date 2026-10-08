@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.Locale;
+import java.util.UUID;
+import com.marvens.capstone.security.JwtTokens;
 import com.marvens.capstone.dto.*;
 import com.marvens.capstone.entity.*;
 import com.marvens.capstone.exception.ConflictException;
@@ -23,13 +25,17 @@ public class AuthService {
     private final CreditAccountRepository accounts;
     private final DemoCardRepository cards;
     private final PasswordEncoder passwords;
+    private final JwtTokens tokens;
+    private final String missingUserHash;
 
     public AuthService(AppUserRepository users, CreditAccountRepository accounts,
-            DemoCardRepository cards, PasswordEncoder passwords) {
+            DemoCardRepository cards, PasswordEncoder passwords, JwtTokens tokens) {
         this.users = users;
         this.accounts = accounts;
         this.cards = cards;
         this.passwords = passwords;
+        this.tokens = tokens;
+        this.missingUserHash = passwords.encode(UUID.randomUUID().toString());
     }
 
     @Transactional
@@ -63,6 +69,24 @@ public class AuthService {
         card.setExpiryMonth((byte) expiry.getMonthValue());
         card.setExpiryYear((short) expiry.getYear());
         cards.save(card);
+        return new UserResponse(user);
+    }
+
+    public LoginResponse login(LoginRequest request) {
+        checkPasswordLength(request.password);
+        AppUser user = users.findByEmail(request.email.trim().toLowerCase(Locale.ROOT));
+        String hash = missingUserHash;
+        if (user != null) hash = user.getPasswordHash();
+        boolean matches = passwords.matches(request.password, hash);
+        if (user == null || !matches) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email or password is incorrect.");
+        }
+        return new LoginResponse(user, tokens.issue(user));
+    }
+
+    public UserResponse currentUser(Long userId) {
+        AppUser user = users.findById(userId).orElse(null);
+        if (user == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in to continue.");
         return new UserResponse(user);
     }
 

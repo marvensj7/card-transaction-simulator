@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
-@Import({AuthService.class, SecurityConfiguration.class})
+@Import({AuthService.class, SecurityConfiguration.class, com.marvens.capstone.security.JwtTokens.class})
 class AuthApiTest extends SecurityTestSupport {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
@@ -48,6 +48,41 @@ class AuthApiTest extends SecurityTestSupport {
     ObjectNode registration() {
         return json.createObjectNode().put("displayName", " New Customer ")
                 .put("email", "CUSTOMER@example.test").put("password", password);
+    }
+
+    @Test
+    void loginVerifiesBcryptAndCurrentUserRequiresTheSignedToken() throws Exception {
+        AppUser user = TestData.user(AppUser.Role.USER);
+        user.setPasswordHash(passwords.encode(password));
+        ReflectionTestUtils.setField(user, "id", 10L);
+        when(users.findByEmail("customer@example.test")).thenReturn(user);
+        when(users.findById(10L)).thenReturn(java.util.Optional.of(user));
+        ObjectNode input = json.createObjectNode().put("email", "CUSTOMER@example.test").put("password", password);
+        String result = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(input.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(header().doesNotExist("Set-Cookie"))
+                .andReturn().getResponse().getContentAsString();
+        String token = json.readTree(result).path("accessToken").asText();
+        assertThat(result).doesNotContain(password, "passwordHash");
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(10));
+        when(users.findById(10L)).thenReturn(java.util.Optional.empty());
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void incorrectAndUnknownCredentialsHaveTheSameMessage() throws Exception {
+        AppUser user = TestData.user(AppUser.Role.USER);
+        user.setPasswordHash(passwords.encode(java.util.UUID.randomUUID().toString()));
+        when(users.findByEmail("customer@example.test")).thenReturn(user);
+        String first = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.createObjectNode().put("email", "customer@example.test").put("password", password).toString()))
+                .andExpect(status().isUnauthorized()).andReturn().getResponse().getContentAsString();
+        String second = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.createObjectNode().put("email", "missing@example.test").put("password", password).toString()))
+                .andExpect(status().isUnauthorized()).andReturn().getResponse().getContentAsString();
+        assertThat(first).isEqualTo(second).contains("Email or password is incorrect.");
     }
 
     @Test

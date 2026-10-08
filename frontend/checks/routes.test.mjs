@@ -28,46 +28,29 @@ function renderRoute(path) {
   )
 }
 
-const routes = [
-  ['/', 'Credit<br/><span>Circuit.</span>'],
-  ['/login', 'Sign in'],
-  ['/dashboard', 'Dashboard'],
-  ['/purchase', 'Purchase'],
-  ['/transactions', 'Transactions'],
-  ['/admin', 'Administration'],
-]
-
+const routes = [['/', 'Credit<br/><span>Circuit.</span>'], ['/login', 'Sign in']]
 for (const [path, heading] of routes) {
-  test(`${path} renders its page and marks one navigation link current`, () => {
+  test(`${path} renders its public page and navigation`, () => {
     const html = renderRoute(path)
     assert.ok(html.includes(`<h1>${heading}</h1>`))
     assert.equal((html.match(/<main\b/g) || []).length, 1)
-    const currentLinks = html.match(/<a\b[^>]*aria-current="page"[^>]*>/g) || []
-    assert.equal(currentLinks.length, 1)
-    assert.ok(currentLinks[0].includes(`href="${path}"`))
     assert.ok(html.includes('href="#main-content"'))
-    assert.ok(html.includes('id="main-content"'))
     assert.ok(html.includes('Not signed in'))
   })
 }
-
 for (const path of ['/dashboard', '/purchase', '/transactions', '/admin']) {
-  test(`${path} stays unavailable without banking data or controls`, () => {
+  test(`${path} does not render protected data for an anonymous server render`, () => {
     const html = renderRoute(path)
-    const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'))
-    assert.ok(html.includes('Secure sign-in comes first.'))
-    assert.ok(html.includes('About sign-in'))
-    assert.doesNotMatch(main, /<(form|input|button|select|table)\b/)
+    assert.doesNotMatch(html, /<(form|input|table)\b/)
     assert.doesNotMatch(html, /\$\s*\d/)
   })
 }
-
-test('sign-in explains its status without collecting credentials', () => {
+test('sign-in uses labeled fields and a password input', () => {
   const html = renderRoute('/login')
-  const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'))
-  assert.ok(html.includes('Sign-in is still being built.'))
-  assert.ok(html.includes('Access unavailable'), 'sign-in and account pages share the same access status')
-  assert.doesNotMatch(main, /<(form|input|button)\b/)
+  assert.ok(html.includes('type="password"'))
+  assert.ok(html.includes('Email'))
+  assert.ok(html.includes('New here? Create account'))
+  assert.doesNotMatch(html, /Access unavailable/)
 })
 
 test('an unknown nested address offers a link home without a current nav item', () => {

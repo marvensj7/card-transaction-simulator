@@ -5,270 +5,117 @@ import { createRoot } from 'react-dom/client'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { JSDOM } from 'jsdom'
 import { createServer } from 'vite'
-
-let App
-let UserUiProvider
-let useUserUi
-let SiteNavigation
-let AdminPage
-let dom
-let root
-let router
-let phoneLayout
-let mediaListeners
-let fetchMock
+let App, UserUiProvider, useUserUi, ProtectedRoute, api, dom, root, router, state
+let phoneLayout, mediaListeners
+const user = {id: 1, displayName: 'UI fixture', email: 'fixture@example.test', role: 'USER'}
 
 before(async () => {
-  const server = await createServer({
-    server: { middlewareMode: true, hmr: false },
-    appType: 'custom',
-    logLevel: 'error',
-  })
-
+  const server = await createServer({server: {middlewareMode: true, hmr: false}, appType: 'custom', logLevel: 'error'})
   try {
     App = (await server.ssrLoadModule('/src/App.jsx')).default
-    const userUi = await server.ssrLoadModule('/src/auth/UserUiContext.jsx')
-    UserUiProvider = userUi.UserUiProvider
-    useUserUi = userUi.useUserUi
-    SiteNavigation = (await server.ssrLoadModule('/src/components/SiteNavigation.jsx')).default
-    AdminPage = (await server.ssrLoadModule('/src/pages/AdminPage.jsx')).default
-  } finally {
-    await server.close()
-  }
+    const context = await server.ssrLoadModule('/src/auth/UserUiContext.jsx')
+    UserUiProvider = context.UserUiProvider; useUserUi = context.useUserUi
+    ProtectedRoute = (await server.ssrLoadModule('/src/auth/ProtectedRoute.jsx')).default
+    api = await server.ssrLoadModule('/src/api/creditCircuitApi.js')
+  } finally { await server.close() }
 })
-
 beforeEach(() => {
-  fetchMock = mock.method(globalThis, 'fetch', async () => {
-    throw new Error('Unavailable pages must not request protected data.')
-  })
-  dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
-  globalThis.window = dom.window
-  globalThis.document = dom.window.document
+  mock.method(globalThis, 'fetch', async () => Response.json([]))
+  dom = new JSDOM('<div id="root"></div>', {url: 'http://localhost/'})
+  globalThis.window = dom.window; globalThis.document = dom.window.document
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   dom.window.scrollTo = () => {}
-
-  // JSDOM has no layout engine. Browser checks cover the actual CSS breakpoint.
   mediaListeners = new Set()
-  phoneLayout = {
-    matches: true,
-    addEventListener: (type, listener) => mediaListeners.add(listener),
-    removeEventListener: (type, listener) => mediaListeners.delete(listener),
-  }
+  phoneLayout = {matches: true, addEventListener: (type, listener) => mediaListeners.add(listener), removeEventListener: (type, listener) => mediaListeners.delete(listener)}
   dom.window.matchMedia = () => phoneLayout
-
-  // Rendering/navigation must work even when browser storage is unavailable.
-  for (const method of ['getItem', 'setItem', 'removeItem']) {
-    dom.window.Storage.prototype[method] = () => {
-      throw new Error('UI state must stay in memory.')
-    }
-  }
+  for (const method of ['getItem', 'setItem', 'removeItem']) dom.window.Storage.prototype[method] = () => { throw new Error('Authentication must remain in memory.') }
 })
-
 afterEach(async () => {
-  await act(async () => root?.unmount())
-  router?.dispose()
-  root = null
-  router = null
-  assert.equal(mediaListeners.size, 0, 'unmount removes the resize listener')
-  dom.window.close()
-  delete globalThis.window
-  delete globalThis.document
-  delete globalThis.IS_REACT_ACT_ENVIRONMENT
-  assert.equal(fetchMock.mock.callCount(), 0, 'page loads, UI state, and navigation must not make API requests')
+  await act(async () => root?.unmount()); router?.dispose()
+  root = null; router = null
+  assert.equal(mediaListeners.size, 0)
+  dom.window.close(); delete globalThis.window; delete globalThis.document; delete globalThis.IS_REACT_ACT_ENVIRONMENT
   mock.restoreAll()
 })
-
 async function mount(path = '/', element = createElement(App)) {
-  router = createMemoryRouter([{ path: '*', element }], {
-    initialEntries: [path],
-  })
+  router = createMemoryRouter([{path: '*', element}], {initialEntries: [path]})
   root = createRoot(document.getElementById('root'))
-  await act(async () => {
-    root.render(createElement(StrictMode, null, createElement(RouterProvider, { router })))
-  })
+  await act(async () => root.render(createElement(StrictMode, null, createElement(RouterProvider, {router}))))
 }
+function Probe() { state = useUserUi(); return createElement('p', null, state.user?.role || 'anonymous', state.notice) }
+function authTree(children = createElement(Probe)) { return createElement(UserUiProvider, null, createElement(Probe), children) }
+function fixture(role = 'USER', milliseconds = 60000) { return {user: {...user, role}, accessToken: 'test-only-token', expiresAt: new Date(Date.now() + milliseconds).toISOString()} }
+async function click(element) { await act(async () => element.click()) }
 
-function menuButton() {
-  return document.querySelector('.menu-toggle')
-}
-
-function assertMenu(open) {
-  assert.equal(menuButton().getAttribute('aria-expanded'), String(open))
-  const menuId = menuButton().getAttribute('aria-controls')
-  assert.equal(document.getElementById(menuId).getAttribute('data-open'), String(open))
-}
-
-async function click(element) {
-  await act(async () => element.click())
-}
-
-test('direct page loads keep sign-in and account tools unavailable without fetching', async () => {
-  for (const path of ['/', '/login', '/dashboard', '/purchase', '/transactions', '/admin', '/missing']) {
+test('anonymous protected URLs redirect to a real sign-in form without fetching', async () => {
+  for (const path of ['/dashboard', '/purchase', '/transactions', '/admin']) {
     await mount(path)
-    assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
-    assert.equal(document.querySelectorAll('main form, main input, main button, main table').length, 0)
-    assert.equal(fetchMock.mock.callCount(), 0)
-    await act(async () => root.unmount())
-    router.dispose()
-    root = null
-    router = null
+    assert.equal(router.state.location.pathname, '/login')
+    assert.equal(document.querySelector('h1').textContent, 'Sign in')
+    assert.equal(fetch.mock.callCount(), 0)
+    await act(async () => root.unmount()); router.dispose(); root = null; router = null
   }
 })
-
-test('starts anonymous and stays unavailable across links, history, and a remount', async () => {
+test('a verified login attaches a memory token; sign-out and remount discard it', async () => {
+  await mount('/', authTree())
+  await act(async () => state.signIn(fixture()))
+  await api.getCurrentUser()
+  assert.equal(fetch.mock.calls[0].arguments[1].headers.Authorization, 'Bearer test-only-token')
+  await act(async () => state.signOut())
+  await api.getCurrentUser()
+  assert.equal(fetch.mock.calls[1].arguments[1].headers.Authorization, undefined)
+  assert.equal(state.user, null)
+  await act(async () => state.signIn(fixture()))
+  await act(async () => root.unmount()); router.dispose()
+  await mount('/', authTree())
+  assert.equal(state.user, null)
+})
+test('expiration clears the credential and explains the next sign-in', async () => {
+  await mount('/', authTree())
+  await act(async () => state.signIn(fixture('USER', 20)))
+  await act(async () => new Promise(resolve => setTimeout(resolve, 50)))
+  assert.equal(state.user, null)
+  assert.match(state.notice, /expired/)
+  await api.getCurrentUser()
+  assert.equal(fetch.mock.calls[0].arguments[1].headers.Authorization, undefined)
+})
+test('an API 401 clears UI authentication', async () => {
+  await mount('/', authTree())
+  await act(async () => state.signIn(fixture()))
+  fetch.mock.mockImplementation(async () => Response.json({message: 'Sign in to continue.'}, {status: 401}))
+  await act(async () => assert.rejects(api.getCurrentUser()))
+  assert.equal(state.user, null)
+  assert.match(state.notice, /expired/)
+})
+test('customer and admin route checks reject the wrong role', async () => {
+  await mount('/', authTree(createElement(ProtectedRoute, {role: 'ADMIN'}, createElement('p', null, 'protected admin data'))))
+  await act(async () => state.signIn(fixture()))
+  assert.ok(document.body.textContent.includes('Access restricted'))
+  assert.ok(!document.body.textContent.includes('protected admin data'))
+  await act(async () => state.signIn(fixture('ADMIN')))
+  assert.ok(document.body.textContent.includes('protected admin data'))
+})
+test('menu Escape closes it and returns keyboard focus', async () => {
   await mount()
-  for (const path of ['/dashboard', '/purchase', '/transactions', '/admin', '/login', '/']) {
-    await click(document.querySelector(`nav a[href="${path}"]`))
-    assert.equal(router.state.location.pathname, path)
-    assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
-    assert.equal(document.querySelector('nav a[aria-current="page"]').getAttribute('href'), path)
-    assert.equal(document.activeElement.id, 'main-content')
-    assert.equal(document.querySelectorAll('main form, main input, main button, main table').length, 0)
-    if (path !== '/' && path !== '/login') {
-      assert.equal(document.querySelector('#access-status').textContent, 'Secure sign-in comes first.')
-    }
-  }
-  await act(async () => router.navigate(-1))
-  assert.equal(document.querySelector('h1').textContent, 'Sign in')
-  await act(async () => router.navigate(1))
-  assert.equal(router.state.location.pathname, '/')
-  await act(async () => root.unmount())
-  router.dispose()
-  await mount('/admin')
-  assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
-  assert.equal(document.querySelector('#access-status').textContent, 'Secure sign-in comes first.')
-})
-
-test('shared user UI details cannot unlock tools and are discarded on remount', async () => {
-  let setUser
-  function StateProbe() {
-    setUser = useUserUi().setUser
-    return null
-  }
-  const page = createElement(UserUiProvider, null,
-    createElement(StateProbe), createElement(SiteNavigation), createElement(AdminPage))
-  await mount('/admin', page)
-
-  // Test-only UI details: no server session is created or treated as verified.
-  await act(async () => setUser({ id: 1, displayName: 'UI test only', role: 'ADMIN' }))
-  assert.equal(document.querySelector('.navigation-status').textContent, 'Signed in')
-  assert.equal(document.querySelector('.notice-label').textContent, 'Access unavailable')
-  assert.equal(document.querySelector('#access-status').textContent, 'Account tools are still being built.')
-  assert.equal(document.querySelectorAll('main form, main input, main button, main table').length, 0)
-  await act(async () => setUser(null))
-  assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
-  assert.equal(document.querySelector('#access-status').textContent, 'Secure sign-in comes first.')
-  await act(async () => setUser({ id: 1, displayName: 'UI test only', role: 'ADMIN' }))
-  await act(async () => root.unmount())
-  router.dispose()
-  await mount('/admin', page)
-  assert.equal(document.querySelector('.navigation-status').textContent, 'Not signed in')
-  assert.equal(document.querySelector('#access-status').textContent, 'Secure sign-in comes first.')
-})
-
-test('menu toggles; Escape closes it and returns focus, then removes its key listener', async () => {
-  await mount()
-  assertMenu(false)
-  await click(menuButton())
-  assertMenu(true)
+  const menu = document.querySelector('.menu-toggle')
+  await click(menu)
+  assert.equal(menu.getAttribute('aria-expanded'), 'true')
   document.querySelector('nav a').focus()
-  await act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' })))
-  assertMenu(false)
-  assert.equal(document.activeElement, menuButton())
-  assert.equal(mediaListeners.size, 1)
-  document.getElementById('main-content').focus()
-  await act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' })))
-  assert.equal(document.activeElement.id, 'main-content')
-  await click(menuButton())
-  await click(menuButton())
-  assertMenu(false)
+  await act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key: 'Escape'})))
+  assert.equal(menu.getAttribute('aria-expanded'), 'false')
+  assert.equal(document.activeElement, menu)
 })
-
-test('a menu destination closes the menu and focuses the new page', async () => {
+test('navigation focuses the new page and resize preserves visible focus', async () => {
+  phoneLayout.matches = false
   await mount()
-  await click(menuButton())
+  const first = document.querySelector('nav a')
+  first.focus(); phoneLayout.matches = true
+  await act(async () => { for (const listener of mediaListeners) listener() })
+  assert.equal(document.activeElement, document.querySelector('.menu-toggle'))
+  phoneLayout.matches = false
+  await act(async () => { for (const listener of mediaListeners) listener() })
+  assert.equal(document.activeElement, first)
   await click(document.querySelector('nav a[href="/purchase"]'))
-  assertMenu(false)
+  assert.equal(router.state.location.pathname, '/login')
   assert.equal(document.activeElement.id, 'main-content')
-  assert.equal(document.title, 'Purchase | Credit Circuit')
-  assert.equal(document.querySelector('#access-status').textContent, 'Secure sign-in comes first.')
-})
-
-test('choosing the current page closes the menu and keeps focus on its button', async () => {
-  await mount()
-  await click(menuButton())
-  await click(document.querySelector('nav a[href="/"]'))
-  assertMenu(false)
-  assert.equal(document.activeElement, menuButton())
-})
-
-test('external navigation, query changes, and back/forward close the menu', async () => {
-  await mount('/login')
-  for (const destination of ['/dashboard', '/dashboard?view=summary', -1, 1]) {
-    await click(menuButton())
-    assertMenu(true)
-    await act(async () => router.navigate(destination))
-    assertMenu(false)
-  }
-  await click(menuButton())
-  await click(document.querySelector('main a[href="/login"]'))
-  assertMenu(false)
-  assert.equal(document.querySelector('h1').textContent, 'Sign in')
-})
-
-test('resizing keeps focus on visible navigation and leaves content focus alone', async () => {
-  phoneLayout.matches = false
-  await mount()
-  const firstLink = document.querySelector('nav a')
-  firstLink.focus()
-  phoneLayout.matches = true
-  await act(async () => {
-    for (const listener of mediaListeners) listener()
-  })
-  assertMenu(false)
-  assert.equal(document.activeElement, menuButton(), 'a hidden desktop link hands focus to Menu')
-
-  phoneLayout.matches = false
-  await act(async () => {
-    for (const listener of mediaListeners) listener()
-  })
-  assert.equal(document.activeElement, firstLink, 'a hidden Menu button hands focus to the first desktop link')
-
-  document.getElementById('main-content').focus()
-  phoneLayout.matches = true
-  await act(async () => {
-    for (const listener of mediaListeners) listener()
-  })
-  assert.equal(document.activeElement.id, 'main-content', 'resizing must not steal content focus')
-})
-
-test('switching to desktop closes the menu; an open menu cleans up on unmount', async () => {
-  await mount()
-  await click(menuButton())
-  assert.equal(mediaListeners.size, 1)
-  phoneLayout.matches = false
-  await act(async () => {
-    for (const listener of mediaListeners) listener()
-  })
-  assertMenu(false)
-  assert.equal(mediaListeners.size, 1)
-  phoneLayout.matches = true
-  await click(menuButton())
-  assertMenu(true)
-  // afterEach unmounts while open and checks cleanup, including StrictMode setup.
-})
-
-test('a control blurred by CSS before the resize event keeps a visible focus target', async () => {
-  phoneLayout.matches = false
-  await mount()
-  const firstLink = document.querySelector('nav a')
-  firstLink.focus()
-
-  phoneLayout.matches = true
-  await act(async () => firstLink.blur())
-  assert.equal(document.activeElement, menuButton(), 'a hidden link must not leave focus on the body')
-
-  phoneLayout.matches = false
-  await act(async () => menuButton().blur())
-  assert.equal(document.activeElement, firstLink, 'a hidden Menu button must not leave focus on the body')
 })

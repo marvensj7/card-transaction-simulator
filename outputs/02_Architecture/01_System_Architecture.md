@@ -4,8 +4,9 @@ Credit Circuit is a local React application calling one Spring Boot API and one 
 
 ```mermaid
 flowchart LR
-    Browser[React pages] -->|explicit bearer header| Security[Spring Security JWT verification]
-    Browser -->|public register/login JSON| Auth[AuthController]
+    Browser[React pages] --> API[API functions and fetchJson]
+    API -->|JSON and protected bearer header| Security[Spring Security filters]
+    Security -->|public register/login| Auth[AuthController]
     Security --> Controllers[Account / Transaction / Admin controllers]
     Auth --> AuthService[AuthService and BCrypt]
     Controllers --> Services[AccountService / TransactionService]
@@ -45,5 +46,26 @@ Spring Security verifies HS256 signature/algorithm, expiry, issuer, exact audien
 Controllers validate request shape/page bounds and call services directly. AuthService atomically creates user/account/card and checks BCrypt. AccountService handles role/ownership/summaries. TransactionService handles purchases/refunds/history. Repositories query rows and lock accounts. MySQL enforces foreign keys, allowed values, balance bounds, and uniqueness.
 
 Balance/history share a transaction. READ_COMMITTED and pessimistic account locks protect concurrent changes/retries. Account, card, and transaction response DTOs copy display fields inside service transactions. Authentication returns AppUser directly: it has no entity relationships, and @JsonIgnore excludes its passwordHash field and getter. No cascade deletes financial history. Four tables remain sufficient.
+
+## Separation of concerns
+
+I kept each part responsible for a specific job in the existing application flow.
+
+| Part | Responsibility |
+| --- | --- |
+| React pages | Form values, loading/error states, user actions, and displaying API results. |
+| Shared React components | Labels, buttons, tables, dialogs, and other repeated interface behavior. |
+| UserUiContext / ProtectedRoute | Memory-only sign-in state, expiration, and navigation access. |
+| creditCircuitApi / fetchJson | Endpoint paths, request encoding, bearer headers, response parsing, and safe request errors. |
+| Spring Security | Token verification, route-level roles, CORS, and authentication rate limiting. |
+| Controllers | HTTP paths, input validation, verified identity, response status, and direct service calls. |
+| Services | Registration/login workflows, stored roles, ownership, purchase/refund rules, and transaction boundaries. |
+| Repositories | Database searches, pagination queries, and account-lock queries. |
+| Entities / MySQL | Stored fields, relationships, and database constraints. |
+| Response classes / exception handler | Response fields and safe HTTP error formatting. |
+
+The browser checks form input for immediate feedback. Bean Validation checks incoming format on the server. Services make the financial decisions using stored data. MySQL constraints protect valid stored state. These checks serve different responsibilities; the browser does not decide approval, refund eligibility, or the saved balance. AccountResponse calculates available credit for display, while TransactionService checks available credit before spending.
+
+The separation has a few small-project compromises. Services use ResponseStatusException and response classes, which connect them to the REST API. AppUser also serves as the authentication response, so changes to its serialized fields affect that API. Its password hash remains excluded. AccountService shares role checks with TransactionService, and AuthService coordinates three repositories to create the customer/account/card in one transaction. I kept those direct calls within the service layer without adding more classes.
 
 The application runs locally using the [backend](../../backend/README.md), [frontend](../../frontend/README.md), and [SQL](../../sql/README.md) setup instructions. AWS deployment is waived.

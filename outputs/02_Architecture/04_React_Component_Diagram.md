@@ -40,6 +40,14 @@ Button supplies pending/disabled feedback, Input connects labels/errors with use
 
 Pages call API functions directly. fetchJson attaches protected bearer headers and omits cookies; protected 401 responses expire UI identity. Route guards redirect signed-out users/restrict wrong roles, while services enforce actual permissions.
 
+## Responsibilities
+
+Pages own their form values, request state, and event handlers. They call named functions in creditCircuitApi rather than building fetch requests. fetchJson handles HTTP, token attachment, JSON parsing, and safe errors. UserUiContext owns the token and sign-in transitions; it supplies a token reader and expiration callback to fetchJson.
+
+Shared components receive data and callbacks through props. ConfirmModal manages its dialog and focus, while its page decides which refund or status change to request. AccountSummary and TransactionTable display API data. format.js provides currency and reason-label formatting, and types.js describes shared JSON shapes for JSDoc checks. Neither file makes requests. These two small files currently live beside the API modules because the pages share them.
+
+Page components contain both JSX and the local interaction logic for their workflow. This keeps each page readable in one file. Financial rules and database access remain on the backend.
+
 Purchase/refund actions keep the original UUID while uncertain and guard repeated clicks. Declines are saved results. Forms have labeled errors/loading/recovery. Dialogs focus Cancel, support Escape, and restore focus. Lists show empty states and bounded navigation. Wide tables scroll within a keyboard-focusable region.
 
 [Browser evidence](../03_Verification/browser-results.json) distinguishes real MySQL workflows from injected lost responses, expiration, failures, and empty states. It checks desktop/tablet/phone widths, keyboard focus/navigation, and automated accessibility rules. It does not replace personal screen-reader or cross-browser review.

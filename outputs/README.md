@@ -16,4 +16,8 @@
 
 The current architecture and walkthrough reflect the October 8 beginner MVP simplification. Earlier proposal drafts are historical references. Card animation and optional tooling are deferred. The API design records the implemented controller and shared error contracts and identifies the authentication endpoints that are still planned.
 
-Current scope uses server sessions (sign-in unfinished), five plain DTOs, array lists without paging, and one-message errors. The walkthrough is the starting point for learning the Java workflow. The earlier working/instructor drafts are historical and may describe features no longer in the MVP.
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](03_Verification/01_Completion_Checklist.md).

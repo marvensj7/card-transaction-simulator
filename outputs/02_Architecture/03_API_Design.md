@@ -4,16 +4,6 @@ Updated October 8, 2026. These routes use one Spring Boot API under `/api`.
 
 ## Common rules
 
-- Successful operations return **200 OK**, including saved approvals, saved declines, and retries.
-- Errors use the HTTP status and one JSON field: `{"message":"..."}`.
-- Purchase input uses one JSON DTO. Refund/status changes use one query parameter each.
-- Lists are plain arrays with no pagination parameters or wrapper.
-- IDs are integers. Purchase money accepts a decimal string or JSON number; responses use JSON numbers. Java calculations use BigDecimal, and the React display will format two decimal places.
-- Transaction timestamps are UTC ISO strings ending in Z, with whole-second precision.
-- Account IDs and roles supplied by the browser never establish identity.
-
-The current API requires a server session with a positive Long `userId`. No sign-in endpoint creates one yet; external calls return 401 before protected input is read. Tests set that session on mock server requests only.
-
 ## Implemented routes
 
 | Method and path | Access | Input | Response |
@@ -67,18 +57,12 @@ reasonCode and originalPurchaseId may be null. maskedNumber contains only the la
 
 ## Errors
 
-| HTTP status | Meaning |
-| --- | --- |
-| 400 | Invalid purchase fields, UUID, JSON, parameter type, or account status |
-| 401 | No logged-in server session |
-| 403 | Stored role does not allow the operation |
-| 404 | Missing or unowned account, card, purchase, or route |
-| 409 | Conflicting request ID or ineligible full refund |
-| 405 / 406 / 415 | Unsupported method, response format, or request content type |
-| 500 | Unexpected error, with a generic message |
-
 Services use Spring's ResponseStatusException with fixed messages. ApiExceptionHandler returns those messages for expected failures and safe generic messages for framework/unexpected failures. It preserves Spring's status and headers. Unexpected failures log only exception type, excluding messages, causes, and request values. Request, SQL, and bind-value logging remain disabled.
 
 ## Planned sign-in
 
-Registration/sign-in/sign-out and current-user routes are unfinished. The smaller plan is BCrypt password checks plus a standard server session cookie with CSRF protection. Registration creates a USER, one account, and one demo card; the browser never chooses its role. Wrong credentials return 401 and duplicate email returns 409. JWT issuing/verification is outside the MVP.
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).

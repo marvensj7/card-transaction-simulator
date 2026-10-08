@@ -137,3 +137,9 @@ Java entities follow the foreign keys in one direction. The ERD still describes 
 If the credit limit is **$1,000.00** and the outstanding balance is **$200.00**, available credit is **$800.00**. An approved **$50.00** purchase changes the outstanding balance to **$250.00** and records `outstanding_after = 250.00`. A declined **$900.00** purchase records the decline but leaves the outstanding balance at **$250.00**. A full refund of the approved $50.00 purchase creates a linked REFUND row and returns the outstanding balance to **$200.00**.
 
 The October 8 simplification keeps this SQL schema unchanged. Input rules live in services and table constraints remain in SQL; entities only map stored fields/relationships. Pagination and API formatting helpers are removed, and response money uses JSON numbers backed by Java BigDecimal.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).

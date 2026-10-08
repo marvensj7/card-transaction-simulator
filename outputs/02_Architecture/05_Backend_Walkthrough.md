@@ -22,20 +22,11 @@ Start with a $1,000 credit limit and a $200 outstanding balance. Available credi
 React page → API request → controller → service → repository → MySQL
 ```
 
-1. The **React page** collects the card, merchant, and amount. This page is still unfinished.
-2. The **API request** sends those fields as JSON to the purchase URL.
-3. The **controller** reads the request, gets the user ID from the server session, and calls one service method.
-4. The **service** checks the role, ownership, input, card, request ID, expiry, account status, and available credit. It decides the outcome.
-5. The **repository** reads/saves Java entities through JPA. Spring implements the repository interface.
-6. **MySQL** keeps the rows so the account and history remain after the request ends.
-
 The service builds a safe response and the controller returns it as JSON. The future React page will display it.
 
 ## 3. Read the actual purchase code
 
 Open [TransactionController.java](../../backend/src/main/java/com/marvens/capstone/controller/TransactionController.java), then [PurchaseRequest.java](../../backend/src/main/java/com/marvens/capstone/dto/PurchaseRequest.java), then [TransactionService.java](../../backend/src/main/java/com/marvens/capstone/service/TransactionService.java).
-
-The controller's purchase method has three inputs: the server session, an account ID from the URL, and the purchase body. It puts the session's user ID in a variable and calls `transactions.purchase(userId, accountId, request)`.
 
 Read the service's purchase method from top to bottom:
 
@@ -83,42 +74,9 @@ The refund lookup in CardTransactionRepository uses the one remaining `@Query`. 
 
 The remaining small expressions have concrete meanings:
 
-- public makes a field/method accessible to other classes; private keeps it inside its class.
-- `(Long) session.getAttribute("userId")` reads the server's stored value as a Long integer. The session filter checks its type first; a browser header cannot set a session attribute.
-- `instanceof` checks an object's type. A cast tells Java which type to use after that check.
-- `try/catch` handles a failed UUID parse and returns the fixed input error.
-- A UUID is the submission's unique string ID. The database transaction ID identifies the saved history row. Reusing the submission ID identifies a retry.
-- `[0-9]{16}` means exactly 16 digits; `[0-9]{3,4}` means three or four digits.
-- amount.signum() checks whether the number is positive, zero, or negative; amount.scale() tells how many decimal places it has. setScale(2) gives a validated amount two places.
-- `account.getUser().getDisplayName()` follows the account's user reference to read its name. OneToOne/ManyToOne describe those database relationships. LAZY loads related data when it is needed inside the service transaction.
-
 ## 5. Every remaining application file has one job
 
 All Java paths below start under `backend/src/main/java/com/marvens/capstone/`.
-
-| Files | Job |
-| --- | --- |
-| CardSimulatorApplication | Starts Spring Boot. |
-| controller/AccountController | Account and masked-card HTTP routes. |
-| controller/TransactionController | Purchase, history, and refund HTTP routes. |
-| controller/AdminController | Admin list/status HTTP routes. |
-| service/AccountService | Role checks, owned-account lookup, account/card summaries, and admin status changes. |
-| service/TransactionService | Purchase/refund decisions, duplicate-request checks, and history. |
-| repository/AppUserRepository | Find users. |
-| repository/CreditAccountRepository | Find accounts and lock one for a balance/status change. |
-| repository/DemoCardRepository | Find a card by its account. |
-| repository/CardTransactionRepository | Find/save history, previous requests, and purchase/refund links. |
-| entity/AppUser | app_users: name, email, BCrypt hash, role. |
-| entity/CreditAccount | credit_accounts: owner, limit, outstanding balance, status. |
-| entity/DemoCard | demo_cards: account, fictional profile, last four digits, expiry. |
-| entity/CardTransaction | card_transactions: purchase/refund outcome and balance snapshot. |
-| dto/PurchaseRequest | Eight purchase inputs. Card number/code are write-only and excluded from toString. |
-| dto/AccountResponse | Six safe fields, including owner name and calculated available credit; shared by customer/admin. |
-| dto/CardResponse | Five masked card display fields. |
-| dto/TransactionResponse | One history outcome with scalar IDs, amount, reason, and UTC date; shared by customer/admin. |
-| dto/TransactionResultResponse | A transaction response plus the current account response. |
-| security/SessionAccessFilter | Requires a server session before reading protected requests. |
-| exception/ApiExceptionHandler | Returns one safe error message with the HTTP status. |
 
 That is 21 application classes and five DTOs. The response classes prevent password hashes and entity relationships from reaching the browser. Response constructors run in the service transaction, so related data can be read there. Entities follow their foreign keys; there are no reverse collections.
 
@@ -150,10 +108,6 @@ Every successful operation returns HTTP 200. APPROVED/DECLINED describes the fin
 
 The backend business workflows above are implemented. The current frontend is only HomePage. Registration/sign-in and the customer/admin pages still need implementation.
 
-The smaller login plan is a BCrypt password check plus a server session cookie, with CSRF protection before browser sign-in is enabled. A session lets the server remember the signed-in user ID. No JWTs or token-refresh workflow are planned. The current filter checks a session, but no login endpoint creates one yet; normal external API calls receive 401. Test sessions are set on mock server requests and cannot be supplied by an HTTP user-ID header.
-
-There is no paging: the local demo reads plain arrays. Money responses are JSON numbers; React will format two decimal places for display. Java performs all balance calculations. UTC dates use seconds. Animation, extra component frameworks, rate limiting, CI, SonarQube, AWS, and Jira are outside this MVP.
-
 ## 8. Tests and practice
 
 There are three test files under `backend/src/test/java/com/marvens/capstone/`: TestData creates fictional fixtures; SimulatorApiTest checks HTTP/service behavior with mocked repositories; SimulatorIT checks real MySQL persistence, ownership, retries, refunds, concurrent purchases, and rollback. Mocked-repository checks cannot prove database transactions work; MySQL checks provide that evidence. Test fixtures are cleaned up after each integration test.
@@ -163,3 +117,9 @@ From backend, run `mvnw.cmd verify`. Add `-Pmysql-verification "-Dspring.profile
 Verified October 8 after this simplification: 16 HTTP/service checks and eight MySQL integration checks passed, with no failures/errors/skips. The frontend production build passed too. The old multi-layer test suite was consolidated around the retained business workflows; this count is not a coverage percentage.
 
 Practice in this order: explain the $50 example without code; trace the controller/service/repository calls; change one amount and predict the result; run the matching test. Then repeat for a decline and a refund. Stay on one workflow until you can say what each line changes and why.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).

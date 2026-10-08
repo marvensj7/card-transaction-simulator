@@ -8,15 +8,9 @@ The core workflows are account summary, masked card, purchase approval/decline, 
 React page → API request → controller → service → JPA repository → MySQL
 ```
 
-The backend uses ordinary Java classes, explicit if/else decisions and loops, one place for input validation, and five small DTOs. Customer/admin views share safe responses. Lists are plain arrays with no paging. Successful purchases/refunds return 200; their APPROVED/DECLINED field explains the financial outcome. Amounts use BigDecimal in Java and DECIMAL(14,2) in MySQL; response money uses JSON numbers.
-
 Start with the [beginner walkthrough](outputs/02_Architecture/05_Backend_Walkthrough.md). It explains each remaining file, follows one $50 purchase, and gives short practice questions.
 
 ## Current status
-
-The account, purchase, decline, history, refund, retry, and admin rules are implemented in the backend. The frontend has six routes with shared navigation. The home page keeps Credit Circuit's wordmark, fictional display card, and Request → Checks → Outcome teaser. Login explains that sign-in is still being built; the customer/admin pages show access-unavailable notices. Registration, session sign-in, CSRF protection, and the React banking flows remain unfinished.
-
-Authentication will use a server session and cookie with BCrypt password checks. The current session filter closes `/api` to external callers because no sign-in endpoint establishes a session yet. Tests supply a session directly on mock server requests; there is no public user-ID shortcut. JWTs and card animation are outside this MVP. AWS and a Jira board are not required.
 
 ## Run and verify
 
@@ -43,3 +37,9 @@ npm run check:routes
 The frontend runs at `http://127.0.0.1:5173/`. All current routes work without the backend. Vite forwards future `/api` calls to Spring Boot on port 8080. See the [frontend setup](frontend/README.md).
 
 The [document index](outputs/README.md) links the proposal, ERD, API design, and React plan. This repository is public by the owner's choice. `work/`, local credentials, dependencies, and generated builds are ignored.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](outputs/03_Verification/01_Completion_Checklist.md).

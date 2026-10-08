@@ -72,8 +72,6 @@ The components that accept props define them in JSDoc comments. `AccessNotice` a
 
 I keep one shared value in `auth/UserUiContext.jsx`: `user`, initially `null`. `UserUiProvider` uses `useState`, and `useUserUi` reads it with `useContext`. Navigation and `AccessNotice` use that same value, so they agree about the displayed sign-in status. All six navigation links remain page destinations, including for an anonymous visitor. Opening a protected URL keeps its heading and access-unavailable notice; it does not redirect to a working login or show account tools.
 
-The context can hold only the safe user fields `id`, `displayName`, and `role`. Nothing in the application calls `setUser` today. Later, a verified server-session response may supply those details. Changing this UI value cannot authorize an API request or open the unfinished account tools. The backend still checks the server session, stored role, and account ownership. A reload discards the value and starts anonymous. I do not save user details, credentials, or session identifiers in browser storage.
-
 `SiteNavigation` owns one local `useState` value, `isMenuOpen`. One effect closes the menu when the route changes, including browser back/forward. An Escape listener runs while the menu is open. A separate viewport listener stays active while navigation is mounted, so it also handles resizing with a closed menu. Refs identify the button and navigation. If a resize hides a focused desktop link, focus moves to Menu. If it hides the focused Menu button, focus moves to the first desktop link. A blur handler covers browsers that hide the control before the viewport listener runs. Content focus stays where it is. Switching to desktop also closes the menu, and unmounting removes the listeners.
 
 Escape or selecting the current page returns focus to the button. Selecting a different page closes the menu and lets `RouteFocus` move focus to the content. The closed phone menu is hidden from both display and keyboard navigation. Its button reports `aria-expanded` and `aria-controls`; the links do not need a focus trap.
@@ -84,17 +82,11 @@ The state transitions are simple assignments and one menu toggle, so I do not us
 
 I put eight named functions in `frontend/src/api/creditCircuitApi.js`: `getAccounts`, `getCards`, `submitPurchase`, `getTransactions`, `refundPurchase`, `getAdminAccounts`, `getAdminTransactions`, and `updateAccountStatus`. Each calls the small `fetchJson` helper with its relative `/api` path and method. The pages do not call these functions yet, so the component diagram still shows the unavailable interface.
 
-The helper uses `fetch` with `credentials: 'same-origin'` so the browser can carry a verified server session cookie. It requests JSON, adds the JSON content type only for a body, and returns parsed successful JSON. Account/card/history/admin lists are plain arrays. Purchase and refund responses contain a transaction and account; a status change returns the updated account. No response paging wrapper or separate admin response type is needed.
-
 Purchases send the eight fields from the API design as one JSON body. The caller supplies the request ID, and the helper preserves it and the amount's string or number type. A purchase page will keep the same submission for an uncertain retry. Full refunds use POST with `?requestId=<UUID>` and no body or refund amount. Admin status changes use PATCH with `?status=ACTIVE` or `?status=FROZEN` and no body. Both query values are URL-encoded.
 
 HTTP errors become an `Error` containing the server's safe `message`. A missing or invalid message, unreadable error response, or message repeating submitted card secrets uses an HTTP-status fallback. Network failures and unreadable successful JSON have clear messages. The helper does not log requests/responses or attach raw bodies and failure details to errors. It does not generate request IDs, use browser token storage, or add a bearer token.
 
-These functions can be exercised now through mocked `fetch` checks. They are not connected to page loads, forms, or shared user state. Browser writes remain unavailable until session sign-in and CSRF protection are complete. The backend sign-in work must define how CSRF information reaches the browser; there is no assumed cookie or header contract here. Changing UI user details still cannot open account tools.
-
 ## Remaining behavior
-
-Registration and sign-in still need implementation. Sign-in will check a BCrypt password and establish a server session. The browser will carry the session cookie, with CSRF protection included before browser sign-in is enabled. A verified sign-in/current-user response will update the shared UI details; sign-out or an expired session will clear them. There is no JWT state or browser password store. `AccessNotice` describes unavailable functionality; it is not an authorization check. Future account access still requires server role and ownership checks.
 
 | Page | Planned behavior after secure sign-in |
 | --- | --- |
@@ -104,22 +96,22 @@ Registration and sign-in still need implementation. Sign-in will check a BCrypt 
 | Transactions | A newest-first history array and one full-refund action for an eligible purchase. |
 | Admin | Account/activity arrays and ACTIVE/FROZEN controls for an administrator. |
 
-Each page will own its fields, results, loading, errors, and ordinary `useState` values when its form and API calls exist. Purchase request IDs and retry results will stay on the purchase page. The pages will use the existing API functions after verified session sign-in is available, with CSRF protection before enabling writes. History and admin lists will remain plain arrays without paging. A shared safe response shape can serve customer and admin views. Reusable UI will be extracted when more than one page needs it.
-
 Form validation remains pending for registration, sign-in, and fictional purchases, including specific errors beside labeled fields. Loading feedback remains pending for sign-in, account/card reads, purchases, history/admin lists, refunds, and status changes. Pending submissions will need to prevent a second action while the first request is running. The current pages have no forms or requests, so these states are not implemented yet.
 
 The [API design](03_API_Design.md) defines the current endpoint fields and the remaining sign-in work. Money will display with two decimal places, while approval/refund math stays in Java. A successful HTTP 200 may contain a DECLINED financial result. Ownership, role checks, duplicate request IDs, full-refund rules, and all-or-nothing balance/history writes stay on the server.
 
-Card animation, global state libraries, caching layers, and generic form/table engines are outside this MVP.
-
 ## Verification
 
 `npm run build`, `npm run check:props`, all 13 `npm run check:routes` checks, all 10 `npm run check:state` checks, and all 33 `npm run check:api` checks passed. The route checks render the real JSX with a memory router and cover matching, current links, anonymous status, the fallback, the readable card ending, the home teaser without a purchase result, and consistent unavailable notices without banking controls. The state checks mount the real components in JSDOM with React StrictMode. They cover direct page loads, shared UI updates without unlocking tools, anonymous remounts, blocked browser storage, link navigation, menu toggling, Escape focus, same-page selection, route changes, back/forward, focus handoffs on resize and early CSS blur, and listener cleanup. Every state check also verifies that no API request occurs. JSDOM is a development dependency and does not test CSS layout.
-
-The API checks mock `fetch` and exercise all eight functions without a backend session. They verify paths, methods, credentials, purchase bodies, query parameters without bodies, plain array responses, approved/declined results, request-ID preservation, HTTP errors including 400/401, network failure and retry, unreadable JSON, suppression of sensitive values, and no console logging. These tests do not prove protected browser flows end to end. That demonstration requires completed session authentication and CSRF protection.
 
 I visually checked every route and an unknown nested route in the production preview at 1440 × 900, 768 × 1024, and 320 × 844. I also checked 390 × 844 and open tablet/phone menus. Direct URLs and refresh worked. All pages and open menus fit without horizontal scrolling. With the preview's root text temporarily doubled from 16px to 32px at 320px wide, every route and open menu still fit; headings and card labels wrapped and the card stayed in its column. I restored normal text afterward.
 
 Tab, Shift+Tab, Enter, Space, Escape, the skip link, visible focus, route-change focus, page titles, and browser back/forward worked. Resizing across the 50rem breakpoint kept focus on visible navigation and left content focus alone. The browser accessibility tree exposed headings, menu state, notice labels, and the readable card ending. Measured text contrast was at least 4.99:1. The frontend source review found no protected page-load requests, browser storage, sensitive display values, or console logging. UI context still cannot authorize requests or unlock account tools.
 
 The [frontend README](../../frontend/README.md) has the local setup and commands. Vite development and preview serve the frontend fallback; a deployed server would also need to return `index.html` for frontend routes and forward `/api` separately.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).

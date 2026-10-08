@@ -13,17 +13,6 @@ flowchart LR
     J --> D[(MySQL)]
 ```
 
-| Part | Job |
-| --- | --- |
-| React page | Six routes share navigation today. Home introduces Credit Circuit; login and protected pages explain that account access is unavailable. Later pages will collect input and display results using ordinary page state. |
-| Controller | Read HTTP input, obtain the server session's user ID, and call a service. |
-| Service | Check role/ownership/input, decide approval/decline/refund, and coordinate writes. |
-| Repository | Find and save rows through Spring Data JPA. |
-| Entity | Map a Java object to one database table. |
-| DTO | Hold purchase input or a small set of safe response fields. |
-| Session filter | Require a server-established login session before protected input is read. Login remains unfinished. |
-| Error handler | Return an HTTP status and one safe message. |
-
 The database has users, credit accounts, demo cards, and transaction history. Java relationships follow foreign keys in one direction; there are no reverse collections to synchronize.
 
 ## One purchase
@@ -38,13 +27,9 @@ Customers see account/card summaries and a newest-first history array. A full re
 
 ## Authentication and scope
 
-The future sign-in flow will check a BCrypt password and store only the user ID in a server session. The browser carries a session cookie. CSRF protection must be included before browser sign-in is enabled. No JWT issuer, token refresh flow, or browser token store is planned for this MVP.
-
 Today no endpoint creates a logged-in session, so external `/api` calls receive 401. Tests install a session on mock server requests; this mechanism is not an HTTP login shortcut. Services independently check the stored role and resource ownership.
 
 Money uses BigDecimal and DECIMAL(14,2). Full fictional card numbers/security codes exist only in request memory; responses expose masked details. Passwords, request bodies, card fields, and credentials are excluded from logs. The application runs locally with fictional money and no bank/payment-network integration.
-
-Pagination, card animation, extra frontend component layers, JWTs, rate limiting, CI, SonarQube, AWS, and Jira are outside the current MVP. The [walkthrough](05_Backend_Walkthrough.md) explains the remaining files and the Java concepts needed to follow them.
 
 ## MVP design choices
 
@@ -53,3 +38,9 @@ The remaining structure demonstrates three things: Java request handling, relati
 Keep BigDecimal, ownership/role checks, duplicate-request checks, one-refund rules, and transactional balance/history updates. Each supports a specific behavior in the demonstration. Combining these layers or returning database entities directly would make the code harder to explain safely. The next step is completing sign-in and the ordinary React forms using this same workflow.
 
 No custom configuration class is currently needed. Runtime settings live in `backend/src/main/resources/application.properties`; the unused empty `config` directory has been removed.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../03_Verification/01_Completion_Checklist.md).

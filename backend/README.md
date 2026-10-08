@@ -1,9 +1,5 @@
 # Backend
 
-Read the [beginner walkthrough](../outputs/02_Architecture/05_Backend_Walkthrough.md) first. There are 21 application classes: four entities, four repositories, two services, three controllers, five DTOs, one session filter, one error handler, and the application entry point.
-
-The backend keeps account summaries, masked cards, purchases/declines, history, full refunds, request retries, and admin status changes. The SQL schema is unchanged. DTOs are ordinary classes; controllers call services directly; services validate input and build safe responses while database relationships are available. Lists use ArrayList and for loops. There is no pagination, stream mapping, clock bean, custom exception hierarchy, generic page wrapper, or duplicate validation framework.
-
 ## Setup
 
 Use JDK 17 and MySQL 8.0.16+. `JAVA_HOME` must point to the JDK. The Maven wrapper downloads Maven if needed.
@@ -36,6 +32,10 @@ BigDecimal handles money. Response DTOs use JSON numbers; the future React scree
 
 `@Transactional` keeps balance/history together. The account write lock makes simultaneous balance changes wait their turn. READ_COMMITTED lets a waiting retry see the previous committed result. These protections remain because they prevent incorrect balances and duplicate purchases.
 
-`SessionAccessFilter` currently requires a server session containing a positive Long userId before reading protected input. No sign-in endpoint creates it yet, so external calls receive 401. IDs/roles supplied in headers, query parameters, or JSON cannot establish a session. Future sign-in will check BCrypt passwords and use a standard session cookie with CSRF protection; JWT support is outside the MVP.
-
 Errors use HTTP status plus `{"message":"..."}`. Services throw Spring's ResponseStatusException with fixed safe messages; one advice class handles the response. Unexpected errors log only exception type. Card numbers/security codes are request-only, write-only, and excluded from toString. Request/SQL/bind logging is disabled. The [API design](../outputs/02_Architecture/03_API_Design.md) records the exact contract.
+
+## Scope correction - October 8, 2026
+
+The instructor waived AWS and related deployment/DevOps work. Jira and branch protection are outside this completion pass. JWT authentication, BCrypt, validation, pagination, OpenAPI, authentication rate limiting, coverage, Postman, and SonarQube remain required. Java coverage must meet 70%; the Excellent target is 80%+. The 3D card remains planned after the required application works. Presentation rehearsal is October 12; presentation and submission are October 13.
+
+The older session-only implementation is being replaced by one signed JWT approach with tokens in React memory. Required work and evidence are tracked in [the completion checklist](../outputs/03_Verification/01_Completion_Checklist.md).

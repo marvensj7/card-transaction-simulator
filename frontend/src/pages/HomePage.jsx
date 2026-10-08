@@ -63,6 +63,21 @@ export default function HomePage() {
                 </div>
               </div>
 
+              <div
+                className="credit-breakdown"
+                role="img"
+                aria-label="Sample $2,000 credit limit after purchase: $500 previous balance, $125 new purchase, and $1,375 available credit."
+              >
+                <span className="previous-balance" />
+                <span className="new-purchase" />
+                <span className="remaining-credit" />
+              </div>
+              <ul className="credit-legend" aria-hidden="true">
+                <li><span className="legend-dot previous-balance" />Previous balance</li>
+                <li><span className="legend-dot new-purchase" />New purchase</li>
+                <li><span className="legend-dot remaining-credit" />Available</li>
+              </ul>
+
               <p className="decision-reason">Active account. Purchase within available credit.</p>
               <div className="balance-change">
                 <span>Outstanding balance</span>
@@ -76,31 +91,30 @@ export default function HomePage() {
               <h3 id="history-heading" className="panel-label">03 / Transaction history</h3>
               <span>Sample records · newest first</span>
             </div>
-            <table className="history-table">
-              <caption className="visually-hidden">Sample purchase history and outstanding balance after each transaction</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Merchant</th>
-                  <th scope="col">Decision</th>
-                  <th scope="col">Amount</th>
-                  <th scope="col">Balance after</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="current-purchase">
-                  <th scope="row">Demo Bookstore <span>Purchase · 10:42</span></th>
-                  <td><span className="history-status">Approved</span></td>
-                  <td>$125.00</td>
-                  <td>$625.00</td>
-                </tr>
-                <tr>
-                  <th scope="row">Demo Market <span>Purchase · 09:18</span></th>
-                  <td><span className="history-status">Approved</span></td>
-                  <td>$80.00</td>
-                  <td>$500.00</td>
-                </tr>
-              </tbody>
-            </table>
+            <ol className="history-list" role="list">
+              <li className="history-record current-purchase">
+                <div className="merchant">
+                  <h4>Demo Bookstore</h4>
+                  <p>Purchase · 10:42</p>
+                </div>
+                <p className="history-status"><span className="visually-hidden">Decision: </span>Approved</p>
+                <dl className="record-values">
+                  <div><dt>Amount</dt><dd>$125.00</dd></div>
+                  <div><dt>Balance after</dt><dd>$625.00</dd></div>
+                </dl>
+              </li>
+              <li className="history-record">
+                <div className="merchant">
+                  <h4>Demo Market</h4>
+                  <p>Purchase · 09:18</p>
+                </div>
+                <p className="history-status"><span className="visually-hidden">Decision: </span>Approved</p>
+                <dl className="record-values">
+                  <div><dt>Amount</dt><dd>$80.00</dd></div>
+                  <div><dt>Balance after</dt><dd>$500.00</dd></div>
+                </dl>
+              </li>
+            </ol>
           </section>
           <p className="workbench-note">The same purchase changes the balance and adds a history record.</p>
         </section>

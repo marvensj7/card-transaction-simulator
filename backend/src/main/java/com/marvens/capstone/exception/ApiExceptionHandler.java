@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final String MESSAGE = "message";
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @Override
@@ -26,15 +27,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         if (status.is5xxServerError()) {
             message = "An unexpected error occurred.";
             log.error("API failure type={}", failure.getClass().getName());
-        } else if (failure instanceof ResponseStatusException) {
+        } else if (failure instanceof ResponseStatusException expected) {
             // Our services supply fixed messages, never rejected values or database details.
-            ResponseStatusException expected = (ResponseStatusException) failure;
             message = expected.getReason();
         }
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.putAll(headers);
         responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(Map.of("message", message), responseHeaders, status);
+        return new ResponseEntity<>(Map.of(MESSAGE, message), responseHeaders, status);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         }
         // Only annotation messages are returned; rejected values never leave the server.
         return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("message", "Check the highlighted fields.", "fields", fields));
+                .body(Map.of(MESSAGE, "Check the highlighted fields.", "fields", fields));
     }
 
     @ExceptionHandler(Exception.class)
@@ -54,6 +54,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         // Logging the exception itself would also print its possibly sensitive message.
         log.error("API failure type={}", failure.getClass().getName());
         return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("message", "An unexpected error occurred."));
+                .body(Map.of(MESSAGE, "An unexpected error occurred."));
     }
 }

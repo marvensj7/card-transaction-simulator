@@ -9,14 +9,14 @@ public class PurchaseRequest {
     @NotNull @Positive
     public Long cardId;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank @Pattern(regexp = "[0-9]{16}", message = "must contain 16 fictional digits")
+    @NotBlank @Pattern(regexp = "\\d{16}", message = "must contain 16 fictional digits")
     public String testCardNumber;
     @NotNull @Min(1) @Max(12)
     public Integer expiryMonth;
     @NotNull @Min(2000) @Max(9999)
     public Integer expiryYear;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank @Pattern(regexp = "[0-9]{3,4}", message = "must contain 3 or 4 fictional digits")
+    @NotBlank @Pattern(regexp = "\\d{3,4}", message = "must contain 3 or 4 fictional digits")
     public String testSecurityCode;
     @NotBlank @Size(max = 100)
     public String merchantName;

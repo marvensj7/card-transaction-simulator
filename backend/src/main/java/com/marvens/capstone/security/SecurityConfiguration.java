@@ -51,7 +51,7 @@ public class SecurityConfiguration {
         OAuth2TokenValidator<Jwt> claims = jwt -> {
             String subject = jwt.getSubject();
             String role = jwt.getClaimAsString("role");
-            boolean valid = subject != null && subject.matches("[1-9][0-9]{0,17}")
+            boolean valid = subject != null && subject.matches("[1-9]\\d{0,17}")
                     && ("USER".equals(role) || "ADMIN".equals(role))
                     && jwt.getAudience().equals(List.of(audience))
                     && jwt.getIssuedAt() != null && !jwt.getIssuedAt().isAfter(java.time.Instant.now())

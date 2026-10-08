@@ -35,7 +35,7 @@ public class DemoCard {
     private String label;
 
     @Column(name = "last_four", nullable = false, length = 4, columnDefinition = "char(4)")
-    @NotBlank @Pattern(regexp = "[0-9]{4}")
+    @NotBlank @Pattern(regexp = "\\d{4}")
     private String lastFour;
 
     @Column(name = "expiry_month", nullable = false)
@@ -47,6 +47,7 @@ public class DemoCard {
     private Short expiryYear;
 
     public DemoCard() {
+        // JPA needs a no-argument constructor to load existing rows.
     }
 
     public Long getId() { return id; }

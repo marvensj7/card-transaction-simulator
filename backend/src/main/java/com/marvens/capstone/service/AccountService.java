@@ -13,7 +13,6 @@ import com.marvens.capstone.entity.DemoCard;
 import com.marvens.capstone.repository.AppUserRepository;
 import com.marvens.capstone.repository.CreditAccountRepository;
 import com.marvens.capstone.repository.DemoCardRepository;
-import com.marvens.capstone.exception.ConflictException;
 import com.marvens.capstone.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

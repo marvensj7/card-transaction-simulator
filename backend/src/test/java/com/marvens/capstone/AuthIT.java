@@ -68,7 +68,8 @@ class AuthIT extends SecurityTestSupport {
     @Test
     void aCardWriteFailureRollsBackUserAndAccountCreation() {
         doThrow(new IllegalStateException("fixture-write-failure")).when(cards).save(any());
-        assertThatThrownBy(() -> auth.register(request())).isInstanceOf(IllegalStateException.class);
+        RegisterRequest registration = request();
+        assertThatThrownBy(() -> auth.register(registration)).isInstanceOf(IllegalStateException.class);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM app_users WHERE email=?", Integer.class, email)).isZero();
     }
 }

@@ -46,6 +46,7 @@ public class CreditAccount {
     private Status status;
 
     public CreditAccount() {
+        // JPA needs a no-argument constructor to load existing rows.
     }
 
     public Long getId() { return id; }

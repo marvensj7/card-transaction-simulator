@@ -8,9 +8,10 @@ public class LoginResponse {
     public final UserResponse user;
     public final String accessToken;
     public final Instant expiresAt;
-    public final String tokenType = "Bearer";
+    public final String tokenType;
 
     public LoginResponse(AppUser user, Jwt token) {
+        tokenType = "Bearer";
         this.user = new UserResponse(user);
         accessToken = token.getTokenValue();
         expiresAt = token.getExpiresAt();

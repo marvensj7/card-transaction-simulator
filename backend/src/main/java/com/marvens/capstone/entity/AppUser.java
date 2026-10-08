@@ -40,6 +40,7 @@ public class AppUser {
     private Role role;
 
     public AppUser() {
+        // JPA needs a no-argument constructor to load existing rows.
     }
 
     public Long getId() { return id; }

@@ -81,6 +81,7 @@ public class CardTransaction {
     private CardTransaction originalPurchase;
 
     public CardTransaction() {
+        // JPA needs a no-argument constructor to load existing rows.
     }
 
     public Long getId() { return id; }

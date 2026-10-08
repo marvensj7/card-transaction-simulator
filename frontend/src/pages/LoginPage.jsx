@@ -10,7 +10,7 @@ export default function LoginPage() {
         description="Your starting point for the simulator."
       />
       <section className="notice-panel" aria-labelledby="login-status">
-        <p className="notice-label">Not available yet</p>
+        <p className="notice-label">Access unavailable</p>
         <h2 id="login-status">Sign-in is still being built.</h2>
         <p>Account access will open when secure sign-in is ready. Registration will be available here too.</p>
         <p>Credit Circuit is a classroom simulation. Only fictional test cards and money belong here.</p>

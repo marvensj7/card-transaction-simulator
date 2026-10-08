@@ -66,6 +66,7 @@ test('sign-in explains its status without collecting credentials', () => {
   const html = renderRoute('/login')
   const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'))
   assert.ok(html.includes('Sign-in is still being built.'))
+  assert.ok(html.includes('Access unavailable'), 'sign-in and account pages share the same access status')
   assert.doesNotMatch(main, /<(form|input|button)\b/)
 })
 

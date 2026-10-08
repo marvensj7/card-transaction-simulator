@@ -29,7 +29,10 @@ export default function HomePage() {
           </div>
           <div className="card-emblem"><CircuitMark /></div>
           <div className="card-details">
-            <p className="masked-number" aria-label="Card ending in 4242">•••• 4242</p>
+            <p className="masked-number">
+              <span aria-hidden="true">•••• 4242</span>
+              <span className="sr-only">Card ending in 4242</span>
+            </p>
             <div className="card-footer">
               <span>Fictional card</span>
               <span className="card-edition" aria-hidden="true">CC / 01</span>

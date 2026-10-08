@@ -140,21 +140,21 @@ public class TransactionService {
 
     public PageResponse<TransactionResponse> getHistory(Long userId, Long accountId, int page, int size) {
         accountService.getOwnedAccount(userId, accountId);
-        List<TransactionResponse> result = new ArrayList<>();
-        Page<CardTransaction> rows = transactions.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size));
-        for (CardTransaction transaction : rows) {
-            result.add(new TransactionResponse(transaction));
-        }
-        return new PageResponse<>(result, rows);
+        return historyResponse(transactions.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size)));
     }
 
     public PageResponse<TransactionResponse> getAdminTransactions(Long adminId, int page, int size) {
         accountService.requireRole(adminId, AppUser.Role.ADMIN);
+        return historyResponse(transactions.findAllByOrderByIdDesc(PageRequest.of(page, size)));
+    }
+
+    private PageResponse<TransactionResponse> historyResponse(Page<CardTransaction> rows) {
+        List<Long> ids = new ArrayList<>();
+        for (CardTransaction row : rows) ids.add(row.getId());
+        List<Long> refunded = new ArrayList<>();
+        if (!ids.isEmpty()) refunded = transactions.findRefundedPurchaseIds(ids);
         List<TransactionResponse> result = new ArrayList<>();
-        Page<CardTransaction> rows = transactions.findAllByOrderByIdDesc(PageRequest.of(page, size));
-        for (CardTransaction transaction : rows) {
-            result.add(new TransactionResponse(transaction));
-        }
+        for (CardTransaction row : rows) result.add(new TransactionResponse(row, refunded.contains(row.getId())));
         return new PageResponse<>(result, rows);
     }
 

@@ -17,8 +17,14 @@ public class TransactionResponse {
     public final String reasonCode;
     public final Instant createdAt;
     public final Long originalPurchaseId;
+    public final boolean refunded;
 
     public TransactionResponse(CardTransaction transaction) {
+        this(transaction, false);
+    }
+
+    public TransactionResponse(CardTransaction transaction, boolean refunded) {
+        this.refunded = refunded;
         id = transaction.getId();
         accountId = transaction.getAccount().getId();
         cardId = transaction.getCard().getId();

@@ -1,5 +1,6 @@
 package com.marvens.capstone.repository;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.marvens.capstone.entity.CardTransaction;
@@ -13,6 +14,9 @@ public interface CardTransactionRepository extends JpaRepository<CardTransaction
     CardTransaction findByOriginalPurchase_Id(Long purchaseId);
     Page<CardTransaction> findByAccount_IdOrderByIdDesc(Long accountId, Pageable pageable);
     Page<CardTransaction> findAllByOrderByIdDesc(Pageable pageable);
+
+    @Query("select t.originalPurchase.id from CardTransaction t where t.originalPurchase.id in :purchaseIds")
+    List<Long> findRefundedPurchaseIds(@Param("purchaseIds") List<Long> purchaseIds);
 
     // Find just the account ID first; load its current balance under the account lock.
     @Query("select t.account.id from CardTransaction t where t.id = :transactionId and t.account.user.id = :userId")

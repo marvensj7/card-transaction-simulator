@@ -103,6 +103,8 @@ class SimulatorIT extends SecurityTestSupport {
         response(refund(ownerId, purchaseId, refundId), 200);
         response(refund(ownerId, purchaseId, id()), 409);
         assertThat(historyCount()).isEqualTo(3);
+        JsonNode history = response(get("/api/accounts/" + accountId + "/transactions").with(identity(ownerId, "USER")), 200);
+        assertThat(history.path("items").get(2).path("refunded").asBoolean()).isTrue();
     }
 
     @Test

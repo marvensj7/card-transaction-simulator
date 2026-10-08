@@ -1,5 +1,9 @@
 * text=auto
 *.md text eol=lf
+
+# Preserve document bytes across Windows and Unix checkouts.
+*.pdf binary
+*.pptx binary
 *.yml text eol=lf
 *.yaml text eol=lf
 *.sh text eol=lf

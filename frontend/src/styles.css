@@ -25,6 +25,7 @@ body {
   min-height: 100svh;
   width: min(100% - 6rem, 82rem);
   margin-inline: auto;
+  overflow-wrap: anywhere;
 }
 
 a:focus-visible,
@@ -245,6 +246,7 @@ h1 span {
 .card-stage {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   align-content: center;
   min-height: 35rem;
@@ -284,6 +286,7 @@ h1 span {
 
 .card-heading {
   align-items: flex-start;
+  flex-wrap: wrap;
   font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.045em;
@@ -315,13 +318,15 @@ h1 span {
 
 .card-emblem {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   padding-block: 1.5rem;
 }
 
 .card-emblem .circuit-mark {
   width: 9rem;
-  height: 9rem;
+  max-width: 100%;
+  height: auto;
 }
 
 .masked-number {
@@ -332,6 +337,7 @@ h1 span {
 }
 
 .card-footer {
+  flex-wrap: wrap;
   padding-top: 0.8rem;
   border-top: 1px solid #b8c2ad;
 }
@@ -487,6 +493,5 @@ h1 span {
 
   .card-emblem .circuit-mark {
     width: 7rem;
-    height: 7rem;
   }
 }

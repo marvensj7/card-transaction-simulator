@@ -2,7 +2,7 @@ import CircuitMark from '../components/CircuitMark.jsx'
 
 export default function HomePage() {
   return (
-      <main className="opening">
+      <main id="main-content" className="opening" tabIndex={-1}>
         <div className="introduction">
           <p className="eyebrow">Credit Card Transaction Simulator</p>
           <h1>Credit<br /><span>Circuit.</span></h1>

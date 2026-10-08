@@ -3,7 +3,7 @@ import PageHeading from '../components/PageHeading.jsx'
 
 export default function PurchasePage() {
   return (
-    <main className="content-page">
+    <main id="main-content" className="content-page" tabIndex={-1}>
       <PageHeading
         eyebrow="Credit Circuit / Request"
         title="Purchase"

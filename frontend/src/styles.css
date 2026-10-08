@@ -20,8 +20,36 @@ body {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
   width: min(100% - 6rem, 82rem);
   margin-inline: auto;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 1;
+  top: 0.75rem;
+  left: 1.5rem;
+  padding: 0.75rem 1rem;
+  transform: translateY(-200%);
+  border-radius: 0.35rem;
+  background: var(--accent);
+  color: #151c18;
+}
+
+.skip-link:focus {
+  transform: none;
 }
 
 .site-header,
@@ -107,11 +135,11 @@ body {
 }
 
 .opening {
+  flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   align-items: center;
   gap: 2rem;
-  min-height: calc(100svh - 10rem);
   padding-block: 3rem;
 }
 
@@ -289,7 +317,7 @@ h1 span {
 }
 
 .content-page {
-  min-height: calc(100svh - 10rem);
+  flex: 1;
   padding-block: 4rem;
 }
 
@@ -357,6 +385,24 @@ h1 span {
   .site-header {
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+
+  .site-navigation {
+    column-gap: 0.25rem;
+    margin-top: 0.75rem;
+  }
+
+  .content-page {
+    padding-block: 2.5rem;
+  }
+
+  .content-page h1 {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+  }
+
+  .notice-panel {
+    margin-top: 2rem;
+    padding: 1.25rem;
   }
 
   .opening {

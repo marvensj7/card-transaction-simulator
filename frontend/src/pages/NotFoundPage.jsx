@@ -3,7 +3,7 @@ import PageHeading from '../components/PageHeading.jsx'
 
 export default function NotFoundPage() {
   return (
-    <main className="content-page">
+    <main id="main-content" className="content-page" tabIndex={-1}>
       <PageHeading
         eyebrow="Credit Circuit / 404"
         title="Page not found"

@@ -4,7 +4,7 @@ I built one React application with Vite and plain JavaScript/JSX. `index.html` l
 
 Credit Circuit is the app name; Credit Card Transaction Simulator is the formal capstone description. The opening screen pairs a large wordmark with a pale fictional card against a dark background. A lime accent and thin signal traces connect the visual identity. Request → Checks → Outcome hints at the purchase flow without revealing an approval, amount, balance change, or history.
 
-The introduction sits beside the card on wide screens and above it on phones. The card shows only a masked ending and a fictional-card label. The screen has no sign-in controls, purchase actions, API requests, or animation. The layout uses ordinary CSS without a UI framework.
+The introduction sits beside the card on wide screens and above it on phones. The card keeps enough width for its labels on small screens, and the header and footer wrap when needed. The card shows only a masked ending and a fictional-card label. The screen has no sign-in controls, purchase actions, API requests, or animation. The layout uses ordinary CSS without a UI framework.
 
 `components/CircuitMark.jsx` supplies the small SVG mark used in the header and on the card. A matching favicon appears beside the Credit Circuit browser title. The `auth/` and `api/` folders contain only `.gitkeep` files so Git retains the empty folders. Routing, session sign-in, account data, and purchase forms remain unfinished. Card animation is outside this MVP. Planned pages use ordinary state and a small fetch helper; history is a simple array.
 

@@ -237,7 +237,6 @@ h1 span {
 .card-footer {
   padding-top: 0.8rem;
   border-top: 1px solid #b8c2ad;
-  font-size: 0.65rem;
 }
 
 .card-edition {
@@ -248,7 +247,6 @@ h1 span {
   position: relative;
   margin-top: 1.5rem;
   color: var(--muted);
-  font-size: 0.7rem;
 }
 
 .site-footer {
@@ -292,7 +290,7 @@ h1 span {
   }
 
   .display-card {
-    width: min(70%, 16rem);
+    width: min(100% - 3rem, 16rem);
     padding: 1.5rem;
   }
 

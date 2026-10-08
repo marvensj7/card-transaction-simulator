@@ -1,4 +1,4 @@
-/** @param {import('react').ButtonHTMLAttributes<HTMLButtonElement> & {pending?: boolean}} props */
+/** @param {import('react').ButtonHTMLAttributes<HTMLButtonElement> & {pending?: boolean, ref?: import('react').Ref<HTMLButtonElement>}} props */
 export default function Button({ pending = false, disabled, children, ...props }) {
   return <button className="button" {...props} disabled={disabled || pending} aria-busy={pending || undefined}>
     {pending && <span className="spinner" aria-hidden="true" />}{children}

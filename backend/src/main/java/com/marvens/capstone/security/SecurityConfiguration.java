@@ -53,7 +53,7 @@ public class SecurityConfiguration {
             String role = jwt.getClaimAsString("role");
             boolean valid = subject != null && subject.matches("[1-9]\\d{0,17}")
                     && ("USER".equals(role) || "ADMIN".equals(role))
-                    && jwt.getAudience().equals(List.of(audience))
+                    && jwt.getAudience() != null && jwt.getAudience().equals(List.of(audience))
                     && jwt.getIssuedAt() != null && !jwt.getIssuedAt().isAfter(java.time.Instant.now())
                     && jwt.getExpiresAt() != null && jwt.getIssuedAt() != null
                     && jwt.getExpiresAt().isAfter(jwt.getIssuedAt());

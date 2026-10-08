@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.mock.web.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -68,6 +69,22 @@ class SecurityConfigurationTest extends SecurityTestSupport {
             String value = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims.build())).getTokenValue();
             assertThatThrownBy(() -> decoder.decode(value)).isInstanceOf(JwtException.class);
         }
+    }
+
+    @Test
+    void missingRequiredClaimsReturnUnauthorizedBeforeReachingTheService() throws Exception {
+        Instant now = Instant.now();
+        for (String field : List.of("iss", "aud", "role", "sub", "exp", "iat")) {
+            JwtClaimsSet.Builder claims = JwtClaimsSet.builder().issuer("credit-circuit")
+                    .audience(List.of("credit-circuit-api")).subject("1").claim("role", "USER")
+                    .issuedAt(now.minusSeconds(120)).expiresAt(now.plusSeconds(600));
+            claims.claims(values -> values.remove(field));
+            String value = encoder.encode(JwtEncoderParameters.from(
+                    JwsHeader.with(MacAlgorithm.HS256).build(), claims.build())).getTokenValue();
+            mvc.perform(get("/api/accounts").header("Authorization", "Bearer " + value))
+                    .andExpect(status().isUnauthorized());
+        }
+        verifyNoInteractions(accounts);
     }
 
     @Test

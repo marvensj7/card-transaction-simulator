@@ -1,14 +1,13 @@
 :root {
   font-family: "Segoe UI", system-ui, sans-serif;
-  color: #222b24;
-  background: #eef0e9;
+  color: #f2f3ea;
+  background: #151c18;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   line-height: 1.5;
-  --ink: #222b24;
-  --muted: #657063;
-  --line: #d8ddd3;
-  --accent: #c9f578;
+  --accent: #d6f58b;
+  --muted: #acb6ab;
+  --line: #354238;
   --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 }
 
@@ -21,16 +20,15 @@ body {
 }
 
 .app-shell {
-  width: min(100% - 5rem, 88rem);
+  width: min(100% - 6rem, 82rem);
   margin-inline: auto;
 }
 
 .site-header,
 .brand,
-.workbench-header,
-.decision-heading,
-.history-heading,
-.site-footer {
+.site-footer,
+.card-heading,
+.card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -38,626 +36,268 @@ body {
 }
 
 .site-header {
-  padding-block: 2rem;
-  border-bottom: 1px solid #bfc8b9;
+  padding-block: 1.75rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .brand {
   justify-content: flex-start;
-  gap: 0.7rem;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  gap: 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
 }
 
-.brand-mark {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 1.35rem;
+.circuit-mark {
+  display: block;
+  flex-shrink: 0;
 }
 
-.brand-mark i {
-  width: 5px;
-  height: 65%;
-  background: var(--ink);
+.brand .circuit-mark {
+  width: 2rem;
+  height: 2rem;
+  color: var(--accent);
 }
 
-.brand-mark i:nth-child(2) {
-  height: 100%;
-}
-
-.brand-mark i:nth-child(3) {
-  height: 40%;
+.project-label,
+.eyebrow,
+.signal-route,
+.card-footer,
+.card-stage figcaption,
+.site-footer {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 400;
 }
 
 .project-label {
   color: var(--muted);
-  font-size: 0.75rem;
 }
 
-.project-label span {
-  margin-inline: 0.6rem;
-}
-
-.home-layout {
+.opening {
   display: grid;
-  grid-template-columns: minmax(14rem, 0.85fr) minmax(0, 2.5fr);
-  align-items: start;
-  gap: clamp(2rem, 4vw, 4rem);
-  padding-block: 3.5rem;
-}
-
-.introduction {
-  padding-top: 1.5rem;
-}
-
-.eyebrow,
-.panel-label {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 2rem;
+  min-height: calc(100svh - 10rem);
+  padding-block: 3rem;
 }
 
 .eyebrow {
-  max-width: 25ch;
+  margin: 0;
   color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 h1 {
   margin: 1.5rem 0;
-  font-size: clamp(3rem, 4.5vw, 4.5rem);
-  font-weight: 650;
-  line-height: 0.98;
-  letter-spacing: -0.065em;
+  font-size: clamp(4.5rem, 9vw, 8.5rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.075em;
+}
+
+h1 span {
+  color: var(--accent);
 }
 
 .intro-copy {
-  max-width: 24ch;
   margin: 0;
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-.scenario-note {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid #bfc8b9;
-  font-size: 0.75rem;
-}
-
-.scenario-number {
-  font-family: var(--mono);
-  font-size: 1.5rem;
-  letter-spacing: -0.07em;
-}
-
-.scenario-note p {
-  margin: 0;
-}
-
-.workbench {
-  min-width: 0;
-  border: 1px solid #bcc5b5;
-  border-radius: 0.75rem;
-  background: #fafbf7;
-  overflow: hidden;
-}
-
-.workbench-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.workbench-header h2 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 650;
+  color: #d2d9ce;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
   letter-spacing: -0.02em;
 }
 
-.workbench-header p {
-  margin: 0.25rem 0 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.currency-label {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.account-and-decision {
+.signal-route {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.8fr);
-}
-
-.account-panel {
-  padding: 1.5rem;
-}
-
-.account-panel .panel-label {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 25rem;
+  margin: 3rem 0 0;
+  padding: 0;
+  list-style: none;
   color: var(--muted);
 }
 
-.account-panel h3 {
-  margin: 1.5rem 0 0;
-  font-size: 1.2rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+.signal-route::before {
+  content: "";
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  right: calc(33.333% - 0.35rem);
+  border-top: 1px solid #53634a;
 }
 
-.account-status {
+.signal-route li {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0.5rem 0 1.5rem;
-  font-size: 0.8rem;
-  color: #416240;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
 }
 
-.account-status span {
-  width: 5px;
-  height: 5px;
+.route-node {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1px solid var(--accent);
   border-radius: 50%;
-  background: #416240;
+  background: #151c18;
 }
 
-.account-values {
+.card-stage {
+  position: relative;
   display: grid;
-  gap: 1rem;
+  justify-items: center;
+  align-content: center;
+  min-height: 35rem;
   margin: 0;
 }
 
-.account-values dt {
-  color: var(--muted);
-  font-size: 0.8rem;
+.signal-traces {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 115%;
+  height: auto;
+  transform: translate(-50%, -50%);
+  stroke: #45563c;
+  stroke-width: 1;
 }
 
-.account-values dd {
-  margin: 0.25rem 0 0;
-  font-family: var(--mono);
-  font-size: 0.95rem;
+.signal-traces circle {
+  fill: #151c18;
+  stroke: #7b9562;
 }
 
-.masked-card {
+.display-card {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
-  margin: 1.5rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.masked-card span {
-  color: var(--ink);
-  font-family: var(--mono);
-}
-
-.decision-panel {
-  padding: 1.5rem;
-  background: var(--ink);
-  color: #f5f8ed;
-}
-
-.decision-panel .panel-label {
-  color: #b7c3b1;
-}
-
-.approved-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.25rem;
-  background: var(--accent);
-  color: var(--ink);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.purchase-detail {
-  margin: 1.5rem 0 2rem;
-  font-size: 0.85rem;
-}
-
-.purchase-detail span {
-  color: #b7c3b1;
-}
-
-.credit-change {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.credit-change p {
-  margin: 0 0 0.3rem;
-  color: #b7c3b1;
-  font-size: 0.75rem;
-}
-
-.credit-before > span {
-  font-family: var(--mono);
-  font-size: 1rem;
-}
-
-.change-arrow {
-  margin-top: 1rem;
-  color: var(--accent);
-  font-size: 1.25rem;
-}
-
-.credit-after strong {
-  display: block;
-  font-size: clamp(3rem, 5.6vw, 5.5rem);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.055em;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-
-.credit-after strong span {
-  font-size: 0.55em;
-  letter-spacing: -0.03em;
-}
-
-.credit-breakdown {
-  display: flex;
-  height: 0.65rem;
-  margin-top: 1.75rem;
-  overflow: hidden;
-}
-
-/* Fixed sample amounts as shares of the $2,000 credit limit. */
-.credit-breakdown .previous-balance {
-  width: 25%;
-}
-
-.credit-breakdown .new-purchase {
-  width: 6.25%;
-}
-
-.credit-breakdown .remaining-credit {
-  width: 68.75%;
-}
-
-.previous-balance {
-  background: #74806c;
-}
-
-.new-purchase {
-  background: #f5f8ed;
-}
-
-.remaining-credit {
-  background: var(--accent);
-}
-
-.credit-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin: 0.75rem 0 0;
-  padding: 0;
-  list-style: none;
-  color: #c2cdbb;
-  font-size: 0.75rem;
-}
-
-.credit-legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.legend-dot {
-  width: 0.4rem;
-  height: 0.4rem;
-}
-
-.decision-reason {
-  margin: 1.5rem 0;
-  font-size: 0.75rem;
-  color: #b7c3b1;
-}
-
-.balance-change {
-  display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #4a5646;
-  font-size: 0.75rem;
-  color: #b7c3b1;
+  width: min(75%, 19rem);
+  aspect-ratio: 5 / 7;
+  padding: 1.75rem;
+  border: 1px solid #f7faed;
+  border-radius: 1.25rem;
+  background: #e7ebdf;
+  color: #1d281e;
+  box-shadow: 0 1.5rem 4rem #080d0940;
 }
 
-.balance-change p {
-  margin: 0;
-  font-family: var(--mono);
+.card-heading {
+  align-items: flex-start;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.045em;
 }
 
-.balance-change p span {
-  margin-inline: 0.3rem;
+.card-chip {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.4rem;
+  border: 1px solid #7d8b69;
+  border-radius: 0.3rem;
+  background: #d6dfc3;
 }
 
-.balance-change strong {
-  color: #f5f8ed;
-  font-weight: 500;
+.card-chip::before,
+.card-chip::after {
+  content: "";
+  position: absolute;
+  inset: 0 35%;
+  border-inline: 1px solid #7d8b69;
 }
 
-.history-panel {
-  padding: 1.5rem;
+.card-chip::after {
+  inset: 35% 0;
+  border: 0;
+  border-block: 1px solid #7d8b69;
 }
 
-.history-heading {
-  margin-bottom: 1rem;
-}
-
-.history-heading > span {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.history-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.history-record {
+.card-emblem {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) 0.8fr minmax(0, 1.6fr);
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid var(--line);
+  justify-items: center;
+  padding-block: 1.5rem;
 }
 
-.merchant h4 {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
+.card-emblem .circuit-mark {
+  width: 9rem;
+  height: 9rem;
 }
 
-.merchant p {
-  margin: 0.25rem 0 0;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.history-status {
-  margin: 0;
-  color: #416240;
-  font-size: 0.8rem;
-}
-
-.record-values {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 0;
-  text-align: right;
-}
-
-.record-values dt {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.record-values dd {
-  margin: 0.25rem 0 0;
+.masked-number {
+  margin: 0 0 1.25rem;
   font-family: var(--mono);
-  font-size: 0.875rem;
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
 }
 
-.current-purchase {
-  border-left-color: #81ad3f;
-  background: #eff4e6;
+.card-footer {
+  padding-top: 0.8rem;
+  border-top: 1px solid #b8c2ad;
+  font-size: 0.65rem;
 }
 
-.workbench-note {
-  margin: 0;
-  padding: 0.85rem 1.5rem;
-  border-top: 1px solid var(--line);
+.card-edition {
+  color: #59674e;
+}
+
+.card-stage figcaption {
+  position: relative;
+  margin-top: 1.5rem;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .site-footer {
+  flex-wrap: wrap;
   padding-block: 1.25rem;
-  border-top: 1px solid #bfc8b9;
-  font-size: 0.8rem;
+  border-top: 1px solid var(--line);
   color: var(--muted);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-@media (max-width: 70rem) {
-  .home-layout {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding-block: 2rem;
-  }
-
-  .introduction {
-    padding: 0;
-  }
-
-  .intro-copy {
-    max-width: 45ch;
-  }
-
-  .scenario-note {
-    display: none;
-  }
-}
-
-@media (max-width: 40rem) {
+@media (max-width: 50rem) {
   .app-shell {
-    width: calc(100% - 2rem);
-  }
-
-  .site-header,
-  .site-footer,
-  .history-heading {
-    flex-wrap: wrap;
+    width: calc(100% - 3rem);
   }
 
   .site-header {
-    padding-block: 1.25rem;
-    gap: 0.75rem;
-  }
-
-  .home-layout {
-    padding-block: 1.5rem;
-    gap: 1.5rem;
-  }
-
-  h1 {
-    margin-block: 1rem;
-  }
-
-  .workbench-header,
-  .account-panel,
-  .decision-panel,
-  .history-panel {
-    padding: 1.25rem;
-  }
-
-  .account-and-decision {
-    grid-template-columns: 1fr;
-  }
-
-  .account-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-  }
-
-  .account-panel > .panel-label,
-  .account-values,
-  .masked-card {
-    grid-column: 1 / -1;
-  }
-
-  .account-panel h3,
-  .account-status {
-    margin: 0;
-  }
-
-  .account-panel h3 {
-    font-size: 1.05rem;
-  }
-
-  .account-status {
-    font-size: 0.75rem;
-  }
-
-  .account-values {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-  }
-
-  .account-values > div {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .account-values > div:last-child {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .account-values > div:last-child dd {
-    margin: 0;
-  }
-
-  .masked-card {
-    margin: 0;
-    padding-top: 0.5rem;
-    border: 0;
-  }
-
-  .decision-heading {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
 
-  .credit-change {
-    display: block;
+  .opening {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    min-height: 0;
+    padding-block: 2.5rem 1.5rem;
   }
 
-  .credit-before {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
+  h1 {
+    font-size: clamp(4rem, 17vw, 6.5rem);
   }
 
-  .credit-before p {
-    margin: 0;
+  .signal-route {
+    margin-top: 2rem;
   }
 
-  .change-arrow {
-    display: none;
+  .card-stage {
+    min-height: 27rem;
   }
 
-  .credit-after {
-    margin-top: 1.25rem;
+  .signal-traces {
+    width: 100%;
   }
 
-  .credit-after strong {
-    font-size: clamp(3.5rem, 14vw, 4.25rem);
+  .display-card {
+    width: min(70%, 16rem);
+    padding: 1.5rem;
   }
 
-  .history-heading {
-    gap: 0.5rem;
-  }
-
-  .history-record {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-  }
-
-  .history-status {
-    justify-self: end;
-  }
-
-  .record-values {
-    grid-column: 1 / -1;
-  }
-
-  .record-values > div:first-child {
-    text-align: left;
+  .card-emblem .circuit-mark {
+    width: 7rem;
+    height: 7rem;
   }
 }

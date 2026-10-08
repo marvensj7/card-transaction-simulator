@@ -1,5 +1,6 @@
 import { Link, Route, Routes } from 'react-router'
 import { UserUiProvider } from './auth/UserUiContext.jsx'
+import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import CircuitMark from './components/CircuitMark.jsx'
 import SiteNavigation from './components/SiteNavigation.jsx'
 import RouteFocus from './components/RouteFocus.jsx'
@@ -26,10 +27,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/purchase" element={<PurchasePage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute role="USER"><DashboardPage /></ProtectedRoute>} />
+          <Route path="/purchase" element={<ProtectedRoute role="USER"><PurchasePage /></ProtectedRoute>} />
+          <Route path="/transactions" element={<ProtectedRoute role="USER"><TransactionsPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
 

@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router'
 import { useUserUi } from '../auth/UserUiContext.jsx'
 
 export default function SiteNavigation() {
-  const { user } = useUserUi()
+  const { user, signOut } = useUserUi()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuButton = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const navigation = useRef(/** @type {HTMLElement | null} */ (null))
@@ -95,11 +95,12 @@ export default function SiteNavigation() {
       <span className="navigation-status">{user ? 'Signed in' : 'Not signed in'}</span>
       <nav ref={navigation} id="main-navigation" className="site-navigation" aria-label="Main navigation" data-open={isMenuOpen}>
         <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
-        <NavLink to="/login" end onClick={closeMenu}>Sign in</NavLink>
+        {!user && <NavLink to="/login" end onClick={closeMenu}>Sign in</NavLink>}
         <NavLink to="/dashboard" end onClick={closeMenu}>Dashboard</NavLink>
         <NavLink to="/purchase" end onClick={closeMenu}>Purchase</NavLink>
         <NavLink to="/transactions" end onClick={closeMenu}>Transactions</NavLink>
-        <NavLink to="/admin" end onClick={closeMenu}>Admin</NavLink>
+        {user?.role === 'ADMIN' && <NavLink to="/admin" end onClick={closeMenu}>Admin</NavLink>}
+        {user && <button className="menu-toggle signout" type="button" onClick={() => { signOut(); closeMenu() }}>Sign out</button>}
       </nav>
     </div>
   )

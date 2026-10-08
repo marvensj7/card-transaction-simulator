@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { afterEach, mock, test } from 'node:test'
-import { fetchJson } from '../src/api/fetchJson.js'
+import { fetchJson, configureAuthentication } from '../src/api/fetchJson.js'
 import {
   getAccounts,
   getCards,
@@ -12,16 +12,16 @@ import {
   updateAccountStatus,
 } from '../src/api/creditCircuitApi.js'
 
-afterEach(() => mock.restoreAll())
+afterEach(() => { mock.restoreAll(); configureAuthentication(() => '', () => {}) })
 
-test('fetch helper reads JSON with a relative path and same-origin credentials', async () => {
+test('fetch helper reads JSON with a relative path and omitted cookie credentials', async () => {
   const accounts = [{ id: 7, ownerName: 'Demo customer', availableCredit: 900 }]
   const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(accounts))
 
   assert.deepEqual(await fetchJson('/api/accounts'), accounts)
   assert.deepEqual(fetchMock.mock.calls[0].arguments, ['/api/accounts', {
     method: 'GET',
-    credentials: 'same-origin',
+    credentials: 'omit',
     headers: { Accept: 'application/json' },
   }])
 })
@@ -33,7 +33,7 @@ test('fetch helper serializes a supplied JSON body only when there is one', asyn
   assert.deepEqual(await fetchJson('/api/accounts/7/purchases', 'POST', body), { saved: true })
   assert.deepEqual(fetchMock.mock.calls[0].arguments, ['/api/accounts/7/purchases', {
     method: 'POST',
-    credentials: 'same-origin',
+    credentials: 'omit',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   }])
@@ -84,45 +84,45 @@ const purchase = Object.freeze({
 const lists = [
   ['accounts', getAccounts, '/api/accounts', [account]],
   ['cards', () => getCards(7), '/api/accounts/7/cards', [card]],
-  ['history', () => getTransactions(7), '/api/accounts/7/transactions', [transaction]],
-  ['admin accounts', getAdminAccounts, '/api/admin/accounts', [account]],
-  ['admin history', getAdminTransactions, '/api/admin/transactions', [transaction]],
+  ['history', () => getTransactions(7), '/api/accounts/7/transactions?page=0&size=10', {items: [transaction], page: 0, size: 10, totalElements: 1, totalPages: 1}],
+  ['admin accounts', getAdminAccounts, '/api/admin/accounts?page=0&size=10', {items: [account], page: 0, size: 10, totalElements: 1, totalPages: 1}],
+  ['admin history', getAdminTransactions, '/api/admin/transactions?page=0&size=10', {items: [transaction], page: 0, size: 10, totalElements: 1, totalPages: 1}],
 ]
 
 for (const [name, call, path, rows] of lists) {
-  test(`${name} uses its GET path and returns a plain array`, async () => {
+  test(`${name} uses its GET path and returns the documented response`, async () => {
     const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(rows))
     const result = await call()
 
-    assert.ok(Array.isArray(result))
     assert.deepEqual(result, rows)
     assert.deepEqual(fetchMock.mock.calls[0].arguments, [path, {
       method: 'GET',
-      credentials: 'same-origin',
+      credentials: 'omit',
       headers: { Accept: 'application/json' },
     }])
   })
 }
 
-test('empty history stays an empty array', async () => {
-  mock.method(globalThis, 'fetch', async () => Response.json([]))
-  assert.deepEqual(await getTransactions(7), [])
+test('empty history preserves page metadata', async () => {
+  const empty = {items: [], page: 0, size: 10, totalElements: 0, totalPages: 0}
+  mock.method(globalThis, 'fetch', async () => Response.json(empty))
+  assert.deepEqual(await getTransactions(7), empty)
 })
 
 for (const status of ['APPROVED', 'DECLINED']) {
-  test(`purchase sends the documented JSON and returns a ${status} result with HTTP 200`, async () => {
+  test(`purchase sends the documented JSON and returns a ${status} result with HTTP 201`, async () => {
     const result = {
       transaction: { ...transaction, status, reasonCode: status === 'DECLINED' ? 'INSUFFICIENT_CREDIT' : null },
       account,
     }
-    const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(result))
+    const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(result, {status: 201}))
     const input = status === 'APPROVED' ? purchase : { ...purchase, amount: 25 }
 
     assert.deepEqual(await submitPurchase(7, input), result)
     const [path, options] = fetchMock.mock.calls[0].arguments
     assert.equal(path, '/api/accounts/7/purchases')
     assert.equal(options.method, 'POST')
-    assert.equal(options.credentials, 'same-origin')
+    assert.equal(options.credentials, 'omit')
     assert.deepEqual(options.headers, { Accept: 'application/json', 'Content-Type': 'application/json' })
     assert.ok(options.body === JSON.stringify(input), 'purchase JSON preserves all eight fields and the amount type')
   })
@@ -145,12 +145,12 @@ test('full refund uses a POST query parameter without a JSON body or amount', as
     transaction: { ...transaction, id: 12, type: 'REFUND', originalPurchaseId: 11 },
     account,
   }
-  const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(result))
+  const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json(result, {status: 201}))
 
   assert.deepEqual(await refundPurchase(11, requestId), result)
   assert.deepEqual(fetchMock.mock.calls[0].arguments, [
     `/api/transactions/11/refund?requestId=${requestId}`,
-    { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } },
+    { method: 'POST', credentials: 'omit', headers: { Accept: 'application/json' } },
   ])
 })
 
@@ -162,7 +162,7 @@ for (const status of ['ACTIVE', 'FROZEN']) {
     assert.deepEqual(await updateAccountStatus(7, status), updated)
     assert.deepEqual(fetchMock.mock.calls[0].arguments, [
       `/api/admin/accounts/7/status?status=${status}`,
-      { method: 'PATCH', credentials: 'same-origin', headers: { Accept: 'application/json' } },
+      { method: 'PATCH', credentials: 'omit', headers: { Accept: 'application/json' } },
     ])
   })
 }
@@ -271,4 +271,26 @@ test('API functions do not log successful card responses, purchases, or failures
   for (const logMock of logMocks) {
     assert.equal(logMock.mock.callCount(), 0, 'API calls must not write to the console')
   }
+})
+
+test('protected calls attach the memory token and a 401 expires UI authentication', async () => {
+  let expired = 0
+  configureAuthentication(() => 'test-only-bearer', () => expired++)
+  const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json({message: 'Sign in to continue.'}, {status: 401}))
+  await assert.rejects(getAccounts())
+  assert.equal(fetchMock.mock.calls[0].arguments[1].headers.Authorization, 'Bearer test-only-bearer')
+  assert.equal(expired, 1)
+})
+
+test('public sign-in omits a prior token and suppresses echoed passwords', async () => {
+  configureAuthentication(() => 'test-only-bearer', () => assert.fail('public auth does not expire another request'))
+  const body = {email: 'fixture@example.test', password: 'test-only-password-marker'}
+  const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json({message: body.password, fields: {password: body.password}}, {status: 400}))
+  await assert.rejects(fetchJson('/api/auth/login', 'POST', body), error => {
+    assert.equal(error.status, 400)
+    assert.ok(!error.message.includes(body.password))
+    assert.ok(!error.fields.password.includes(body.password))
+    return true
+  })
+  assert.equal(fetchMock.mock.calls[0].arguments[1].headers.Authorization, undefined)
 })

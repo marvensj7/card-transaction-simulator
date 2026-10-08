@@ -80,7 +80,7 @@ class SimulatorIT extends SecurityTestSupport {
     @Test
     void purchaseRetryDeclineAndRefundKeepRealBalancesAndHistoryCorrect() throws Exception {
         PurchaseRequest purchase = TestData.purchase(cardId, "50.00");
-        JsonNode approved = response(purchase(ownerId, purchase), 200);
+        JsonNode approved = response(purchase(ownerId, purchase), 201);
         Long purchaseId = approved.path("transaction").path("id").asLong();
         assertThat(approved.path("transaction").path("status").asText()).isEqualTo("APPROVED");
         assertThat(balance()).isEqualByComparingTo("250.00");
@@ -90,13 +90,13 @@ class SimulatorIT extends SecurityTestSupport {
         response(purchase(ownerId, purchase), 409);
         assertThat(balance()).isEqualByComparingTo("250.00");
 
-        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "900.00")), 200);
+        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "900.00")), 201);
         assertThat(declined.path("transaction").path("reasonCode").asText()).isEqualTo("INSUFFICIENT_CREDIT");
         assertThat(balance()).isEqualByComparingTo("250.00");
         response(refund(ownerId, declined.path("transaction").path("id").asLong(), id()), 409);
 
         String refundId = id();
-        JsonNode refunded = response(refund(ownerId, purchaseId, refundId), 200);
+        JsonNode refunded = response(refund(ownerId, purchaseId, refundId), 201);
         assertThat(refunded.path("transaction").path("originalPurchaseId").asLong()).isEqualTo(purchaseId);
         assertThat(refunded.path("transaction").path("amount").decimalValue()).isEqualByComparingTo("50.00");
         assertThat(balance()).isEqualByComparingTo("200.00");
@@ -107,7 +107,7 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void ownershipAndRolesAreEnforcedByRealRepositoryQueries() throws Exception {
-        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 200)
+        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 201)
                 .path("transaction").path("id").asLong();
         response(get("/api/accounts/" + accountId + "/cards").with(identity(otherId, "USER")), 404);
         response(get("/api/accounts/" + accountId + "/transactions").with(identity(otherId, "USER")), 404);
@@ -121,13 +121,13 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void adminFreezeBlocksPurchasesButAllowsAnExistingPurchaseToBeRefunded() throws Exception {
-        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "50.00")), 200)
+        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "50.00")), 201)
                 .path("transaction").path("id").asLong();
         response(patch("/api/admin/accounts/" + accountId + "/status")
                 .with(identity(adminId, "ADMIN")).param("status", "FROZEN"), 200);
-        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 200);
+        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 201);
         assertThat(declined.path("transaction").path("reasonCode").asText()).isEqualTo("ACCOUNT_FROZEN");
-        response(refund(ownerId, purchaseId, id()), 200);
+        response(refund(ownerId, purchaseId, id()), 201);
         assertThat(balance()).isEqualByComparingTo("200.00");
         response(patch("/api/admin/accounts/" + accountId + "/status")
                 .with(identity(adminId, "ADMIN")).param("status", "ACTIVE"), 200);

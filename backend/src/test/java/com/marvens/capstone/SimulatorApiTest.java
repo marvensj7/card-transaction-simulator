@@ -98,7 +98,7 @@ class SimulatorApiTest extends SecurityTestSupport {
 
     @Test
     void approvalAddsTheAmountAndReturnsTheCurrentCredit() throws Exception {
-        String result = submit(TestData.purchase(8L, "50.01"), 200);
+        String result = submit(TestData.purchase(8L, "50.01"), 201);
         assertThat(json.readTree(result).path("transaction").path("status").asText()).isEqualTo("APPROVED");
         assertThat(json.readTree(result).path("account").path("outstandingBalance").decimalValue())
                 .isEqualByComparingTo("250.01");
@@ -110,7 +110,7 @@ class SimulatorApiTest extends SecurityTestSupport {
 
     @Test
     void insufficientCreditCreatesADeclineWithoutChangingBalance() throws Exception {
-        String result = submit(TestData.purchase(8L, "800.01"), 200);
+        String result = submit(TestData.purchase(8L, "800.01"), 201);
         assertThat(json.readTree(result).path("transaction").path("reasonCode").asText()).isEqualTo("INSUFFICIENT_CREDIT");
         assertThat(account.getOutstandingBalance()).isEqualByComparingTo("200.00");
         verify(accounts, never()).save(any());
@@ -120,7 +120,7 @@ class SimulatorApiTest extends SecurityTestSupport {
     @Test
     void frozenAccountDeclinesNewSpending() throws Exception {
         account.setStatus(CreditAccount.Status.FROZEN);
-        String result = submit(TestData.purchase(8L, "1.00"), 200);
+        String result = submit(TestData.purchase(8L, "1.00"), 201);
         assertThat(json.readTree(result).path("transaction").path("reasonCode").asText()).isEqualTo("ACCOUNT_FROZEN");
         assertThat(account.getOutstandingBalance()).isEqualByComparingTo("200.00");
         verify(accounts, never()).save(any());
@@ -134,12 +134,12 @@ class SimulatorApiTest extends SecurityTestSupport {
         PurchaseRequest request = TestData.purchase(8L, "1.00");
         request.expiryMonth = month.getMonthValue();
         request.expiryYear = month.getYear() - 1;
-        assertThat(json.readTree(submit(request, 200)).path("transaction").path("reasonCode").asText())
+        assertThat(json.readTree(submit(request, 201)).path("transaction").path("reasonCode").asText())
                 .isEqualTo("CARD_EXPIRED");
         card.setExpiryYear((short) month.getYear());
         request.expiryYear = month.getYear();
         request.requestId = UUID.randomUUID().toString();
-        assertThat(json.readTree(submit(request, 200)).path("transaction").path("status").asText())
+        assertThat(json.readTree(submit(request, 201)).path("transaction").path("status").asText())
                 .isEqualTo("APPROVED");
     }
 
@@ -207,7 +207,7 @@ class SimulatorApiTest extends SecurityTestSupport {
     void identicalRetryReturnsTheOriginalPurchaseWithoutAddingToTheBalance() throws Exception {
         PurchaseRequest request = TestData.purchase(8L, "50.00");
         request.requestId = request.requestId.toUpperCase();
-        submit(request, 200);
+        submit(request, 201);
         ArgumentCaptor<CardTransaction> capture = ArgumentCaptor.forClass(CardTransaction.class);
         verify(transactions).save(capture.capture());
         CardTransaction saved = capture.getValue();
@@ -227,7 +227,7 @@ class SimulatorApiTest extends SecurityTestSupport {
 
     @Test
     void fullRefundCopiesThePurchaseAmountAndSupportsAnIdenticalRetry() throws Exception {
-        submit(TestData.purchase(8L, "50.00"), 200);
+        submit(TestData.purchase(8L, "50.00"), 201);
         ArgumentCaptor<CardTransaction> capture = ArgumentCaptor.forClass(CardTransaction.class);
         verify(transactions).save(capture.capture());
         CardTransaction purchase = capture.getValue();
@@ -236,7 +236,7 @@ class SimulatorApiTest extends SecurityTestSupport {
         account.setStatus(CreditAccount.Status.FROZEN);
         String requestId = UUID.randomUUID().toString();
         String result = mvc.perform(post("/api/transactions/42/refund").with(identity(1L, "USER"))
-                        .param("requestId", requestId)).andExpect(status().isOk())
+                        .param("requestId", requestId)).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.transaction.originalPurchaseId").value(42))
                 .andExpect(jsonPath("$.transaction.amount").value(50))
                 .andReturn().getResponse().getContentAsString();
@@ -255,7 +255,7 @@ class SimulatorApiTest extends SecurityTestSupport {
 
     @Test
     void historyAndAdminViewsUsePagesAndTheSameSafeSummaries() throws Exception {
-        submit(TestData.purchase(8L, "1.00"), 200);
+        submit(TestData.purchase(8L, "1.00"), 201);
         ArgumentCaptor<CardTransaction> capture = ArgumentCaptor.forClass(CardTransaction.class);
         verify(transactions).save(capture.capture());
         when(transactions.findByAccount_IdOrderByIdDesc(eq(7L), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(capture.getValue())));

@@ -65,7 +65,7 @@ public class TransactionService {
                     || saved.getAmount().compareTo(request.amount) != 0) {
                 throw new ConflictException("Request ID is already used for different details.");
             }
-            return new TransactionResultResponse(saved, account);
+            return new TransactionResultResponse(saved, account, true);
         }
 
         String reason = null;
@@ -114,7 +114,7 @@ public class TransactionService {
                     || !saved.getOriginalPurchase().getId().equals(purchaseId)) {
                 throw new ConflictException("Request ID is already used for different details.");
             }
-            return new TransactionResultResponse(saved, account);
+            return new TransactionResultResponse(saved, account, true);
         }
         if (purchase.getType() != CardTransaction.Type.PURCHASE
                 || purchase.getStatus() != CardTransaction.Status.APPROVED

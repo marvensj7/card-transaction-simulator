@@ -1,6 +1,10 @@
 # Card simulator frontend
 
-I built one React application with Vite and plain JavaScript/JSX. `index.html` loads `src/main.jsx`, which imports `styles.css` and renders `App.jsx`. `App` renders `pages/HomePage.jsx`, a public introduction to the transaction journey. The home page uses a navy and peach layout, a static CSS illustration, and three short explanations of purchases, decisions, and balance history. A single footer note identifies the fictional data. Plain CSS keeps the page readable on desktop and mobile, with no UI framework or inactive controls.
+I built one React application with Vite and plain JavaScript/JSX. `index.html` loads `src/main.jsx`, which imports `styles.css` and renders `App.jsx`. `App` renders `pages/HomePage.jsx`.
+
+The home page is a transaction workbench preview with an off-white background, charcoal decision panel, lime accents, and tabular money values. One labeled sample connects an account, an approved purchase, and its history record. A $125.00 purchase changes available credit from $1,500.00 to $1,375.00 and outstanding balance from $500.00 to $625.00. The credit limit stays at $2,000.00. The proportional bar shows the previous balance, new purchase, and remaining credit as parts of that limit.
+
+The introduction sits beside the workbench on wide screens. On phones, the account summary becomes compact, the before/after credit values stack, and each history record keeps its amount and balance labels. The preview uses fixed fictional values in JSX. It has no sign-in controls, purchase actions, API requests, or animation. The layout uses ordinary CSS without a UI framework.
 
 The `components/`, `auth/`, and `api/` folders are reserved for shared components, authentication, and API calls. They contain only `.gitkeep` files so Git retains the empty folders. Routing, session sign-in, account data, and purchase forms remain unfinished. Card animation is outside this MVP. Planned pages use ordinary state and a small fetch helper; history is a simple array.
 

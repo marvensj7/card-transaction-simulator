@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from 'react-router'
+import { UserUiProvider } from './auth/UserUiContext.jsx'
 import CircuitMark from './components/CircuitMark.jsx'
 import SiteNavigation from './components/SiteNavigation.jsx'
 import RouteFocus from './components/RouteFocus.jsx'
@@ -12,29 +13,31 @@ import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
   return (
-    <div className="app-shell">
-      <RouteFocus />
-      <a className="skip-link" href="#main-content">Skip to content</a>
-      <header className="site-header">
-        <Link className="brand" to="/"><CircuitMark />Credit Circuit</Link>
-        <span className="project-label">UCI 2123 · Capstone project</span>
-        <SiteNavigation />
-      </header>
+    <UserUiProvider>
+      <div className="app-shell">
+        <RouteFocus />
+        <a className="skip-link" href="#main-content">Skip to content</a>
+        <header className="site-header">
+          <Link className="brand" to="/"><CircuitMark />Credit Circuit</Link>
+          <span className="project-label">UCI 2123 · Capstone project</span>
+          <SiteNavigation />
+        </header>
 
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/purchase" element={<PurchasePage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/purchase" element={<PurchasePage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
 
-      <footer className="site-footer">
-        <span>Credit Circuit</span>
-        <span>Credit Card Transaction Simulator</span>
-      </footer>
-    </div>
+        <footer className="site-footer">
+          <span>Credit Circuit</span>
+          <span>Credit Card Transaction Simulator</span>
+        </footer>
+      </div>
+    </UserUiProvider>
   )
 }

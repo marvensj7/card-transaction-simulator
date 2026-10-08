@@ -27,7 +27,8 @@ body {
   margin-inline: auto;
 }
 
-a:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
@@ -79,10 +80,37 @@ main:focus {
   text-decoration: none;
 }
 
+.navigation-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-basis: 100%;
+  gap: 0.5rem 1rem;
+}
+
+.navigation-status {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.menu-toggle {
+  display: none;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.35rem;
+  background: #293725;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
 .site-navigation {
   display: flex;
   flex-wrap: wrap;
-  flex-basis: 100%;
+  order: -1;
   gap: 0.25rem 0.75rem;
 }
 
@@ -387,9 +415,24 @@ h1 span {
     gap: 0.5rem;
   }
 
-  .site-navigation {
-    column-gap: 0.25rem;
+  .navigation-area {
     margin-top: 0.75rem;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .site-navigation {
+    display: none;
+    order: initial;
+    flex-basis: 100%;
+    column-gap: 0.25rem;
+  }
+
+  .site-navigation[data-open="true"] {
+    display: flex;
   }
 
   .content-page {

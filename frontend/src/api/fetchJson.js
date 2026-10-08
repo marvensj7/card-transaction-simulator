@@ -41,14 +41,7 @@ export async function fetchJson(path, method = 'GET', body = undefined) {
   }
   if (!response.ok) {
     if (response.status === 401 && !publicAuth) onUnauthorized()
-    const fallback = `The request failed (HTTP ${response.status}). Please try again.`
-    const secrets = [body?.password, body?.testCardNumber, body?.testSecurityCode, token]
-    /** @type {Record<string, string>} */
-    const fields = {}
-    if (data?.fields && typeof data.fields === 'object') {
-      for (const [key, value] of Object.entries(data.fields)) fields[key] = safeMessage(value, fallback, secrets)
-    }
-    throw new ApiError(safeMessage(data?.message, fallback, secrets), response.status, fields)
+    throw responseError(response.status, data, body, token)
   }
   return data
 }
@@ -60,4 +53,16 @@ function safeMessage(value, fallback, secrets) {
     if (typeof secret === 'string' && secret && value.includes(secret)) return fallback
   }
   return value.trim()
+}
+
+/** @param {number} status @param {any} data @param {Record<string, unknown> | undefined} body @param {string} token */
+function responseError(status, data, body, token) {
+    const fallback = `The request failed (HTTP ${status}). Please try again.`
+    const secrets = [body?.password, body?.testCardNumber, body?.testSecurityCode, token]
+    /** @type {Record<string, string>} */
+    const fields = {}
+    if (data?.fields && typeof data.fields === 'object') {
+      for (const [key, value] of Object.entries(data.fields)) fields[key] = safeMessage(value, fallback, secrets)
+    }
+    return new ApiError(safeMessage(data?.message, fallback, secrets), status, fields)
 }

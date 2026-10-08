@@ -1,10 +1,10 @@
 # React plan — keep each page simple
 
-Updated October 8, 2026. The current frontend follows `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. `main.jsx` imports `styles.css`. Vite forwards `/api` to Spring Boot on port 8080.
+Updated October 8, 2026. The current Credit Circuit frontend follows `main.jsx` → `App.jsx` → `pages/HomePage.jsx`. `main.jsx` imports `styles.css`. `HomePage` uses `components/CircuitMark.jsx` for the shared SVG mark in the header and on the card. Vite forwards `/api` to Spring Boot on port 8080.
 
-The home page is a static transaction workbench with a sample account, purchase decision, and history list. Its charcoal decision panel and lime available-credit figure are the focal point. A labeled $125.00 sample purchase reduces available credit from $1,500.00 to $1,375.00 and raises outstanding balance from $500.00 to $625.00 under a $2,000.00 limit. A proportional bar shows how that limit is split after the purchase; the newest history record shows the same purchase and resulting balance.
+The home page introduces Credit Circuit while keeping Credit Card Transaction Simulator as the formal capstone description. A large wordmark and pale fictional card stand against a dark background with lime accents and thin signal traces. Request → Checks → Outcome is a teaser for the purchase flow. Amounts, approvals, balance changes, and history are reserved for the later screens.
 
-All preview values are fixed fictional content in `HomePage.jsx`. The page makes no API calls and has no sign-in or transaction controls. Plain CSS places the introduction beside the workbench on wide screens and stacks the panels and labeled history records on phones. There is no animation or interactive card.
+The display card in `HomePage.jsx` shows only a masked ending and a fictional-card label. The page makes no API calls and has no sign-in or transaction controls. Plain CSS places the introduction beside the card on wide screens and above it on phones. There is no animation or interactive card.
 
 The planned path is a page calling one small fetch helper:
 
@@ -26,7 +26,7 @@ flowchart TD
 
 | Page | Local state and job |
 | --- | --- |
-| Home | Introduce the simulator with a labeled sample account, purchase decision, credit change, and history |
+| Home | Introduce Credit Circuit with a fictional display card and a Request → Checks → Outcome teaser |
 | Login | Registration/sign-in fields, loading, and errors |
 | Dashboard | Account summary and masked card |
 | Purchase | Eight input fields, one request ID per submission, loading, and returned outcome |

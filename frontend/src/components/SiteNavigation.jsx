@@ -55,6 +55,23 @@ export default function SiteNavigation() {
     }
   }, [isMenuOpen])
 
+  /** @param {import('react').FocusEvent<HTMLElement>} event */
+  function handleBlur(event) {
+    // CSS can blur a hidden control before the viewport listener runs.
+    if (event.relatedTarget !== null) {
+      return
+    }
+
+    const phoneLayout = window.matchMedia('(max-width: 50rem)')
+    if (phoneLayout.matches) {
+      if (!isMenuOpen && navigation.current?.contains(event.target)) {
+        menuButton.current?.focus()
+      }
+    } else if (event.target === menuButton.current) {
+      navigation.current?.querySelector('a')?.focus()
+    }
+  }
+
   function closeMenu() {
     setIsMenuOpen(false)
     // A link to the current page also closes the menu without losing focus.
@@ -64,7 +81,7 @@ export default function SiteNavigation() {
   }
 
   return (
-    <div className="navigation-area">
+    <div className="navigation-area" onBlur={handleBlur}>
       <button
         className="menu-toggle"
         type="button"

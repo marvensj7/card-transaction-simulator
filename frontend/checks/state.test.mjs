@@ -257,3 +257,18 @@ test('switching to desktop closes the menu; an open menu cleans up on unmount', 
   assertMenu(true)
   // afterEach unmounts while open and checks cleanup, including StrictMode setup.
 })
+
+test('a control blurred by CSS before the resize event keeps a visible focus target', async () => {
+  phoneLayout.matches = false
+  await mount()
+  const firstLink = document.querySelector('nav a')
+  firstLink.focus()
+
+  phoneLayout.matches = true
+  await act(async () => firstLink.blur())
+  assert.equal(document.activeElement, menuButton(), 'a hidden link must not leave focus on the body')
+
+  phoneLayout.matches = false
+  await act(async () => menuButton().blur())
+  assert.equal(document.activeElement, firstLink, 'a hidden Menu button must not leave focus on the body')
+})

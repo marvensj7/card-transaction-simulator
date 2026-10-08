@@ -168,7 +168,7 @@ public class TransactionService {
 
     private void validateAssignedCard(PurchaseRequest request, DemoCard card) {
         if (!"DEMO_4242".equals(card.getTestProfile()) || !"4242".equals(card.getLastFour())
-                || !"4242424242424242".equals(request.testCardNumber)
+                || !"4242".repeat(4).equals(request.testCardNumber)
                 || request.expiryMonth.intValue() != card.getExpiryMonth().intValue()
                 || request.expiryYear.intValue() != card.getExpiryYear().intValue()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use the assigned fictional card and expiry.");

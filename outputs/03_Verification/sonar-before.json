@@ -1,0 +1,349 @@
+{
+  "scope": "Java and React before cleanup",
+  "issues": [
+    {
+      "key": "344b8644-c866-4a1d-903a-57aceb87023b",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 33,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "e1070548-c961-4e8c-8a6f-2b17cbc80797",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 42,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "b5d317b9-86a8-4f27-bce2-e88c68433333",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 55,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "f0af8836-00a6-47d5-9805-0b6836102817",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 61,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "66bed012-3fbe-4bd7-9c87-85bc8303eaaa",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 64,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "4bd1746f-e77c-4a68-8da4-4acd34a7409f",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 72,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "2318ec18-4119-47be-925e-eba1219e871c",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/components/Table.jsx",
+      "line": 3,
+      "message": "Use <section aria-label=...>, or <section aria-labelledby=...> instead of the \"region\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "5d1f0b6d-afb8-4b59-9149-2b649fe6e31f",
+      "severity": "MAJOR",
+      "rule": "javascript:S6845",
+      "component": "credit-circuit:frontend/src/components/Table.jsx",
+      "line": 3,
+      "message": "`tabIndex` should only be declared on interactive elements."
+    },
+    {
+      "key": "faaa0b1b-e694-4bb5-b81e-7ed07df22666",
+      "severity": "MAJOR",
+      "rule": "javascript:S6439",
+      "component": "credit-circuit:frontend/src/components/TransactionTable.jsx",
+      "line": 12,
+      "message": "Convert the conditional to a boolean to avoid leaked value"
+    },
+    {
+      "key": "da30ea34-441b-4e98-b0e2-0d111c7b305d",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 36,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "053e2dc0-a851-4c8c-a601-f466868f8cc5",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 62,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "77198a3f-1c13-4884-8879-63d2821ded8d",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 74,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "f7eae7a5-3914-4220-b879-9079ae01fa66",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 76,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "3974f7f7-3775-4844-b520-f0b49ae15fb5",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 39,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "b214cd73-0adc-4899-83d1-bee61075e880",
+      "severity": "MINOR",
+      "rule": "javascript:S1874",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 53,
+      "message": "'FormEvent' is deprecated."
+    },
+    {
+      "key": "e4fa7d8f-de6f-4254-9b51-252914e400ac",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 59,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "a1828352-6a80-4391-b6d8-cc2a5f45b0f0",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 60,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "bb996b11-6907-49b5-9811-008ab976b781",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 61,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "50d10ced-ff23-4bd1-b8bd-6bdc7c3250d8",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 62,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "302edd14-9689-4024-9e51-2f2808fa71d7",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 64,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "555e3c0c-cb8f-477d-9d43-98a9f6d9f3b2",
+      "severity": "MINOR",
+      "rule": "javascript:S6353",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 64,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'."
+    },
+    {
+      "key": "5b730e66-fb2d-4130-9879-ecbc6590ffa3",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 79,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "64328b73-c883-4666-84cc-37368b29ac0c",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 92,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "73c662a0-1ad9-4ded-b5d9-31e3b12a24f9",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 92,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "5438d319-a07a-48e5-95d3-07d4aceb811d",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 98,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "da6cef39-8da5-4e3b-b12b-873383cec2e8",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 99,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "ba4226ad-fab5-42b3-81d0-06aa78c30baa",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/DashboardPage.jsx",
+      "line": 27,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "a1769201-e3e6-4303-a59b-698d7bcfb6c3",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/DashboardPage.jsx",
+      "line": 35,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "b77cd9c9-72db-43c1-828d-49bd137e4d04",
+      "severity": "MAJOR",
+      "rule": "javascript:S3358",
+      "component": "credit-circuit:frontend/src/pages/DashboardPage.jsx",
+      "line": 35,
+      "message": "Extract this nested ternary operation into an independent statement."
+    },
+    {
+      "key": "4c1eec7b-1647-4bb4-9077-d7c35e8aadc4",
+      "severity": "MAJOR",
+      "rule": "javascript:S1788",
+      "component": "credit-circuit:frontend/src/api/fetchJson.js",
+      "line": 22,
+      "message": "Default parameters should be last."
+    },
+    {
+      "key": "5c70ac55-9af2-491b-a8a6-54205e54623e",
+      "severity": "CRITICAL",
+      "rule": "javascript:S3776",
+      "component": "credit-circuit:frontend/src/api/fetchJson.js",
+      "line": 22,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed."
+    },
+    {
+      "key": "58d4a486-a6af-4b5b-9f3e-0f218e32ecf1",
+      "severity": "MAJOR",
+      "rule": "javascript:S3800",
+      "component": "credit-circuit:frontend/src/auth/ProtectedRoute.jsx",
+      "line": 5,
+      "message": "Refactor this function to always return the same type."
+    },
+    {
+      "key": "8a8ebf1e-ee40-4e81-9827-2ff632e9ea79",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/components/Loading.jsx",
+      "line": 3,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "0826720b-3bfc-44c7-9e06-f08c930b5eb1",
+      "severity": "MINOR",
+      "rule": "javascript:S1874",
+      "component": "credit-circuit:frontend/src/pages/LoginPage.jsx",
+      "line": 24,
+      "message": "'FormEvent' is deprecated."
+    },
+    {
+      "key": "09f3a30f-1f93-4a3d-9de7-5c3679af98b3",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/LoginPage.jsx",
+      "line": 42,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "6819a5a0-284a-43ea-b06e-bfc4251c971b",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/LoginPage.jsx",
+      "line": 51,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "e9da2244-4a8b-40a9-85c2-e3311decdb3c",
+      "severity": "MAJOR",
+      "rule": "javascript:S6819",
+      "component": "credit-circuit:frontend/src/pages/LoginPage.jsx",
+      "line": 51,
+      "message": "Use <output> instead of the \"status\" role to ensure accessibility across all devices."
+    },
+    {
+      "key": "8cf73d9d-217b-4648-a810-5b9d68b1d72a",
+      "severity": "CRITICAL",
+      "rule": "java:S4502",
+      "component": "credit-circuit:backend/src/main/java/com/marvens/capstone/security/SecurityConfiguration.java",
+      "line": 91,
+      "message": "Make sure disabling Spring Security's CSRF protection is safe here."
+    },
+    {
+      "key": "200b0714-0c02-40f1-baea-8c5e6260269b",
+      "severity": "MAJOR",
+      "rule": "javascript:S6822",
+      "component": "credit-circuit:frontend/src/pages/HomePage.jsx",
+      "line": 10,
+      "message": "The element ol has an implicit role of list. Defining this explicitly is redundant and should be avoided."
+    },
+    {
+      "key": "e697b17a-acfc-4288-8e6c-0bb413c3cfc4",
+      "severity": "CRITICAL",
+      "rule": "java:S1186",
+      "component": "credit-circuit:backend/src/main/java/com/marvens/capstone/entity/AppUser.java",
+      "line": 42,
+      "message": "Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation."
+    },
+    {
+      "key": "f1dbf626-18d5-43f8-bd12-006a28cf0b37",
+      "severity": "CRITICAL",
+      "rule": "java:S1186",
+      "component": "credit-circuit:backend/src/main/java/com/marvens/capstone/entity/CardTransaction.java",
+      "line": 83,
+      "message": "Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation."
+    },
+    {
+      "key": "8a704ed8-fd69-44bf-90ed-2cca89b85298",
+      "severity": "CRITICAL",
+      "rule": "java:S1186",
+      "component": "credit-circuit:backend/src/main/java/com/marvens/capstone/entity/CreditAccount.java",
+      "line": 48,
+      "message": "Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation."
+    },
+    {
+      "key": "227e987d-d5c4-4ed8-80a9-d4ba5ddda686",
+      "severity": "CRITICAL",
+      "rule": "java:S1186",
+      "component": "credit-circuit:backend/src/main/java/com/marvens/capstone/entity/DemoCard.java",
+      "line": 49,
+      "message": "Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation."
+    }
+  ]
+}

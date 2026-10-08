@@ -1,0 +1,142 @@
+15:27:06.890 INFO  Scanner configuration file: NONE
+15:27:06.894 INFO  Project root configuration file: C:\Users\marve\OneDrive\Documents\ChatGPT\Card Simulator Capstone\sonar-project.properties
+15:27:06.908 INFO  SonarScanner CLI 8.1.0.6389
+15:27:06.915 INFO  Windows 11 10.0 amd64
+15:27:09.248 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+15:27:09.250 INFO  JRE provisioning: os[windows], arch[amd64]
+15:27:09.767 INFO  Starting SonarScanner Engine...
+15:27:09.767 INFO  Java 21.0.11 Eclipse Adoptium (64-bit)
+15:27:12.653 INFO  Load global settings
+15:27:12.757 INFO  Load global settings (done) | time=100ms
+15:27:12.761 INFO  Server id: 147B411E-AaEc03ZxG_qzKLHbSgKw
+15:27:12.771 INFO  Loading required plugins
+15:27:12.771 INFO  Load plugins index
+15:27:12.784 INFO  Load plugins index (done) | time=14ms
+15:27:12.785 INFO  Load/download plugins
+15:27:12.817 INFO  Load/download plugins (done) | time=32ms
+15:27:13.160 INFO  Process project properties
+15:27:13.190 INFO  Process project properties (done) | time=30ms
+15:27:13.208 INFO  Project key: credit-circuit
+15:27:13.208 INFO  Base dir: C:\Users\marve\OneDrive\Documents\ChatGPT\Card Simulator Capstone
+15:27:13.208 INFO  Working dir: C:\Users\marve\.cache\credit-circuit-quality\scan-1791487626542
+15:27:13.218 INFO  Load project settings for component key: 'credit-circuit'
+15:27:13.231 INFO  Load project settings for component key: 'credit-circuit' (done) | time=12ms
+15:27:13.257 INFO  Load quality profiles
+15:27:13.311 INFO  Load quality profiles (done) | time=53ms
+15:27:13.372 INFO  Load active rules
+15:27:13.736 INFO  Load active rules (done) | time=364ms
+15:27:13.747 INFO  Load analysis cache
+15:27:13.780 INFO  Load analysis cache | time=33ms
+15:27:14.037 INFO  Preprocessing files...
+15:27:14.277 INFO  3 languages detected in 78 preprocessed files (done) | time=240ms
+15:27:14.277 INFO  0 files ignored because of scm ignore settings
+15:27:14.280 INFO  Loading plugins for detected languages
+15:27:14.280 INFO  Load/download plugins
+15:27:14.292 INFO  Load/download plugins (done) | time=11ms
+15:27:14.569 INFO  Load project repositories
+15:27:14.734 INFO  Load project repositories (done) | time=167ms
+15:27:14.769 INFO  Indexing files...
+15:27:14.769 INFO  Project configuration:
+15:27:14.802 INFO  78 files indexed (done) | time=33ms
+15:27:14.804 INFO  Quality profile for css: Sonar way
+15:27:14.804 INFO  Quality profile for java: Sonar way
+15:27:14.805 INFO  Quality profile for js: Sonar way
+15:27:14.805 INFO  ------------- Run sensors on module Credit Circuit
+15:27:14.967 INFO  Load metrics repository
+15:27:15.002 INFO  Load metrics repository (done) | time=35ms
+15:27:16.177 INFO  Reflections took 126 ms to scan 1 urls, producing 30 keys and 295 values
+15:27:16.714 INFO  Sensor JavaSensor [java]
+15:27:16.718 INFO  Configured Java source version (sonar.java.source): 17, preview features enabled (sonar.java.enablePreview): false
+15:27:17.145 INFO  Server-side caching is enabled. The Java analyzer will not try to leverage data from a previous analysis.
+15:27:17.147 INFO  Using ECJ batch to parse 33 Main java source files with batch size 206 KB.
+15:27:17.556 INFO  Starting batch processing.
+15:27:18.814 INFO  The Java analyzer cannot skip unchanged files in this context. A full analysis is performed for all files.
+15:27:21.730 INFO  100% analyzed
+15:27:21.730 INFO  Batch processing: Done.
+15:27:21.735 INFO  Did not optimize analysis for any files, performed a full analysis for all 33 files.
+15:27:21.737 INFO  Using ECJ batch to parse 7 Test java source files with batch size 206 KB.
+15:27:21.755 INFO  Starting batch processing.
+15:27:22.252 INFO  100% analyzed
+15:27:22.252 INFO  Batch processing: Done.
+15:27:22.253 INFO  Did not optimize analysis for any files, performed a full analysis for all 7 files.
+15:27:22.253 WARN  Missing 'sonar.java.test.libraries' property. You might end up with less precise analysis results.
+15:27:22.255 WARN  Unresolved imports/types have been detected during analysis. Enable DEBUG mode to see them.
+15:27:22.255 WARN  Use of preview features have been detected during analysis. Enable DEBUG mode to see them.
+15:27:22.256 INFO  No "Generated" source files to scan.
+15:27:22.260 INFO  Sensor JavaSensor [java] (done) | time=5546ms
+15:27:22.261 INFO  Sensor IaC YAML File Type Classification Sensor [iac]
+15:27:22.267 INFO  Sensor IaC YAML File Type Classification Sensor [iac] (done) | time=5ms
+15:27:22.268 INFO  Sensor SurefireSensor [java]
+15:27:22.268 INFO  parsing [C:\Users\marve\.cache\credit-circuit-build\surefire-reports, C:\Users\marve\.cache\credit-circuit-build\failsafe-reports]
+15:27:22.372 INFO  Sensor SurefireSensor [java] (done) | time=106ms
+15:27:22.372 INFO  Sensor HTML [web]
+15:27:22.379 INFO  Sensor HTML [web] (done) | time=6ms
+15:27:22.379 INFO  Sensor JaCoCo XML Report Importer [jacoco]
+15:27:22.386 INFO  Importing 1 report(s). Turn your logs in debug mode in order to see the exhaustive list.
+15:27:22.467 INFO  Sensor JaCoCo XML Report Importer [jacoco] (done) | time=87ms
+15:27:22.468 INFO  Sensor IaC hadolint report Sensor [iac]
+15:27:22.468 INFO  Sensor IaC hadolint report Sensor [iac] (done) | time=0ms
+15:27:22.468 INFO  Sensor Java Config Sensor [iac]
+15:27:22.468 INFO  There are no files to be analyzed for the Java language
+15:27:22.469 INFO  Sensor Java Config Sensor [iac] (done) | time=1ms
+15:27:22.469 INFO  Sensor IaC Docker Sensor [iac]
+15:27:22.472 INFO  There are no files to be analyzed for the Docker language
+15:27:22.472 INFO  Sensor IaC Docker Sensor [iac] (done) | time=1ms
+15:27:22.472 INFO  Sensor JavaScript/TypeScript Coverage [javascript]
+15:27:22.472 INFO  Analysing [C:\Users\marve\OneDrive\Documents\ChatGPT\Card Simulator Capstone\outputs\03_Verification\lcov.info]
+15:27:22.616 INFO  Sensor JavaScript/TypeScript Coverage [javascript] (done) | time=144ms
+15:27:22.617 INFO  Sensor TextAndSecretsSensor [text]
+15:27:22.653 INFO  Available processors: 16
+15:27:22.653 INFO  Using 16 threads for analysis.
+15:27:23.021 INFO  Start fetching files for the text and secrets analysis
+15:27:23.149 INFO  Using Git CLI to retrieve dirty files
+15:27:23.227 INFO  Retrieving language associated files and files included via "sonar.text.inclusions" that are tracked by git
+15:27:23.228 INFO  Starting the text and secrets analysis
+15:27:23.230 INFO  78 source files to be analyzed for the text and secrets analysis
+15:27:23.359 INFO  78/78 source files have been analyzed for the text and secrets analysis
+15:27:23.363 INFO  Sensor TextAndSecretsSensor [text] (done) | time=746ms
+15:27:23.365 INFO  ------------- Run sensors on project
+15:27:23.735 INFO  Sensor JaCoCo Aggregate XML Report Importer [jacoco]
+15:27:23.735 INFO  Sensor JaCoCo Aggregate XML Report Importer [jacoco] (done) | time=0ms
+15:27:23.735 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript]
+15:27:24.570 INFO  Detected os: Windows 11 arch: amd64 alpine: false. Platform: WIN_X64
+15:27:24.571 INFO  Deploy location C:\Users\marve\.sonar\js\node-runtime, tagetRuntime: C:\Users\marve\.sonar\js\node-runtime\node.exe,  version: C:\Users\marve\.sonar\js\node-runtime\version.txt
+15:27:24.636 INFO  Using embedded Node.js runtime.
+15:27:24.636 INFO  Using Node.js executable: 'C:\Users\marve\.sonar\js\node-runtime\node.exe'.
+15:27:31.505 INFO  Memory configuration: OS (15720 MB), Node.js (4288 MB).
+15:27:31.526 INFO  gRPC analyze-project server listening on 127.0.0.1:59252
+15:27:31.783 INFO  Plugin version: [13.8.0.44569]
+15:27:38.288 INFO  Found 0 tsconfig.json file(s): []
+15:27:38.288 INFO  38 source files to be analyzed
+15:27:38.288 INFO  Analyzing 37 file(s) using default options [lib: lib.es2024.d.ts, lib.dom.d.ts]
+15:27:38.288 INFO  38/38 source files have been analyzed
+15:27:38.303 INFO  Hit the cache for 0 out of 37
+15:27:38.303 INFO  Miss the cache for 37 out of 37: ANALYSIS_MODE_INELIGIBLE [37/37]
+15:27:38.303 INFO  Sensor JavaScript/TypeScript/CSS analysis [javascript] (done) | time=14569ms
+15:27:38.303 INFO  Sensor IaC Project Sensor [iac]
+15:27:38.305 INFO  Sensor IaC Project Sensor [iac] (done) | time=1ms
+15:27:38.305 INFO  Sensor JavaProjectSensor [java]
+15:27:38.307 INFO  Sensor JavaProjectSensor [java] (done) | time=1ms
+15:27:38.307 INFO  Sensor Zero Coverage Sensor
+15:27:38.311 INFO  Sensor Zero Coverage Sensor (done) | time=4ms
+15:27:38.311 INFO  Sensor Java CPD Block Indexer
+15:27:38.358 INFO  Sensor Java CPD Block Indexer (done) | time=45ms
+15:27:38.358 INFO  ------------- Gather SCA dependencies on project
+15:27:38.364 INFO  Dependency analysis skipped
+15:27:38.399 INFO  SCM Publisher SCM provider for this project is: git
+15:27:38.400 INFO  SCM Publisher 1 source file to be analyzed
+15:27:38.783 INFO  SCM Publisher 1/1 source file have been analyzed (done) | time=382ms
+15:27:38.791 INFO  CPD Executor 19 files had no CPD blocks
+15:27:38.792 INFO  CPD Executor Calculating CPD for 44 files
+15:27:38.823 INFO  CPD Executor CPD calculation finished (done) | time=32ms
+15:27:38.833 INFO  SCM revision ID 'e7c9f1fad8b53372fe5c26505308da9919ea085a'
+15:27:39.032 INFO  Analysis report generated in 179ms, dir size=783.3 kB
+15:27:40.213 INFO  Analysis report compressed in 1179ms, zip size=328.0 kB
+15:27:40.269 INFO  Analysis report uploaded in 56ms
+15:27:40.270 INFO  ANALYSIS SUCCESSFUL, you can find the results at: http://127.0.0.1:9000/dashboard?id=credit-circuit
+15:27:40.271 INFO  Note that you will be able to access the updated dashboard once the server has processed the submitted analysis report
+15:27:40.271 INFO  More about the report processing at http://127.0.0.1:9000/api/ce/task?id=351728a8-506d-44ec-8e6e-a9ccbf4c4a14
+15:27:40.613 INFO  Analysis total time: 27.749 s
+15:27:40.640 INFO  SonarScanner Engine completed successfully
+15:27:40.677 INFO  EXECUTION SUCCESS
+15:27:40.678 INFO  Total time: 33.790s

@@ -10,6 +10,8 @@ coverage/
 # Java and Maven builds
 target/
 *.class
+**/.scannerwork/
+**/.sonar/
 
 # Local configuration and secrets
 **/.env

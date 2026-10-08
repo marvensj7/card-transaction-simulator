@@ -1,0 +1,209 @@
+{
+  "date": "2026-10-08T19:30:05.805Z",
+  "server": "SonarQube Community Build 26.9.0.129388",
+  "scanner": "SonarScanner CLI 8.1.0.6389",
+  "project": "credit-circuit",
+  "sourceRevision": "e7c9f1fad8b53372fe5c26505308da9919ea085a",
+  "scope": [
+    "backend/src/main/java",
+    "frontend/src"
+  ],
+  "analysis": {
+    "key": "2111494c-4de4-47ec-9546-87d3b2d4b200",
+    "date": "2026-10-08T15:27:13-0400",
+    "events": [
+      {
+        "key": "1852af8a-47f3-4dfe-8596-363a03dc8d85",
+        "category": "VERSION",
+        "name": "0.0.1-SNAPSHOT"
+      }
+    ],
+    "projectVersion": "0.0.1-SNAPSHOT",
+    "manualNewCodePeriodBaseline": false,
+    "revision": "e7c9f1fad8b53372fe5c26505308da9919ea085a",
+    "detectedCI": "undetected"
+  },
+  "qualityGate": {
+    "status": "OK",
+    "conditions": [
+      {
+        "status": "OK",
+        "metricKey": "new_coverage",
+        "comparator": "LT",
+        "errorThreshold": "80",
+        "actualValue": "91.9"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_duplicated_lines_density",
+        "comparator": "GT",
+        "errorThreshold": "3",
+        "actualValue": "0.0"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_violations",
+        "comparator": "GT",
+        "errorThreshold": "0",
+        "actualValue": "0"
+      }
+    ],
+    "ignoredConditions": false,
+    "period": {
+      "mode": "PREVIOUS_VERSION",
+      "date": "2026-10-08T15:04:08-0400"
+    },
+    "caycStatus": "compliant"
+  },
+  "metrics": [
+    {
+      "metric": "coverage",
+      "value": "93.9",
+      "bestValue": false
+    },
+    {
+      "metric": "bugs",
+      "value": "0",
+      "bestValue": true
+    },
+    {
+      "metric": "reliability_rating",
+      "value": "1.0",
+      "bestValue": true
+    },
+    {
+      "metric": "code_smells",
+      "value": "9",
+      "bestValue": false
+    },
+    {
+      "metric": "duplicated_lines_density",
+      "value": "0.0",
+      "bestValue": true
+    },
+    {
+      "metric": "branch_coverage",
+      "value": "79.7",
+      "bestValue": false
+    },
+    {
+      "metric": "security_rating",
+      "value": "1.0",
+      "bestValue": true
+    },
+    {
+      "metric": "ncloc",
+      "value": "2641"
+    },
+    {
+      "metric": "vulnerabilities",
+      "value": "0",
+      "bestValue": true
+    },
+    {
+      "metric": "line_coverage",
+      "value": "97.6",
+      "bestValue": false
+    },
+    {
+      "metric": "security_hotspots",
+      "value": "0",
+      "bestValue": true
+    },
+    {
+      "metric": "sqale_rating",
+      "value": "1.0",
+      "bestValue": true
+    }
+  ],
+  "openIssues": [
+    {
+      "key": "344b8644-c866-4a1d-903a-57aceb87023b",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 33,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "e1070548-c961-4e8c-8a6f-2b17cbc80797",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 42,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "b5d317b9-86a8-4f27-bce2-e88c68433333",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/AdminPage.jsx",
+      "line": 55,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "da30ea34-441b-4e98-b0e2-0d111c7b305d",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 36,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "053e2dc0-a851-4c8c-a601-f466868f8cc5",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/TransactionsPage.jsx",
+      "line": 62,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "3974f7f7-3775-4844-b520-f0b49ae15fb5",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 39,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "5b730e66-fb2d-4130-9879-ecbc6590ffa3",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/PurchasePage.jsx",
+      "line": 79,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "ba4226ad-fab5-42b3-81d0-06aa78c30baa",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/DashboardPage.jsx",
+      "line": 27,
+      "message": "The catch parameter `failure` should be named `error_`."
+    },
+    {
+      "key": "09f3a30f-1f93-4a3d-9de7-5c3679af98b3",
+      "severity": "MINOR",
+      "rule": "javascript:S7718",
+      "component": "credit-circuit:frontend/src/pages/LoginPage.jsx",
+      "line": 42,
+      "message": "The catch parameter `failure` should be named `error_`."
+    }
+  ],
+  "reviews": [
+    {
+      "issue": "8cf73d9d-217b-4648-a810-5b9d68b1d72a",
+      "rule": "java:S4502",
+      "rationale": "Reviewed against the actual credential transport on 2026-10-08. Spring Security is stateless; form login and HTTP Basic are disabled; no authentication cookie/session is accepted. React explicitly sets Authorization from memory with credentials=omit. CORS allows only local frontend origins with allowCredentials=false. The exercised Postman collection verifies cookie-only requests return 401, untrusted-origin preflight returns 403, and local bearer preflight succeeds. Ignoring CSRF only for /api is appropriate for this transport. Revisit before introducing any automatically attached credential. See outputs/04_Decisions/01_Authentication.md.",
+      "commentSaved": true,
+      "transitionStatus": 200
+    },
+    {
+      "issue": "5d1f0b6d-afb8-4b59-9149-2b649fe6e31f",
+      "rule": "javascript:S6845",
+      "rationale": "Reviewed the real scrolling interaction on 2026-10-08. This named native section is an overflow-x:auto table scroll region. tabIndex=0 intentionally makes native arrow-key scrolling available to keyboard users. The browser test focuses it and verifies ArrowRight changes scrollLeft on tablet; the page itself has no horizontal overflow. Removing focusability would prevent access in browsers that do not automatically focus scroll containers. MDN overflow accessibility recommends a focusable named region: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow . This is a native scroll interaction, not an inert decorative element.",
+      "commentSaved": true,
+      "transitionStatus": 200
+    }
+  ]
+}

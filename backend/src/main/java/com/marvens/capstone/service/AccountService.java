@@ -2,6 +2,9 @@ package com.marvens.capstone.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import com.marvens.capstone.dto.PageResponse;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.CardResponse;
 import com.marvens.capstone.entity.AppUser;
@@ -59,13 +62,14 @@ public class AccountService {
         return result;
     }
 
-    public List<AccountResponse> getAdminAccounts(Long adminId) {
+    public PageResponse<AccountResponse> getAdminAccounts(Long adminId, int page, int size) {
         requireRole(adminId, AppUser.Role.ADMIN);
         List<AccountResponse> result = new ArrayList<>();
-        for (CreditAccount account : accounts.findAllByOrderByIdAsc()) {
+        Page<CreditAccount> rows = accounts.findAllByOrderByIdAsc(PageRequest.of(page, size));
+        for (CreditAccount account : rows) {
             result.add(new AccountResponse(account));
         }
-        return result;
+        return new PageResponse<>(result, rows);
     }
 
     @Transactional

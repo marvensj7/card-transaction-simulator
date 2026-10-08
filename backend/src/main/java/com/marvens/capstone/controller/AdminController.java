@@ -2,7 +2,9 @@ package com.marvens.capstone.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import java.util.List;
+import com.marvens.capstone.dto.PageResponse;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.TransactionResponse;
@@ -28,15 +30,17 @@ public class AdminController {
     }
 
     @GetMapping("/accounts")
-    public List<AccountResponse> accounts(@AuthenticationPrincipal Jwt principal) {
+    public PageResponse<AccountResponse> accounts(@AuthenticationPrincipal Jwt principal, @RequestParam(defaultValue = "0") @Min(0) @Max(10000) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
         Long adminId = Long.valueOf(principal.getSubject());
-        return accounts.getAdminAccounts(adminId);
+        return accounts.getAdminAccounts(adminId, page, size);
     }
 
     @GetMapping("/transactions")
-    public List<TransactionResponse> transactions(@AuthenticationPrincipal Jwt principal) {
+    public PageResponse<TransactionResponse> transactions(@AuthenticationPrincipal Jwt principal, @RequestParam(defaultValue = "0") @Min(0) @Max(10000) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
         Long adminId = Long.valueOf(principal.getSubject());
-        return transactions.getAdminTransactions(adminId);
+        return transactions.getAdminTransactions(adminId, page, size);
     }
 
     @PatchMapping("/accounts/{accountId}/status")

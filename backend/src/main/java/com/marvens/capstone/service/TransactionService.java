@@ -6,6 +6,9 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import com.marvens.capstone.dto.PageResponse;
 import java.util.UUID;
 import com.marvens.capstone.dto.PurchaseRequest;
 import com.marvens.capstone.dto.TransactionResponse;
@@ -135,22 +138,24 @@ public class TransactionService {
         return new TransactionResultResponse(refund, account);
     }
 
-    public List<TransactionResponse> getHistory(Long userId, Long accountId) {
+    public PageResponse<TransactionResponse> getHistory(Long userId, Long accountId, int page, int size) {
         accountService.getOwnedAccount(userId, accountId);
         List<TransactionResponse> result = new ArrayList<>();
-        for (CardTransaction transaction : transactions.findByAccount_IdOrderByIdDesc(accountId)) {
+        Page<CardTransaction> rows = transactions.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size));
+        for (CardTransaction transaction : rows) {
             result.add(new TransactionResponse(transaction));
         }
-        return result;
+        return new PageResponse<>(result, rows);
     }
 
-    public List<TransactionResponse> getAdminTransactions(Long adminId) {
+    public PageResponse<TransactionResponse> getAdminTransactions(Long adminId, int page, int size) {
         accountService.requireRole(adminId, AppUser.Role.ADMIN);
         List<TransactionResponse> result = new ArrayList<>();
-        for (CardTransaction transaction : transactions.findAllByOrderByIdDesc()) {
+        Page<CardTransaction> rows = transactions.findAllByOrderByIdDesc(PageRequest.of(page, size));
+        for (CardTransaction transaction : rows) {
             result.add(new TransactionResponse(transaction));
         }
-        return result;
+        return new PageResponse<>(result, rows);
     }
 
     private CreditAccount lockOwnedAccount(Long userId, Long accountId) {

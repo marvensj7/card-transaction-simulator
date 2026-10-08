@@ -254,19 +254,19 @@ class SimulatorApiTest extends SecurityTestSupport {
     }
 
     @Test
-    void historyAndAdminViewsUseSimpleArraysAndTheSameSummaries() throws Exception {
+    void historyAndAdminViewsUsePagesAndTheSameSafeSummaries() throws Exception {
         submit(TestData.purchase(8L, "1.00"), 200);
         ArgumentCaptor<CardTransaction> capture = ArgumentCaptor.forClass(CardTransaction.class);
         verify(transactions).save(capture.capture());
-        when(transactions.findByAccount_IdOrderByIdDesc(7L)).thenReturn(List.of(capture.getValue()));
-        when(transactions.findAllByOrderByIdDesc()).thenReturn(List.of(capture.getValue()));
-        when(accounts.findAllByOrderByIdAsc()).thenReturn(List.of(account));
+        when(transactions.findByAccount_IdOrderByIdDesc(eq(7L), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(capture.getValue())));
+        when(transactions.findAllByOrderByIdDesc(any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(capture.getValue())));
+        when(accounts.findAllByOrderByIdAsc(any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(account)));
         mvc.perform(get("/api/accounts/7/transactions").with(identity(1L, "USER")))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(42));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].id").value(42));
         mvc.perform(get("/api/admin/transactions").with(identity(2L, "ADMIN")))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].accountId").value(7));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].accountId").value(7));
         mvc.perform(get("/api/admin/accounts").with(identity(2L, "ADMIN")))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].ownerName").value("Demo Customer"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].ownerName").value("Demo Customer"));
         mvc.perform(patch("/api/admin/accounts/7/status").with(identity(2L, "ADMIN")).param("status", "FROZEN"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("FROZEN"));
     }
@@ -286,6 +286,19 @@ class SimulatorApiTest extends SecurityTestSupport {
         mvc.perform(get("/api/accounts").sessionAttr("userId", "1")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/accounts").sessionAttr("userId", 0L)).andExpect(status().isUnauthorized());
         verifyNoInteractions(users, accounts, cards, transactions);
+    }
+
+    @Test
+    void pagingRejectsNegativeHugeAndMalformedParametersAndSupportsEmptyPages() throws Exception {
+        for (String query : List.of("?page=-1", "?page=10001", "?size=0", "?size=51", "?size=many")) {
+            mvc.perform(get("/api/accounts/7/transactions" + query).with(identity(1L, "USER")))
+                    .andExpect(status().isBadRequest());
+        }
+        when(transactions.findByAccount_IdOrderByIdDesc(eq(7L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(0, 10), 0));
+        mvc.perform(get("/api/accounts/7/transactions").with(identity(1L, "USER")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0)).andExpect(jsonPath("$.size").value(10));
     }
 
     @Test

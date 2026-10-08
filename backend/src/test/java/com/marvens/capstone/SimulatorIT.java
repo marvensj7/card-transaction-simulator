@@ -132,9 +132,9 @@ class SimulatorIT extends SecurityTestSupport {
         response(patch("/api/admin/accounts/" + accountId + "/status")
                 .with(identity(adminId, "ADMIN")).param("status", "ACTIVE"), 200);
         JsonNode accountList = response(get("/api/admin/accounts").with(identity(adminId, "ADMIN")), 200);
-        assertThat(accountList.isArray()).isTrue();
+        assertThat(accountList.path("items").isArray()).isTrue();
         JsonNode activity = response(get("/api/admin/transactions").with(identity(adminId, "ADMIN")), 200);
-        assertThat(activity.isArray()).isTrue();
+        assertThat(activity.path("items").isArray()).isTrue();
     }
 
     @Test
@@ -150,16 +150,18 @@ class SimulatorIT extends SecurityTestSupport {
     }
 
     @Test
-    void historyIsAnArrayInNewestFirstOrderWithoutPaging() throws Exception {
-        for (int i = 0; i < 51; i++) {
-            service.purchase(ownerId, accountId, TestData.purchase(cardId, "1.00"));
-        }
-        JsonNode history = response(get("/api/accounts/" + accountId + "/transactions")
+    void historyPaginatesNewestFirstAndReportsTheRealTotal() throws Exception {
+        for (int i = 0; i < 51; i++) service.purchase(ownerId, accountId, TestData.purchase(cardId, "1.00"));
+        JsonNode first = response(get("/api/accounts/" + accountId + "/transactions?size=50")
                 .with(identity(ownerId, "USER")), 200);
-        assertThat(history.isArray()).isTrue();
-        assertThat(history.size()).isEqualTo(51);
-        assertThat(history.get(0).path("id").asLong()).isGreaterThan(history.get(50).path("id").asLong());
-        assertThat(history.get(0).path("createdAt").asText()).endsWith("Z");
+        JsonNode last = response(get("/api/accounts/" + accountId + "/transactions?size=50&page=1")
+                .with(identity(ownerId, "USER")), 200);
+        assertThat(first.path("items").size()).isEqualTo(50);
+        assertThat(last.path("items").size()).isEqualTo(1);
+        assertThat(first.path("totalElements").asInt()).isEqualTo(51);
+        assertThat(first.path("totalPages").asInt()).isEqualTo(2);
+        assertThat(first.path("items").get(0).path("id").asLong()).isGreaterThan(last.path("items").get(0).path("id").asLong());
+        assertThat(first.path("items").get(0).path("createdAt").asText()).endsWith("Z");
         assertThat(balance()).isEqualByComparingTo("251.00");
     }
 

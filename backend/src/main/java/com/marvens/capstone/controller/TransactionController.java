@@ -2,7 +2,9 @@ package com.marvens.capstone.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import java.util.List;
+import com.marvens.capstone.dto.PageResponse;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Pattern;
@@ -35,9 +37,11 @@ public class TransactionController {
     }
 
     @GetMapping("/accounts/{accountId}/transactions")
-    public List<TransactionResponse> history(@AuthenticationPrincipal Jwt principal, @PathVariable @Positive Long accountId) {
+    public PageResponse<TransactionResponse> history(@AuthenticationPrincipal Jwt principal,
+            @PathVariable @Positive Long accountId, @RequestParam(defaultValue = "0") @Min(0) @Max(10000) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
         Long userId = Long.valueOf(principal.getSubject());
-        return transactions.getHistory(userId, accountId);
+        return transactions.getHistory(userId, accountId, page, size);
     }
 
     @PostMapping("/transactions/{purchaseId}/refund")

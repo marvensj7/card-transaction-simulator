@@ -1,6 +1,7 @@
 package com.marvens.capstone.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,21 +23,27 @@ public class DemoCard {
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
+    @NotNull
     private CreditAccount account;
 
     @Column(name = "test_profile", nullable = false, length = 20)
+    @NotBlank @Size(max = 20)
     private String testProfile;
 
     @Column(name = "label", nullable = false, length = 50)
+    @NotBlank @Size(max = 50)
     private String label;
 
     @Column(name = "last_four", nullable = false, length = 4, columnDefinition = "char(4)")
+    @NotBlank @Pattern(regexp = "[0-9]{4}")
     private String lastFour;
 
     @Column(name = "expiry_month", nullable = false)
+    @NotNull @Min(1) @Max(12)
     private Byte expiryMonth;
 
     @Column(name = "expiry_year", nullable = false)
+    @NotNull @Min(2000) @Max(9999)
     private Short expiryYear;
 
     public DemoCard() {

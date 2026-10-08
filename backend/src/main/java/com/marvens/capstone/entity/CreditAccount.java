@@ -3,6 +3,7 @@ package com.marvens.capstone.entity;
 import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,16 +29,20 @@ public class CreditAccount {
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @NotNull
     private AppUser user;
 
     @Column(name = "credit_limit", nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin("0.01") @Digits(integer = 12, fraction = 2)
     private BigDecimal creditLimit;
 
     @Column(name = "outstanding_balance", nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin("0.00") @Digits(integer = 12, fraction = 2)
     private BigDecimal outstandingBalance = new BigDecimal("0.00");
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
+    @NotNull
     private Status status;
 
     public CreditAccount() {

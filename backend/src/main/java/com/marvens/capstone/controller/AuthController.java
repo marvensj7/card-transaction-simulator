@@ -29,4 +29,3 @@ public class AuthController {
         return auth.currentUser(Long.valueOf(principal.getSubject()));
     }
 }
-

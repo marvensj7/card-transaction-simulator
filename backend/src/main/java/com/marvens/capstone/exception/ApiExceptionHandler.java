@@ -1,6 +1,8 @@
 package com.marvens.capstone.exception;
 
 import java.util.Map;
+import java.util.LinkedHashMap;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +35,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         responseHeaders.putAll(headers);
         responseHeaders.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(Map.of("message", message), responseHeaders, status);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException failure,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        for (var error : failure.getBindingResult().getFieldErrors()) {
+            fields.putIfAbsent(error.getField(), error.getDefaultMessage());
+        }
+        // Only annotation messages are returned; rejected values never leave the server.
+        return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("message", "Check the highlighted fields.", "fields", fields));
     }
 
     @ExceptionHandler(Exception.class)

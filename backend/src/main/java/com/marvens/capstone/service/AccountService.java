@@ -10,6 +10,8 @@ import com.marvens.capstone.entity.DemoCard;
 import com.marvens.capstone.repository.AppUserRepository;
 import com.marvens.capstone.repository.CreditAccountRepository;
 import com.marvens.capstone.repository.DemoCardRepository;
+import com.marvens.capstone.exception.ConflictException;
+import com.marvens.capstone.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +44,7 @@ public class AccountService {
         requireRole(userId, AppUser.Role.USER);
         CreditAccount account = accounts.findByIdAndUser_Id(accountId, userId);
         if (account == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account is unavailable.");
+            throw new ResourceNotFoundException("Account is unavailable.");
         }
         return account;
     }
@@ -74,7 +76,7 @@ public class AccountService {
         }
         CreditAccount account = accounts.findLockedById(accountId);
         if (account == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account is unavailable.");
+            throw new ResourceNotFoundException("Account is unavailable.");
         }
         account.setStatus(status);
         accounts.save(account);

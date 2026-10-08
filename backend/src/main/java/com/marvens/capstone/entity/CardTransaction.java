@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,28 +32,35 @@ public class CardTransaction {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
+    @NotNull
     private CreditAccount account;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "card_id", nullable = false)
+    @NotNull
     private DemoCard card;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20, columnDefinition = "varchar(20)")
+    @NotNull
     private Type type;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
+    @NotNull
     private Status status;
 
     @Column(name = "amount", nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin("0.01") @Digits(integer = 12, fraction = 2)
     private BigDecimal amount;
 
     @Column(name = "outstanding_after", nullable = false, precision = 14, scale = 2)
+    @NotNull @DecimalMin("0.00") @Digits(integer = 12, fraction = 2)
     private BigDecimal outstandingAfter;
 
     @Column(name = "merchant_name", nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
     private String merchantName;
 
     @Column(name = "reason_code", length = 40)
@@ -60,9 +68,11 @@ public class CardTransaction {
 
     // MySQL DATETIME has no zone. The service supplies UTC, using whole seconds.
     @Column(name = "created_at", nullable = false, columnDefinition = "datetime(6)")
+    @NotNull
     private LocalDateTime createdAt;
 
     @Column(name = "request_id", nullable = false, length = 36, columnDefinition = "char(36)")
+    @NotBlank @Size(min = 36, max = 36)
     private String requestId;
 
     @JsonIgnore

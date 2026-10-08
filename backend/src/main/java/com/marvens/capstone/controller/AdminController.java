@@ -3,6 +3,7 @@ package com.marvens.capstone.controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
+import jakarta.validation.constraints.Positive;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.TransactionResponse;
 import com.marvens.capstone.entity.CreditAccount;
@@ -40,7 +41,7 @@ public class AdminController {
 
     @PatchMapping("/accounts/{accountId}/status")
     public AccountResponse changeStatus(@AuthenticationPrincipal Jwt principal,
-            @PathVariable Long accountId, @RequestParam CreditAccount.Status status) {
+            @PathVariable @Positive Long accountId, @RequestParam CreditAccount.Status status) {
         Long adminId = Long.valueOf(principal.getSubject());
         return accounts.changeStatus(adminId, accountId, status);
     }

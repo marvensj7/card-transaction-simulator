@@ -133,4 +133,3 @@ class AuthApiTest extends SecurityTestSupport {
         verifyNoInteractions(users, accounts, cards);
     }
 }
-

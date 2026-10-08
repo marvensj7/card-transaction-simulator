@@ -1,6 +1,7 @@
 package com.marvens.capstone.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,17 +22,21 @@ public class AppUser {
     private Long id;
 
     @Column(name = "display_name", nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
     private String displayName;
 
     @Column(name = "email", nullable = false, length = 150)
+    @NotBlank @Email @Size(max = 150)
     private String email;
 
     @JsonIgnore
     @Column(name = "password_hash", nullable = false, length = 100)
+    @NotBlank @Size(max = 100)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20)")
+    @NotNull
     private Role role;
 
     public AppUser() {

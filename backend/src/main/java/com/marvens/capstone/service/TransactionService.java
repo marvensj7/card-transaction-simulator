@@ -17,6 +17,8 @@ import com.marvens.capstone.entity.DemoCard;
 import com.marvens.capstone.repository.CardTransactionRepository;
 import com.marvens.capstone.repository.CreditAccountRepository;
 import com.marvens.capstone.repository.DemoCardRepository;
+import com.marvens.capstone.exception.ConflictException;
+import com.marvens.capstone.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -43,12 +45,11 @@ public class TransactionService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public TransactionResultResponse purchase(Long userId, Long accountId, PurchaseRequest request) {
         accountService.requireRole(userId, AppUser.Role.USER);
-        validatePurchase(request);
         String requestId = checkRequestId(request.requestId);
         CreditAccount account = lockOwnedAccount(userId, accountId);
         DemoCard card = cards.findByIdAndAccount_Id(request.cardId, accountId);
         if (card == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Card is unavailable.");
+            throw new ResourceNotFoundException("Card is unavailable.");
         }
         validateAssignedCard(request, card);
 
@@ -59,7 +60,7 @@ public class TransactionService {
                     || !saved.getCard().getId().equals(request.cardId)
                     || !saved.getMerchantName().equals(request.merchantName)
                     || saved.getAmount().compareTo(request.amount) != 0) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Request ID is already used for different details.");
+                throw new ConflictException("Request ID is already used for different details.");
             }
             return new TransactionResultResponse(saved, account);
         }
@@ -96,30 +97,30 @@ public class TransactionService {
         String requestId = checkRequestId(rawRequestId);
         Long accountId = transactions.findOwnedAccountId(purchaseId, userId);
         if (accountId == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase is unavailable.");
+            throw new ResourceNotFoundException("Purchase is unavailable.");
         }
         CreditAccount account = lockOwnedAccount(userId, accountId);
         CardTransaction purchase = transactions.findByIdAndAccount_User_Id(purchaseId, userId);
         if (purchase == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchase is unavailable.");
+            throw new ResourceNotFoundException("Purchase is unavailable.");
         }
 
         CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId);
         if (saved != null) {
             if (saved.getType() != CardTransaction.Type.REFUND
                     || !saved.getOriginalPurchase().getId().equals(purchaseId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Request ID is already used for different details.");
+                throw new ConflictException("Request ID is already used for different details.");
             }
             return new TransactionResultResponse(saved, account);
         }
         if (purchase.getType() != CardTransaction.Type.PURCHASE
                 || purchase.getStatus() != CardTransaction.Status.APPROVED
                 || transactions.findByOriginalPurchase_Id(purchaseId) != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only an approved purchase without a refund can be refunded.");
+            throw new ConflictException("Only an approved purchase without a refund can be refunded.");
         }
         if (!purchase.getCard().getAccount().getId().equals(accountId)
                 || account.getOutstandingBalance().compareTo(purchase.getAmount()) < 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "This purchase cannot be refunded against this account.");
+            throw new ConflictException("This purchase cannot be refunded against this account.");
         }
 
         // A full refund copies the purchase amount, including when the account is frozen.
@@ -155,30 +156,9 @@ public class TransactionService {
     private CreditAccount lockOwnedAccount(Long userId, Long accountId) {
         CreditAccount account = accounts.findLockedByIdAndUser_Id(accountId, userId);
         if (account == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account is unavailable.");
+            throw new ResourceNotFoundException("Account is unavailable.");
         }
         return account;
-    }
-
-    private void validatePurchase(PurchaseRequest request) {
-        if (request == null || request.cardId == null || request.cardId < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a fictional card.");
-        }
-        if (request.testCardNumber == null || !request.testCardNumber.matches("[0-9]{16}")
-                || request.testSecurityCode == null || !request.testSecurityCode.matches("[0-9]{3,4}")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check the fictional card number and security code format.");
-        }
-        if (request.expiryMonth == null || request.expiryMonth < 1 || request.expiryMonth > 12
-                || request.expiryYear == null || request.expiryYear < 2000 || request.expiryYear > 9999) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid expiry month and year.");
-        }
-        if (request.merchantName == null || request.merchantName.isBlank() || request.merchantName.length() > 100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a merchant name of at most 100 characters.");
-        }
-        if (request.amount == null || request.amount.signum() <= 0 || request.amount.scale() > 2
-                || request.amount.compareTo(new BigDecimal("999999999999.99")) > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a positive amount with at most two decimal places and 12 whole digits.");
-        }
     }
 
     private void validateAssignedCard(PurchaseRequest request, DemoCard card) {

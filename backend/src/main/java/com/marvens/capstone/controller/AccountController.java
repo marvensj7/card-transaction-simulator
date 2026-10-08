@@ -3,6 +3,7 @@ package com.marvens.capstone.controller;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
+import jakarta.validation.constraints.Positive;
 import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.CardResponse;
 import com.marvens.capstone.service.AccountService;
@@ -27,7 +28,7 @@ public class AccountController {
     }
 
     @GetMapping("/{accountId}/cards")
-    public List<CardResponse> getCards(@AuthenticationPrincipal Jwt principal, @PathVariable Long accountId) {
+    public List<CardResponse> getCards(@AuthenticationPrincipal Jwt principal, @PathVariable @Positive Long accountId) {
         Long userId = Long.valueOf(principal.getSubject());
         return accounts.getCards(userId, accountId);
     }

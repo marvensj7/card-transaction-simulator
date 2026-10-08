@@ -1,0 +1,1664 @@
+{
+  "info": {
+    "_postman_id": "7ee289b5-e10e-4132-ae13-301e2f7b0859",
+    "name": "Credit Circuit local verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "All application endpoints, authentication, validation, ownership, pagination, duplicate purchases/refunds, declines and admin status. Only fictional data. Run in order against local MySQL. Supply private variables locally; exported tokens and credentials are blank. The final rate-limit test consumes the local authentication window. The companion runner creates and cleans up its own fixtures."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080",
+      "type": "string"
+    },
+    {
+      "key": "customerEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "otherEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testCardNumber",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testSecurityCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "otherToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invalidToken",
+      "value": "invalid.signature.token",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Register USER account and card",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Customer\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Register USER account and card: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Registration cannot create ADMIN', () => pm.expect(pm.response.json().role).to.eql('USER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Duplicate email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Customer\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Duplicate email: HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid registration format",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Customer\",\n  \"email\": \"invalid\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid registration format: HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('Safe field errors', () => pm.expect(pm.response.json()).to.have.property('fields'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject caller supplied role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Customer\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"ADMIN\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reject caller supplied role: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Incorrect credentials",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"wrong-credentials\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Incorrect credentials: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer login: HTTP 200', () => pm.response.to.have.status(200));",
+              "const result = pm.response.json(); pm.collectionVariables.set('userToken', result.accessToken);",
+              "pm.test('Bearer with expiration', () => {pm.expect(result.tokenType).to.eql('Bearer');pm.expect(Date.parse(result.expiresAt)).to.be.above(Date.now());});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other owner login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{otherEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other owner login: HTTP 200', () => pm.response.to.have.status(200));",
+              "const result = pm.response.json(); pm.collectionVariables.set('otherToken', result.accessToken);",
+              "pm.test('Bearer with expiration', () => {pm.expect(result.tokenType).to.eql('Bearer');pm.expect(Date.parse(result.expiresAt)).to.be.above(Date.now());});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin login: HTTP 200', () => pm.response.to.have.status(200));",
+              "const result = pm.response.json(); pm.collectionVariables.set('adminToken', result.accessToken);",
+              "pm.test('Bearer with expiration', () => {pm.expect(result.tokenType).to.eql('Bearer');pm.expect(Date.parse(result.expiresAt)).to.be.above(Date.now());});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Current customer",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Current customer: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Safe user response', () => {pm.expect(pm.response.json().role).to.eql('USER');pm.expect(pm.response.json()).not.to.have.property('passwordHash');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Own accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Own accounts: HTTP 200', () => pm.response.to.have.status(200));",
+              "const account=pm.response.json()[0];pm.collectionVariables.set('accountId',account.id);pm.test('Zero opening balance',()=>pm.expect(Number(account.outstandingBalance)).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other accounts: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('otherAccountId',pm.response.json()[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Own masked card",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/cards"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Own masked card: HTTP 200', () => pm.response.to.have.status(200));",
+              "const card=pm.response.json()[0];for(const key of ['id','expiryMonth','expiryYear'])pm.collectionVariables.set(key==='id'?'cardId':key,card[key]);pm.test('Only masked card data',()=>{pm.expect(card.maskedNumber).to.eql('\u2022\u2022\u2022\u2022 4242');pm.expect(card).not.to.have.property('testCardNumber');pm.expect(card).not.to.have.property('testSecurityCode');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Card ownership",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{otherAccountId}}/cards"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Card ownership: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 0,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('purchaseRequestId',pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid amount: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchase ownership",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{otherAccountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Purchase ownership: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approved purchase",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Approved purchase: HTTP 201', () => pm.response.to.have.status(201));",
+              "const result=pm.response.json();pm.collectionVariables.set('purchaseId',result.transaction.id);pm.test('Approval changes balance',()=>{pm.expect(result.transaction.status).to.eql('APPROVED');pm.expect(Number(result.account.outstandingBalance)).to.eql(25);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identical purchase retry",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Identical purchase retry: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Same saved purchase',()=>{pm.expect(String(pm.response.json().transaction.id)).to.eql(String(pm.collectionVariables.get('purchaseId')));pm.expect(Number(pm.response.json().account.outstandingBalance)).to.eql(25);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request ID conflict",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 26,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Request ID conflict: HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saved insufficient credit decline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 2000,\n  \"requestId\": \"{{declineRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('declineRequestId',pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Saved insufficient credit decline: HTTP 201', () => pm.response.to.have.status(201));",
+              "const result=pm.response.json();pm.collectionVariables.set('declineId',result.transaction.id);pm.test('Decline leaves balance unchanged',()=>{pm.expect(result.transaction.status).to.eql('DECLINED');pm.expect(Number(result.account.outstandingBalance)).to.eql(25);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identical decline retry",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 2000,\n  \"requestId\": \"{{declineRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Identical decline retry: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Same saved decline',()=>pm.expect(String(pm.response.json().transaction.id)).to.eql(String(pm.collectionVariables.get('declineId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paged history",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions?page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Paged history: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Page bounds and totals',()=>{const result=pm.response.json();pm.expect(result.items.length).to.eql(1);pm.expect(result.page).to.eql(0);pm.expect(result.size).to.eql(1);pm.expect(result.totalElements).to.eql(2);pm.expect(result.totalPages).to.eql(2);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid page",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions?page=-1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid page: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Oversized page",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions?size=51"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Oversized page: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Empty page",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions?page=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Empty page: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Empty items remain a page',()=>pm.expect(pm.response.json().items).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Decline cannot be refunded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{declineId}}/refund?requestId={{refundRequestId}}"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('refundRequestId',pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Decline cannot be refunded: HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Full refund",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{purchaseId}}/refund?requestId={{refundRequestId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Full refund: HTTP 201', () => pm.response.to.have.status(201));",
+              "const result=pm.response.json();pm.collectionVariables.set('refundId',result.transaction.id);pm.test('Refund restores available credit',()=>{pm.expect(result.transaction.type).to.eql('REFUND');pm.expect(Number(result.account.outstandingBalance)).to.eql(0);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identical refund retry",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{purchaseId}}/refund?requestId={{refundRequestId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Identical refund retry: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Same saved refund',()=>pm.expect(String(pm.response.json().transaction.id)).to.eql(String(pm.collectionVariables.get('refundId'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Only one full refund",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{purchaseId}}/refund?requestId={{$guid}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Only one full refund: HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Refund ownership",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{purchaseId}}/refund?requestId={{$guid}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Refund ownership: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "History ownership",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('History ownership: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer cannot view admin",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/accounts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Customer cannot view admin: HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin cannot spend as customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{purchaseRequestId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin cannot spend as customer: HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/accounts?page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin accounts: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Bounded admin page',()=>pm.expect(pm.response.json().items.length).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin activity",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/transactions?page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Admin activity: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Activity page',()=>pm.expect(pm.response.json()).to.have.property('totalPages'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid account status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/accounts/{{accountId}}/status?status=CLOSED"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid account status: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Second approval for frozen refund",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Second approval for frozen refund: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('frozenRefundPurchaseId',pm.response.json().transaction.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Freeze account",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/accounts/{{accountId}}/status?status=FROZEN"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Freeze account: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Frozen status',()=>pm.expect(pm.response.json().status).to.eql('FROZEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Frozen account saves decline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Frozen account saves decline: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Frozen decline',()=>pm.expect(pm.response.json().transaction.status).to.eql('DECLINED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Refund remains available while frozen",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/transactions/{{frozenRefundPurchaseId}}/refund?requestId={{$guid}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Refund remains available while frozen: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Frozen refund restores balance',()=>pm.expect(Number(pm.response.json().account.outstandingBalance)).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reactivate account",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/admin/accounts/{{accountId}}/status?status=ACTIVE"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Reactivate account: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Active status',()=>pm.expect(pm.response.json().status).to.eql('ACTIVE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing bearer token",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing bearer token: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid signature token",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{invalidToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid signature token: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public OpenAPI contract",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/v3/api-docs"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Public OpenAPI contract: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('All eleven endpoint paths',()=>{const result=pm.response.json();pm.expect(Object.keys(result.paths).length).to.eql(11);pm.expect(result.components.securitySchemes).to.have.property('bearerAuth');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disallowed CORS origin",
+      "request": {
+        "method": "OPTIONS",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "https://untrusted.example"
+          },
+          {
+            "key": "Access-Control-Request-Method",
+            "value": "GET"
+          },
+          {
+            "key": "Access-Control-Request-Headers",
+            "value": "Authorization"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Disallowed CORS origin: HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allowed local CORS origin",
+      "request": {
+        "method": "OPTIONS",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "http://127.0.0.1:5173"
+          },
+          {
+            "key": "Access-Control-Request-Method",
+            "value": "GET"
+          },
+          {
+            "key": "Access-Control-Request-Headers",
+            "value": "Authorization"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Allowed local CORS origin: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Bearer header allowed without cookies',()=>{pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://127.0.0.1:5173');pm.expect(pm.response.headers.has('Access-Control-Allow-Credentials')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cookie cannot authenticate",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/auth/me",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "JSESSIONID=fictional-verification"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Cookie is not an authentication credential',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication rate limit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"wrong-credentials\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Authentication rate limit: HTTP 401', () => pm.response.to.have.status(401));",
+              "let attempts=0;",
+              "function retry(){",
+              "  pm.sendRequest({url:pm.variables.get('baseUrl')+'/api/auth/login',method:'POST',header:{'Content-Type':'application/json'},body:{mode:'raw',raw:JSON.stringify({email:pm.variables.get('customerEmail'),password:'wrong-credentials'})}},(error,response)=>{",
+              "    attempts++;",
+              "    if(error){pm.test('Rate limit request succeeds',()=>{throw new Error('Request failed')});return;}",
+              "    if(response.code===429){pm.test('Rate limiting returns 429 and Retry-After',()=>pm.expect(Number(response.headers.get('Retry-After'))).to.be.above(0));return;}",
+              "    if(attempts<12)retry();else pm.test('Rate limit reached',()=>pm.expect(response.code).to.eql(429));",
+              "  });",
+              "}",
+              "retry();"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

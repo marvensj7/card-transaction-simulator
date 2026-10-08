@@ -5,14 +5,14 @@ import com.marvens.capstone.entity.AppUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 public class LoginResponse {
-    public final UserResponse user;
+    public final AppUser user;
     public final String accessToken;
     public final Instant expiresAt;
     public final String tokenType;
 
     public LoginResponse(AppUser user, Jwt token) {
         tokenType = "Bearer";
-        this.user = new UserResponse(user);
+        this.user = user;
         accessToken = token.getTokenValue();
         expiresAt = token.getExpiresAt();
     }

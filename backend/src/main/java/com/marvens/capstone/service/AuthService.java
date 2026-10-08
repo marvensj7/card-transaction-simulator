@@ -39,7 +39,7 @@ public class AuthService {
     }
 
     @Transactional
-    public UserResponse register(RegisterRequest request) {
+    public AppUser register(RegisterRequest request) {
         checkPasswordLength(request.password);
         String email = request.email.trim().toLowerCase(Locale.ROOT);
         if (users.existsByEmail(email)) throw new ConflictException("Registration could not be completed with this email.");
@@ -69,7 +69,7 @@ public class AuthService {
         card.setExpiryMonth((byte) expiry.getMonthValue());
         card.setExpiryYear((short) expiry.getYear());
         cards.save(card);
-        return new UserResponse(user);
+        return user;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -84,10 +84,10 @@ public class AuthService {
         return new LoginResponse(user, tokens.issue(user));
     }
 
-    public UserResponse currentUser(Long userId) {
+    public AppUser currentUser(Long userId) {
         AppUser user = users.findById(userId).orElse(null);
         if (user == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in to continue.");
-        return new UserResponse(user);
+        return user;
     }
 
     private void checkPasswordLength(String password) {

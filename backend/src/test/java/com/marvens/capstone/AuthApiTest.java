@@ -60,12 +60,23 @@ class AuthApiTest extends SecurityTestSupport {
         ObjectNode input = json.createObjectNode().put("email", "CUSTOMER@example.test").put("password", password);
         String result = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(input.toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.user", org.hamcrest.Matchers.aMapWithSize(4)))
+                .andExpect(jsonPath("$.user.id").value(10))
+                .andExpect(jsonPath("$.user.displayName").value(user.getDisplayName()))
+                .andExpect(jsonPath("$.user.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.user.role").value("USER"))
+                .andExpect(jsonPath("$.user.passwordHash").doesNotExist())
                 .andExpect(header().doesNotExist("Set-Cookie"))
                 .andReturn().getResponse().getContentAsString();
         String token = json.readTree(result).path("accessToken").asText();
         assertThat(result).doesNotContain(password, "passwordHash");
         mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(10));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.aMapWithSize(4)))
+                .andExpect(jsonPath("$.displayName").value(user.getDisplayName()))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
         when(users.findById(10L)).thenReturn(java.util.Optional.empty());
         mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token)).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
@@ -89,8 +100,12 @@ class AuthApiTest extends SecurityTestSupport {
     void registrationCreatesOnlyACustomerWithAnAccountAndMaskedCard() throws Exception {
         String body = mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content(registration().toString())).andExpect(status().isCreated())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.aMapWithSize(4)))
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.displayName").value("New Customer"))
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.email").value("customer@example.test"))
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         ArgumentCaptor<AppUser> user = ArgumentCaptor.forClass(AppUser.class);
         verify(users).saveAndFlush(user.capture());

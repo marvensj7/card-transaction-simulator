@@ -7,7 +7,7 @@ import java.net.URI;
 import com.marvens.capstone.dto.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import com.marvens.capstone.dto.UserResponse;
+import com.marvens.capstone.entity.AppUser;
 import com.marvens.capstone.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class AuthController {
     @Operation(summary = "Register a USER with a credit account and fictional card")
     @ApiResponse(responseCode = "201", description = "Customer, account, and fictional card created together")
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AppUser> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.created(URI.create("/api/auth/me")).body(auth.register(request));
     }
     @Operation(summary = "Check BCrypt credentials and issue a 15-minute access token")
@@ -33,7 +33,7 @@ public class AuthController {
     @Operation(summary = "Read the current user")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
-    public UserResponse me(@AuthenticationPrincipal Jwt principal) {
+    public AppUser me(@AuthenticationPrincipal Jwt principal) {
         return auth.currentUser(Long.valueOf(principal.getSubject()));
     }
 }

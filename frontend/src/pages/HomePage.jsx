@@ -2,12 +2,6 @@ import CircuitMark from '../components/CircuitMark.jsx'
 
 export default function HomePage() {
   return (
-    <div className="app-shell">
-      <header className="site-header">
-        <span className="brand"><CircuitMark />Credit Circuit</span>
-        <span className="project-label">UCI 2123 · Capstone project</span>
-      </header>
-
       <main className="opening">
         <div className="introduction">
           <p className="eyebrow">Credit Card Transaction Simulator</p>
@@ -45,11 +39,5 @@ export default function HomePage() {
           <figcaption>One signal. A decision ahead.</figcaption>
         </figure>
       </main>
-
-      <footer className="site-footer">
-        <span>Credit Circuit</span>
-        <span>Credit Card Transaction Simulator</span>
-      </footer>
-    </div>
   )
 }

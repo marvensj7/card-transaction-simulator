@@ -1,10 +1,15 @@
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #202a39;
-  background: #f7f6f2;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #222b24;
+  background: #eef0e9;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  line-height: 1.6;
+  line-height: 1.5;
+  --ink: #222b24;
+  --muted: #657063;
+  --line: #d8ddd3;
+  --accent: #c9f578;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 }
 
 * {
@@ -13,267 +18,464 @@
 
 body {
   margin: 0;
-  min-width: 280px;
 }
 
 .app-shell {
-  width: min(100% - 3rem, 72rem);
+  width: min(100% - 5rem, 88rem);
   margin-inline: auto;
 }
 
 .site-header,
-.project-name,
+.brand,
+.workbench-header,
+.decision-heading,
+.history-heading,
 .site-footer {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .site-header {
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1.75rem;
+  padding-block: 2rem;
+  border-bottom: 1px solid #bfc8b9;
 }
 
-.project-name {
-  gap: 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 750;
+.brand {
+  justify-content: flex-start;
+  gap: 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 
 .brand-mark {
-  width: 1.75rem;
-  height: 1.25rem;
-  border: 2px solid #202a39;
-  border-radius: 0.25rem;
-  box-shadow: 4px -4px 0 #ed997b;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 1.35rem;
+}
+
+.brand-mark i {
+  width: 5px;
+  height: 65%;
+  background: var(--ink);
+}
+
+.brand-mark i:nth-child(2) {
+  height: 100%;
+}
+
+.brand-mark i:nth-child(3) {
+  height: 40%;
 }
 
 .project-label {
-  color: #626975;
-  font-size: 0.8rem;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  align-items: center;
-  gap: 2rem;
-  padding: clamp(2rem, 5vw, 4rem);
-  border-radius: 1.5rem;
-  background: #172638;
-  color: #faf7f0;
-  overflow: hidden;
-}
-
-.eyebrow {
-  margin: 0 0 1.75rem;
-  color: #c6cfd9;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-h1,
-h2,
-h3 {
-  line-height: 1.15;
-}
-
-h1 {
-  margin: 0;
-  max-width: 10ch;
-  font-size: clamp(2.75rem, 6vw, 5.5rem);
-  font-weight: 650;
-  letter-spacing: -0.065em;
-}
-
-h1 span {
-  color: #f3ac8d;
-}
-
-.introduction {
-  max-width: 37ch;
-  margin: 1.75rem 0 0;
-  color: #c6cfd9;
-  font-size: 1.05rem;
-}
-
-/* A static illustration, separate from the planned interactive purchase card. */
-.transaction-art {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  min-height: 23rem;
-}
-
-.art-orbit {
-  position: absolute;
-  width: 24rem;
-  height: 24rem;
-  border: 1px solid #ffffff15;
-  border-radius: 50%;
-  box-shadow: 0 0 0 3rem #ffffff03, 0 0 0 6rem #ffffff03;
-}
-
-.illustrated-card {
-  position: relative;
-  width: min(100%, 20rem);
-  padding: 1.75rem;
-  border: 1px solid #ffceb2;
-  border-radius: 1rem;
-  background: linear-gradient(125deg, #f8c6a7, #e8957b);
-  color: #352c32;
-  transform: rotate(-7deg);
-  box-shadow: 0 1.5rem 3rem #08111c55;
-}
-
-.card-caption,
-.card-symbol,
-.card-title,
-.card-line {
-  display: block;
-}
-
-.card-caption {
-  font-size: 0.6rem;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-}
-
-.card-symbol {
-  margin-block: 0.75rem;
-  font-size: 2.25rem;
-  line-height: 1;
-}
-
-.card-title {
-  font-size: 1.35rem;
-  font-weight: 650;
-  line-height: 1.25;
-  letter-spacing: -0.04em;
-}
-
-.card-line {
-  width: 2.75rem;
-  margin-top: 1.75rem;
-  border-top: 3px solid #352c32;
-}
-
-.journey-label {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 2.25rem;
-  color: #c6cfd9;
+  color: var(--muted);
   font-size: 0.75rem;
 }
 
-.journey-label span {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: #f3ac8d;
+.project-label span {
+  margin-inline: 0.6rem;
 }
 
-.journey {
+.home-layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.85fr) minmax(0, 2.5fr);
+  align-items: start;
+  gap: clamp(2rem, 4vw, 4rem);
   padding-block: 3.5rem;
 }
 
-.section-heading h2 {
+.introduction {
+  padding-top: 1.5rem;
+}
+
+.eyebrow,
+.panel-label {
   margin: 0;
-  font-size: clamp(1.4rem, 3vw, 1.8rem);
-  letter-spacing: -0.04em;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.section-heading p {
-  margin: 0.5rem 0 0;
-  color: #626975;
+.eyebrow {
+  max-width: 25ch;
+  color: var(--muted);
 }
 
-.journey-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+h1 {
+  margin: 1.5rem 0;
+  font-size: clamp(3rem, 4.5vw, 4.5rem);
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
 }
 
-.journey-step {
+.intro-copy {
+  max-width: 24ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.scenario-note {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 3rem;
   padding-top: 1rem;
-  border-top: 1px solid #d7d8d8;
+  border-top: 1px solid #bfc8b9;
+  font-size: 0.75rem;
 }
 
-.step-number {
-  color: #8c4836;
-  font-size: 0.75rem;
+.scenario-number {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  letter-spacing: -0.07em;
+}
+
+.scenario-note p {
+  margin: 0;
+}
+
+.workbench {
+  min-width: 0;
+  border: 1px solid #bcc5b5;
+  border-radius: 0.75rem;
+  background: #fafbf7;
+  overflow: hidden;
+}
+
+.workbench-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.workbench-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.workbench-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.currency-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.account-and-decision {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.8fr);
+}
+
+.account-panel {
+  padding: 1.5rem;
+}
+
+.account-panel .panel-label {
+  color: var(--muted);
+}
+
+.account-panel h3 {
+  margin: 1.5rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.account-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1.5rem;
+  font-size: 0.7rem;
+  color: #416240;
+}
+
+.account-status span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #416240;
+}
+
+.account-values {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.account-values dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.account-values dd {
+  margin: 0.25rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+}
+
+.masked-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.masked-card span {
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+.decision-panel {
+  padding: 1.5rem;
+  background: var(--ink);
+  color: #f5f8ed;
+}
+
+.decision-panel .panel-label {
+  color: #b7c3b1;
+}
+
+.approved-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.25rem;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 0.65rem;
   font-weight: 700;
 }
 
-.journey-step h3 {
-  margin: 0.75rem 0;
-  font-size: 1.05rem;
+.purchase-detail {
+  margin: 1.5rem 0 2rem;
+  font-size: 0.85rem;
 }
 
-.journey-step p {
-  max-width: 33ch;
+.purchase-detail span {
+  color: #b7c3b1;
+}
+
+.credit-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.credit-change p {
+  margin: 0 0 0.3rem;
+  color: #b7c3b1;
+  font-size: 0.65rem;
+}
+
+.credit-before > span {
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.change-arrow {
+  margin-top: 1rem;
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.credit-after strong {
+  display: block;
+  font-size: clamp(2.25rem, 4vw, 4rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.055em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.credit-after strong span {
+  font-size: 0.55em;
+  letter-spacing: -0.03em;
+}
+
+.decision-reason {
+  margin: 1.5rem 0;
+  font-size: 0.65rem;
+  color: #b7c3b1;
+}
+
+.balance-change {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #4a5646;
+  font-size: 0.65rem;
+  color: #b7c3b1;
+}
+
+.balance-change p {
   margin: 0;
-  color: #626975;
-  font-size: 0.9rem;
+  font-family: var(--mono);
+}
+
+.balance-change p span {
+  margin-inline: 0.3rem;
+}
+
+.balance-change strong {
+  color: #f5f8ed;
+  font-weight: 500;
+}
+
+.history-panel {
+  padding: 1.5rem;
+}
+
+.history-heading {
+  margin-bottom: 1rem;
+}
+
+.history-heading > span {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.history-table th,
+.history-table td {
+  padding: 0.8rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-table thead th {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.history-table tbody th {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.history-table tbody th span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.history-table td {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.history-table th:nth-child(n+3),
+.history-table td:nth-child(n+3) {
+  text-align: right;
+}
+
+.history-status {
+  color: #416240;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.7rem;
+}
+
+.current-purchase {
+  background: #eff4e6;
+}
+
+.workbench-note {
+  margin: 0;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.65rem;
 }
 
 .site-footer {
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
   padding-block: 1.25rem;
-  border-top: 1px solid #d7d8d8;
-  color: #626975;
-  font-size: 0.75rem;
+  border-top: 1px solid #bfc8b9;
+  font-size: 0.7rem;
+  color: var(--muted);
 }
 
-@media (max-width: 48rem) {
-  .hero {
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 70rem) {
+  .home-layout {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 2rem;
+    padding-block: 2rem;
   }
 
-  .transaction-art {
-    min-height: 21rem;
-    margin-top: 1rem;
+  .introduction {
+    padding: 0;
   }
 
-  .journey-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .intro-copy {
+    max-width: 45ch;
   }
 
-  .journey-step p {
-    max-width: none;
+  .scenario-note {
+    display: none;
   }
 }
 
-@media (max-width: 30rem) {
+@media (max-width: 40rem) {
   .app-shell {
     width: calc(100% - 2rem);
   }
 
-  .hero {
-    padding: 1.5rem;
+  .site-header,
+  .site-footer,
+  .history-heading {
+    flex-wrap: wrap;
   }
 
-  .illustrated-card {
-    width: 90%;
-    padding: 1.25rem;
+  .account-and-decision {
+    grid-template-columns: 1fr;
   }
 
-  .card-title {
-    font-size: 1.2rem;
+  .history-panel {
+    overflow-x: auto;
   }
 
-  .journey-label {
-    font-size: 0.65rem;
+  .history-table {
+    min-width: 28rem;
   }
 }

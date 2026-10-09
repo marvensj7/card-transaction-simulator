@@ -21,25 +21,11 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "card_transactions")
 public class CardTransaction {
-    public enum Type { PURCHASE, REFUND }
-    public enum Status { APPROVED, DECLINED }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "account_id", nullable = false)
-    @NotNull
-    private CreditAccount account;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "card_id", nullable = false)
-    @NotNull
-    private DemoCard card;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20, columnDefinition = "varchar(20)")
@@ -75,10 +61,25 @@ public class CardTransaction {
     @NotBlank @Size(min = 36, max = 36)
     private String requestId;
 
+    public enum Type { PURCHASE, REFUND }
+    public enum Status { APPROVED, DECLINED }
+
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "original_purchase_id")
     private CardTransaction originalPurchase;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "account_id", nullable = false)
+    @NotNull
+    private CreditAccount account;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "card_id", nullable = false)
+    @NotNull
+    private DemoCard card;
 
     public CardTransaction() {
         // JPA needs a no-argument constructor to load existing rows.

@@ -827,8 +827,10 @@
             "minLength": 0
           },
           "expiryMonth": {
-            "type": "string",
-            "format": "byte"
+            "type": "integer",
+            "format": "int32",
+            "maximum": 12,
+            "minimum": 1
           },
           "expiryYear": {
             "type": "integer",

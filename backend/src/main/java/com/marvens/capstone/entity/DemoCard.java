@@ -56,6 +56,7 @@ public class DemoCard {
     @NotNull
     @Min(1)
     @Max(12)
+    @Schema(implementation = Integer.class)
     private Byte expiryMonth;
 
     @Column(name = "expiry_year", nullable = false)
@@ -116,7 +117,6 @@ public class DemoCard {
         return FictionalCardNumbers.entryHint(this);
     }
 
-    @Schema(type = "integer", format = "int32")
     public Byte getExpiryMonth() {
         return expiryMonth;
     }

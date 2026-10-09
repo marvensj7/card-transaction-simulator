@@ -6,7 +6,7 @@ A customer with a $1,000 limit and $200 outstanding has $800 available. Purchase
 
 Spring Security verifies the signed token and USER authority. TransactionController uses @Valid for format, reads the verified ID, and calls TransactionService.purchase. The service checks the stored USER role and locks the account by both account ID and owner ID. Checking only an account ID would not protect ownership.
 
-The service loads the assigned card, validates its profile/expiry, and finds the account/request ID. An identical retry returns the existing transaction with HTTP 200. Changed details under that UUID return 409.
+The service loads the owned assigned card and validates its full fictional number and expiry through FictionalCardNumbers, and finds the account/request ID. An identical retry returns the existing transaction with HTTP 200. Changed details under that UUID return 409.
 
 Explicit if/else decisions check card expiry, frozen status, and available credit. Approval adds $50 with BigDecimal, making outstanding $250/available $750. Declines preserve the balance. Both create history with amount/status/reason/outstandingAfter. A new outcome returns 201 with transaction and current account summary.
 
@@ -17,6 +17,8 @@ Explicit if/else decisions check card expiry, frozen status, and available credi
 AuthController validates register/login JSON and calls AuthService. Registration normalizes email, hashes the password with BCrypt, and saves USER/account/card in one transaction. Callers cannot choose ADMIN. A failed card write rolls back user/account creation. Duplicate email uses fixed 409.
 
 AuthService names its database dependencies userRepository, accountRepository, and cardRepository. passwordEncoder performs BCrypt operations, and jwtTokenService issues the signed token. Registration reads in order: validate password bytes and normalize email, reject a duplicate, save the USER, save customerAccount, save assignedCard, and return the safe user response.
+
+New cards use ACCOUNT_V1: FictionalCardNumbers derives `0000` plus the saved account ID padded to twelve digits, sets last_four, checks the full submitted number, and supplies a masked-card entry hint. Existing DEMO_4242 rows remain usable. No full number or security code is saved. The code checks security-code format only.
 
 Login validates password bytes, normalizes email, and loads the user. It selects the stored passwordHash or dummyPasswordHash, then calls passwordEncoder.matches. The dummy hash makes an unknown email perform a BCrypt comparison too, reducing response-time differences. Incorrect credentials share one 401 message. A successful check returns safe user/token/expiration. Spring/Nimbus handle signatures and intended claims. JWT_SECRET remains in ignored config/environment. No invented cryptography or refresh-token system exists.
 

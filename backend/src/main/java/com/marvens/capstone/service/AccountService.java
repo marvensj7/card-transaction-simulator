@@ -22,53 +22,53 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @Transactional(readOnly = true)
 public class AccountService {
-    private final AppUserRepository users;
-    private final CreditAccountRepository accounts;
-    private final DemoCardRepository cards;
+    private final AppUserRepository userRepository;
+    private final CreditAccountRepository accountRepository;
+    private final DemoCardRepository cardRepository;
 
-    public AccountService(AppUserRepository users, CreditAccountRepository accounts, DemoCardRepository cards) {
-        this.users = users;
-        this.accounts = accounts;
-        this.cards = cards;
+    public AccountService(AppUserRepository userRepository, CreditAccountRepository accountRepository, DemoCardRepository cardRepository) {
+        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
+        this.cardRepository = cardRepository;
     }
 
     public List<AccountResponse> getAccounts(Long userId) {
         requireRole(userId, AppUser.Role.USER);
-        List<AccountResponse> result = new ArrayList<>();
-        CreditAccount account = accounts.findByUser_Id(userId);
-        if (account != null) {
-            result.add(new AccountResponse(account));
+        List<AccountResponse> accountResponses = new ArrayList<>();
+        CreditAccount customerAccount = accountRepository.findByUser_Id(userId);
+        if (customerAccount != null) {
+            accountResponses.add(new AccountResponse(customerAccount));
         }
-        return result;
+        return accountResponses;
     }
 
     public CreditAccount getOwnedAccount(Long userId, Long accountId) {
         requireRole(userId, AppUser.Role.USER);
-        CreditAccount account = accounts.findByIdAndUser_Id(accountId, userId);
-        if (account == null) {
+        CreditAccount customerAccount = accountRepository.findByIdAndUser_Id(accountId, userId);
+        if (customerAccount == null) {
             throw new ResourceNotFoundException("Account is unavailable.");
         }
-        return account;
+        return customerAccount;
     }
 
     public List<CardResponse> getCards(Long userId, Long accountId) {
         getOwnedAccount(userId, accountId);
-        List<CardResponse> result = new ArrayList<>();
-        DemoCard card = cards.findByAccount_Id(accountId);
-        if (card != null) {
-            result.add(new CardResponse(card));
+        List<CardResponse> cardResponses = new ArrayList<>();
+        DemoCard assignedCard = cardRepository.findByAccount_Id(accountId);
+        if (assignedCard != null) {
+            cardResponses.add(new CardResponse(assignedCard));
         }
-        return result;
+        return cardResponses;
     }
 
     public PageResponse<AccountResponse> getAdminAccounts(Long adminId, int page, int size) {
         requireRole(adminId, AppUser.Role.ADMIN);
-        List<AccountResponse> result = new ArrayList<>();
-        Page<CreditAccount> rows = accounts.findAllByOrderByIdAsc(PageRequest.of(page, size));
-        for (CreditAccount account : rows) {
-            result.add(new AccountResponse(account));
+        List<AccountResponse> accountResponses = new ArrayList<>();
+        Page<CreditAccount> customerAccounts = accountRepository.findAllByOrderByIdAsc(PageRequest.of(page, size));
+        for (CreditAccount customerAccount : customerAccounts) {
+            accountResponses.add(new AccountResponse(customerAccount));
         }
-        return new PageResponse<>(result, rows);
+        return new PageResponse<>(accountResponses, customerAccounts);
     }
 
     @Transactional
@@ -77,20 +77,20 @@ public class AccountService {
         if (status == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be ACTIVE or FROZEN.");
         }
-        CreditAccount account = accounts.findLockedById(accountId);
-        if (account == null) {
+        CreditAccount customerAccount = accountRepository.findLockedById(accountId);
+        if (customerAccount == null) {
             throw new ResourceNotFoundException("Account is unavailable.");
         }
-        account.setStatus(status);
-        accounts.save(account);
-        return new AccountResponse(account);
+        customerAccount.setStatus(status);
+        accountRepository.save(customerAccount);
+        return new AccountResponse(customerAccount);
     }
 
     void requireRole(Long userId, AppUser.Role requiredRole) {
         if (userId == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in to continue.");
         }
-        AppUser user = users.findById(userId).orElse(null);
+        AppUser user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getRole() != requiredRole) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This user role cannot perform this operation.");
         }

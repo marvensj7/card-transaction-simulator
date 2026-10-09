@@ -20,7 +20,7 @@ OneDrive can prevent cleaning generated files. Add `"-Dcapstone.build.directory=
 
 ## Behavior
 
-Registration creates USER, a $1,000 active account with zero outstanding balance, and one DEMO_4242 card in one transaction. Callers cannot choose ADMIN. Login checks BCrypt and issues an HS256 JWT. Nimbus validates signature, expiration, issuer, exact audience, positive numeric subject, role, and time claims. JWT_SECRET must decode to at least 256 bits. No refresh tokens, sessions, or revocation table exist.
+Registration creates USER, a $1,000 active account with zero outstanding balance, and one ACCOUNT_V1 fictional card in one transaction. Callers cannot choose ADMIN. Login checks BCrypt and issues an HS256 JWT. Nimbus validates signature, expiration, issuer, exact audience, positive numeric subject, role, and time claims. JWT_SECRET must decode to at least 256 bits. No refresh tokens, sessions, or revocation table exist.
 
 Registration and newly saved purchases/refunds return 201. An identical financial retry returns 200 with the saved transaction and current account summary. A new DECLINED purchase also returns 201. History/admin lists return bounded pages. See the [API contract](../outputs/02_Architecture/03_API_Design.md) and [OpenAPI UI](http://127.0.0.1:8080/swagger-ui/index.html).
 

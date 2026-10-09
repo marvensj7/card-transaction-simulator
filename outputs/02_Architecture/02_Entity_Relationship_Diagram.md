@@ -1,7 +1,7 @@
 # Entity-Relationship Diagram
 
 **Credit Card Transaction Simulator**<br>
-**Updated October 8, 2026**
+**Updated October 9, 2026**
 
 ## Data model
 
@@ -91,13 +91,13 @@ Registration creates a USER, its credit account, and its demo card together and 
 | --- | --- | --- | --- |
 | `id` | `BIGINT` | Primary key, auto increment | Fictional card identifier. |
 | `account_id` | `BIGINT` | Required, unique foreign key → `credit_accounts.id` | Account that owns the card. |
-| `test_profile` | `VARCHAR(20)` | Required | Name of a predefined fictional test number in the application. Different customers may use the same test profile. |
+| `test_profile` | `VARCHAR(20)` | Required | Simulation rule version: ACCOUNT_V1 for new cards; DEMO_4242 for existing legacy cards. |
 | `label` | `VARCHAR(50)` | Required | Name shown on the card, such as “Demo Card.” |
-| `last_four` | `CHAR(4)` | Required, four digits | Masked display and a check against the selected test profile. |
+| `last_four` | `CHAR(4)` | Required, four digits | Masked display and consistency check; matching the full derived number is also required. |
 | `expiry_month` | `TINYINT` | Required, 1–12 | Fictional expiration month. |
 | `expiry_year` | `SMALLINT` | Required | Fictional expiration year. |
 
-The full fictional number is mapped from `test_profile` in the application’s small test-number allowlist, rather than stored in MySQL. A customer can enter only the assigned test number. The test security code is checked for format during a request and is never stored.
+The full fictional number is derived in FictionalCardNumbers: ACCOUNT_V1 uses `0000` plus account_id padded to 12 digits. The profile and account ID make the simulation details stable across restarts. Existing DEMO_4242 cards retain their original rule. No columns or existing rows change, so no SQL migration is needed. A customer can enter only the assigned test number. The test security code is checked for format during a request and is never stored.
 
 ### `card_transactions`
 

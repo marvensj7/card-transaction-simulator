@@ -75,8 +75,7 @@ public class AuthService {
         DemoCard assignedCard = new DemoCard();
         assignedCard.setAccount(customerAccount);
         assignedCard.setLabel("Credit Circuit Demo");
-        assignedCard.setTestProfile("DEMO_4242");
-        assignedCard.setLastFour("4242");
+        FictionalCardNumbers.assignTo(assignedCard);
         assignedCard.setExpiryMonth((byte) cardExpiry.getMonthValue());
         assignedCard.setExpiryYear((short) cardExpiry.getYear());
         cardRepository.save(assignedCard);

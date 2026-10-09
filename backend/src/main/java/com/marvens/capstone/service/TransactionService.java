@@ -1,15 +1,6 @@
 package com.marvens.capstone.service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import com.marvens.capstone.dto.PageResponse;
-import java.util.UUID;
 import com.marvens.capstone.dto.PurchaseRequest;
 import com.marvens.capstone.dto.TransactionResponse;
 import com.marvens.capstone.dto.TransactionResultResponse;
@@ -17,11 +8,20 @@ import com.marvens.capstone.entity.AppUser;
 import com.marvens.capstone.entity.CardTransaction;
 import com.marvens.capstone.entity.CreditAccount;
 import com.marvens.capstone.entity.DemoCard;
+import com.marvens.capstone.exception.ConflictException;
+import com.marvens.capstone.exception.ResourceNotFoundException;
 import com.marvens.capstone.repository.CardTransactionRepository;
 import com.marvens.capstone.repository.CreditAccountRepository;
 import com.marvens.capstone.repository.DemoCardRepository;
-import com.marvens.capstone.exception.ConflictException;
-import com.marvens.capstone.exception.ResourceNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -32,16 +32,16 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional(readOnly = true)
 public class TransactionService {
     private final AccountService accountService;
-    private final CreditAccountRepository accounts;
-    private final DemoCardRepository cards;
-    private final CardTransactionRepository transactions;
+    private final CreditAccountRepository accountRepository;
+    private final DemoCardRepository cardRepository;
+    private final CardTransactionRepository transactionRepository;
 
-    public TransactionService(AccountService accountService, CreditAccountRepository accounts,
-            DemoCardRepository cards, CardTransactionRepository transactions) {
+    public TransactionService(AccountService accountService, CreditAccountRepository accountRepository,
+            DemoCardRepository cardRepository, CardTransactionRepository transactionRepository) {
         this.accountService = accountService;
-        this.accounts = accounts;
-        this.cards = cards;
-        this.transactions = transactions;
+        this.accountRepository = accountRepository;
+        this.cardRepository = cardRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     // Commit balance + history together. After waiting for a lock, read the committed result.
@@ -49,138 +49,143 @@ public class TransactionService {
     public TransactionResultResponse purchase(Long userId, Long accountId, PurchaseRequest request) {
         accountService.requireRole(userId, AppUser.Role.USER);
         String requestId = checkRequestId(request.requestId);
-        CreditAccount account = lockOwnedAccount(userId, accountId);
-        DemoCard card = cards.findByIdAndAccount_Id(request.cardId, accountId);
-        if (card == null) {
+        CreditAccount customerAccount = lockOwnedAccount(userId, accountId);
+        DemoCard assignedCard = cardRepository.findByIdAndAccount_Id(request.cardId, accountId);
+        if (assignedCard == null) {
             throw new ResourceNotFoundException("Card is unavailable.");
         }
-        validateAssignedCard(request, card);
+        validateAssignedCard(request, assignedCard);
 
         // Reusing the same request ID must not add another purchase.
-        CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId);
-        if (saved != null) {
-            if (saved.getType() != CardTransaction.Type.PURCHASE
-                    || !saved.getCard().getId().equals(request.cardId)
-                    || !saved.getMerchantName().equals(request.merchantName)
-                    || saved.getAmount().compareTo(request.amount) != 0) {
+        CardTransaction existingTransaction = transactionRepository.findByAccount_IdAndRequestId(accountId, requestId);
+        if (existingTransaction != null) {
+            if (existingTransaction.getType() != CardTransaction.Type.PURCHASE
+                    || !existingTransaction.getCard().getId().equals(request.cardId)
+                    || !existingTransaction.getMerchantName().equals(request.merchantName)
+                    || existingTransaction.getAmount().compareTo(request.amount) != 0) {
                 throw new ConflictException("Request ID is already used for different details.");
             }
-            return new TransactionResultResponse(saved, account, true);
+            return new TransactionResultResponse(existingTransaction, customerAccount, true);
         }
 
-        String reason = null;
-        YearMonth expiry = YearMonth.of(card.getExpiryYear(), card.getExpiryMonth());
-        BigDecimal availableCredit = account.getCreditLimit().subtract(account.getOutstandingBalance());
-        if (expiry.isBefore(YearMonth.now(ZoneOffset.UTC))) {
-            reason = "CARD_EXPIRED";
-        } else if (account.getStatus() == CreditAccount.Status.FROZEN) {
-            reason = "ACCOUNT_FROZEN";
+        String declineReason = null;
+        YearMonth cardExpiry = YearMonth.of(assignedCard.getExpiryYear(), assignedCard.getExpiryMonth());
+        BigDecimal availableCredit = customerAccount.getCreditLimit().subtract(customerAccount.getOutstandingBalance());
+        if (cardExpiry.isBefore(YearMonth.now(ZoneOffset.UTC))) {
+            declineReason = "CARD_EXPIRED";
+        } else if (customerAccount.getStatus() == CreditAccount.Status.FROZEN) {
+            declineReason = "ACCOUNT_FROZEN";
         } else if (request.amount.compareTo(availableCredit) > 0) {
-            reason = "INSUFFICIENT_CREDIT";
+            declineReason = "INSUFFICIENT_CREDIT";
         }
 
         CardTransaction purchase = new CardTransaction();
         purchase.setType(CardTransaction.Type.PURCHASE);
-        if (reason == null) {
-            account.setOutstandingBalance(account.getOutstandingBalance().add(request.amount));
-            accounts.save(account);
+        if (declineReason == null) {
+            customerAccount.setOutstandingBalance(customerAccount.getOutstandingBalance().add(request.amount));
+            accountRepository.save(customerAccount);
             purchase.setStatus(CardTransaction.Status.APPROVED);
         } else {
             purchase.setStatus(CardTransaction.Status.DECLINED);
         }
-        purchase.setReasonCode(reason);
-        fillHistory(purchase, account, card, request.amount, request.merchantName, requestId);
-        transactions.save(purchase);
-        return new TransactionResultResponse(purchase, account);
+        purchase.setReasonCode(declineReason);
+        fillTransactionHistory(purchase, customerAccount, assignedCard, request.amount, request.merchantName, requestId);
+        transactionRepository.save(purchase);
+        return new TransactionResultResponse(purchase, customerAccount);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public TransactionResultResponse refund(Long userId, Long purchaseId, String rawRequestId) {
         accountService.requireRole(userId, AppUser.Role.USER);
         String requestId = checkRequestId(rawRequestId);
-        Long accountId = transactions.findOwnedAccountId(purchaseId, userId);
+        Long accountId = transactionRepository.findOwnedAccountId(purchaseId, userId);
         if (accountId == null) {
             throw new ResourceNotFoundException("Purchase is unavailable.");
         }
-        CreditAccount account = lockOwnedAccount(userId, accountId);
-        CardTransaction purchase = transactions.findByIdAndAccount_User_Id(purchaseId, userId);
+        CreditAccount customerAccount = lockOwnedAccount(userId, accountId);
+        CardTransaction purchase = transactionRepository.findByIdAndAccount_User_Id(purchaseId, userId);
         if (purchase == null) {
             throw new ResourceNotFoundException("Purchase is unavailable.");
         }
 
-        CardTransaction saved = transactions.findByAccount_IdAndRequestId(accountId, requestId);
-        if (saved != null) {
-            if (saved.getType() != CardTransaction.Type.REFUND
-                    || !saved.getOriginalPurchase().getId().equals(purchaseId)) {
+        CardTransaction existingTransaction = transactionRepository.findByAccount_IdAndRequestId(accountId, requestId);
+        if (existingTransaction != null) {
+            if (existingTransaction.getType() != CardTransaction.Type.REFUND
+                    || !existingTransaction.getOriginalPurchase().getId().equals(purchaseId)) {
                 throw new ConflictException("Request ID is already used for different details.");
             }
-            return new TransactionResultResponse(saved, account, true);
+            return new TransactionResultResponse(existingTransaction, customerAccount, true);
         }
         if (purchase.getType() != CardTransaction.Type.PURCHASE
                 || purchase.getStatus() != CardTransaction.Status.APPROVED
-                || transactions.findByOriginalPurchase_Id(purchaseId) != null) {
+                || transactionRepository.findByOriginalPurchase_Id(purchaseId) != null) {
             throw new ConflictException("Only an approved purchase without a refund can be refunded.");
         }
         if (!purchase.getCard().getAccount().getId().equals(accountId)
-                || account.getOutstandingBalance().compareTo(purchase.getAmount()) < 0) {
+                || customerAccount.getOutstandingBalance().compareTo(purchase.getAmount()) < 0) {
             throw new ConflictException("This purchase cannot be refunded against this account.");
         }
 
         // A full refund copies the purchase amount, including when the account is frozen.
-        account.setOutstandingBalance(account.getOutstandingBalance().subtract(purchase.getAmount()));
-        accounts.save(account);
+        customerAccount.setOutstandingBalance(customerAccount.getOutstandingBalance().subtract(purchase.getAmount()));
+        accountRepository.save(customerAccount);
         CardTransaction refund = new CardTransaction();
         refund.setType(CardTransaction.Type.REFUND);
         refund.setStatus(CardTransaction.Status.APPROVED);
         refund.setOriginalPurchase(purchase);
-        fillHistory(refund, account, purchase.getCard(), purchase.getAmount(), purchase.getMerchantName(), requestId);
-        transactions.save(refund);
-        return new TransactionResultResponse(refund, account);
+        fillTransactionHistory(refund, customerAccount, purchase.getCard(), purchase.getAmount(), purchase.getMerchantName(), requestId);
+        transactionRepository.save(refund);
+        return new TransactionResultResponse(refund, customerAccount);
     }
 
     public PageResponse<TransactionResponse> getHistory(Long userId, Long accountId, int page, int size) {
         accountService.getOwnedAccount(userId, accountId);
-        return historyResponse(transactions.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size)));
+        return historyResponse(transactionRepository.findByAccount_IdOrderByIdDesc(accountId, PageRequest.of(page, size)));
     }
 
     public PageResponse<TransactionResponse> getAdminTransactions(Long adminId, int page, int size) {
         accountService.requireRole(adminId, AppUser.Role.ADMIN);
-        return historyResponse(transactions.findAllByOrderByIdDesc(PageRequest.of(page, size)));
+        return historyResponse(transactionRepository.findAllByOrderByIdDesc(PageRequest.of(page, size)));
     }
 
-    private PageResponse<TransactionResponse> historyResponse(Page<CardTransaction> rows) {
-        List<Long> ids = new ArrayList<>();
-        for (CardTransaction row : rows) ids.add(row.getId());
-        List<Long> refunded = new ArrayList<>();
-        if (!ids.isEmpty()) refunded = transactions.findRefundedPurchaseIds(ids);
-        List<TransactionResponse> result = new ArrayList<>();
-        for (CardTransaction row : rows) result.add(new TransactionResponse(row, refunded.contains(row.getId())));
-        return new PageResponse<>(result, rows);
+    private PageResponse<TransactionResponse> historyResponse(Page<CardTransaction> transactionRecords) {
+        List<Long> transactionIds = new ArrayList<>();
+        for (CardTransaction transactionRecord : transactionRecords) {
+            transactionIds.add(transactionRecord.getId());
+        }
+        List<Long> refundedPurchaseIds = new ArrayList<>();
+        if (!transactionIds.isEmpty()) {
+            refundedPurchaseIds = transactionRepository.findRefundedPurchaseIds(transactionIds);
+        }
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        for (CardTransaction transactionRecord : transactionRecords) {
+            transactionResponses.add(new TransactionResponse(transactionRecord, refundedPurchaseIds.contains(transactionRecord.getId())));
+        }
+        return new PageResponse<>(transactionResponses, transactionRecords);
     }
 
     private CreditAccount lockOwnedAccount(Long userId, Long accountId) {
-        CreditAccount account = accounts.findLockedByIdAndUser_Id(accountId, userId);
-        if (account == null) {
+        CreditAccount customerAccount = accountRepository.findLockedByIdAndUser_Id(accountId, userId);
+        if (customerAccount == null) {
             throw new ResourceNotFoundException("Account is unavailable.");
         }
-        return account;
+        return customerAccount;
     }
 
-    private void validateAssignedCard(PurchaseRequest request, DemoCard card) {
-        if (!"DEMO_4242".equals(card.getTestProfile()) || !"4242".equals(card.getLastFour())
-                || !"4242".repeat(4).equals(request.testCardNumber)
-                || request.expiryMonth.intValue() != card.getExpiryMonth().intValue()
-                || request.expiryYear.intValue() != card.getExpiryYear().intValue()) {
+    private void validateAssignedCard(PurchaseRequest request, DemoCard assignedCard) {
+        if (!FictionalCardNumbers.matchesAssignedNumber(assignedCard, request.testCardNumber)
+                || request.expiryMonth.intValue() != assignedCard.getExpiryMonth().intValue()
+                || request.expiryYear.intValue() != assignedCard.getExpiryYear().intValue()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use the assigned fictional card and expiry.");
         }
     }
 
-    private String checkRequestId(String value) {
-        if (value != null) {
+    private String checkRequestId(String rawRequestId) {
+        if (rawRequestId != null) {
             try {
-                String normalized = UUID.fromString(value).toString();
-                if (normalized.equalsIgnoreCase(value)) {
-                    return normalized;
+                String normalizedRequestId = UUID.fromString(rawRequestId).toString();
+                if (normalizedRequestId.equalsIgnoreCase(rawRequestId)) {
+                    return normalizedRequestId;
                 }
             } catch (IllegalArgumentException ignored) {
                 // The fixed error below explains the rule without printing the input.
@@ -189,13 +194,13 @@ public class TransactionService {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request ID must be a UUID.");
     }
 
-    private void fillHistory(CardTransaction transaction, CreditAccount account, DemoCard card,
-            BigDecimal amount, String merchant, String requestId) {
-        transaction.setAccount(account);
-        transaction.setCard(card);
+    private void fillTransactionHistory(CardTransaction transaction, CreditAccount customerAccount, DemoCard assignedCard,
+            BigDecimal amount, String merchantName, String requestId) {
+        transaction.setAccount(customerAccount);
+        transaction.setCard(assignedCard);
         transaction.setAmount(amount.setScale(2));
-        transaction.setOutstandingAfter(account.getOutstandingBalance());
-        transaction.setMerchantName(merchant);
+        transaction.setOutstandingAfter(customerAccount.getOutstandingBalance());
+        transaction.setMerchantName(merchantName);
         transaction.setRequestId(requestId);
         transaction.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC).withNano(0));
     }

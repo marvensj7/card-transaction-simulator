@@ -32,16 +32,16 @@ FROM app_users AS u
 WHERE u.email = 'jordan.demo@example.test' AND u.role = 'USER'
   AND NOT EXISTS (SELECT 1 FROM credit_accounts AS a WHERE a.user_id = u.id);
 
--- DEMO_4242 names the service's fictional test profile, not a stored card number.
+-- ACCOUNT_V1 derives a simulation number from account_id in Java; only its last four are stored.
 INSERT INTO demo_cards (account_id, test_profile, label, last_four, expiry_month, expiry_year)
-SELECT a.id, 'DEMO_4242', 'Casey Demo Card', '4242', 12, 2030
+SELECT a.id, 'ACCOUNT_V1', 'Casey Demo Card', RIGHT(LPAD(a.id, 12, '0'), 4), 12, 2030
 FROM credit_accounts AS a
 JOIN app_users AS u ON u.id = a.user_id
 WHERE u.email = 'casey.demo@example.test'
   AND NOT EXISTS (SELECT 1 FROM demo_cards AS c WHERE c.account_id = a.id);
 
 INSERT INTO demo_cards (account_id, test_profile, label, last_four, expiry_month, expiry_year)
-SELECT a.id, 'DEMO_4242', 'Jordan Demo Card', '4242', 12, 2030
+SELECT a.id, 'ACCOUNT_V1', 'Jordan Demo Card', RIGHT(LPAD(a.id, 12, '0'), 4), 12, 2030
 FROM credit_accounts AS a
 JOIN app_users AS u ON u.id = a.user_id
 WHERE u.email = 'jordan.demo@example.test'

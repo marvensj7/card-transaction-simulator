@@ -3,14 +3,22 @@ package com.marvens.capstone;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.marvens.capstone.controller.AuthController;
-import com.marvens.capstone.entity.*;
-import com.marvens.capstone.repository.*;
+import com.marvens.capstone.entity.AppUser;
+import com.marvens.capstone.entity.CreditAccount;
+import com.marvens.capstone.entity.DemoCard;
+import com.marvens.capstone.repository.AppUserRepository;
+import com.marvens.capstone.repository.CreditAccountRepository;
+import com.marvens.capstone.repository.DemoCardRepository;
 import com.marvens.capstone.security.SecurityConfiguration;
 import com.marvens.capstone.service.AuthService;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.*;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
@@ -18,10 +26,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
@@ -42,6 +60,11 @@ class AuthApiTest extends SecurityTestSupport {
             AppUser user = call.getArgument(0);
             ReflectionTestUtils.setField(user, "id", 10L);
             return user;
+        });
+        when(accounts.save(any())).thenAnswer(call -> {
+            CreditAccount customerAccount = call.getArgument(0);
+            ReflectionTestUtils.setField(customerAccount, "id", 17L);
+            return customerAccount;
         });
     }
 
@@ -115,7 +138,10 @@ class AuthApiTest extends SecurityTestSupport {
         verify(accounts).save(account.capture());
         assertThat(account.getValue().getOutstandingBalance()).isZero();
         assertThat(account.getValue().getCreditLimit()).isEqualByComparingTo("1000");
-        verify(cards).save(any(DemoCard.class));
+        ArgumentCaptor<DemoCard> assignedCard = ArgumentCaptor.forClass(DemoCard.class);
+        verify(cards).save(assignedCard.capture());
+        assertThat(assignedCard.getValue().getTestProfile()).isEqualTo("ACCOUNT_V1");
+        assertThat(assignedCard.getValue().getLastFour()).isEqualTo("0017");
         assertThat(body).doesNotContain(password, "passwordHash", "accessToken", TestData.testNumber());
     }
 

@@ -17,6 +17,7 @@ import com.marvens.capstone.repository.CardTransactionRepository;
 import com.marvens.capstone.repository.CreditAccountRepository;
 import com.marvens.capstone.repository.DemoCardRepository;
 import com.marvens.capstone.service.TransactionService;
+import com.marvens.capstone.service.FictionalCardNumbers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Opt in with -Pmysql-verification. Uses the existing database and only removes its own fixtures.
@@ -62,7 +65,9 @@ class SimulatorIT extends SecurityTestSupport {
         adminId = users.saveAndFlush(TestData.user(AppUser.Role.ADMIN)).getId();
         CreditAccount account = accounts.saveAndFlush(TestData.account(owner));
         accountId = account.getId();
-        DemoCard card = cards.saveAndFlush(TestData.card(account));
+        DemoCard card = TestData.card(account);
+        FictionalCardNumbers.assignTo(card);
+        cards.saveAndFlush(card);
         cardId = card.getId();
     }
 
@@ -79,7 +84,7 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void purchaseRetryDeclineAndRefundKeepRealBalancesAndHistoryCorrect() throws Exception {
-        PurchaseRequest purchase = TestData.purchase(cardId, "50.00");
+        PurchaseRequest purchase = purchaseRequest("50.00");
         JsonNode approved = response(purchase(ownerId, purchase), 201);
         Long purchaseId = approved.path("transaction").path("id").asLong();
         assertThat(approved.path("transaction").path("status").asText()).isEqualTo("APPROVED");
@@ -90,7 +95,7 @@ class SimulatorIT extends SecurityTestSupport {
         response(purchase(ownerId, purchase), 409);
         assertThat(balance()).isEqualByComparingTo("250.00");
 
-        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "900.00")), 201);
+        JsonNode declined = response(purchase(ownerId, purchaseRequest("900.00")), 201);
         assertThat(declined.path("transaction").path("reasonCode").asText()).isEqualTo("INSUFFICIENT_CREDIT");
         assertThat(balance()).isEqualByComparingTo("250.00");
         response(refund(ownerId, declined.path("transaction").path("id").asLong(), id()), 409);
@@ -109,25 +114,25 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void ownershipAndRolesAreEnforcedByRealRepositoryQueries() throws Exception {
-        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 201)
+        Long purchaseId = response(purchase(ownerId, purchaseRequest("1.00")), 201)
                 .path("transaction").path("id").asLong();
         response(get("/api/accounts/" + accountId + "/cards").with(identity(otherId, "USER")), 404);
         response(get("/api/accounts/" + accountId + "/transactions").with(identity(otherId, "USER")), 404);
-        response(purchase(otherId, TestData.purchase(cardId, "1.00")), 404);
+        response(purchase(otherId, purchaseRequest("1.00")), 404);
         response(refund(otherId, purchaseId, id()), 404);
         response(get("/api/admin/accounts").with(identity(ownerId, "USER")).header("X-Role", "ADMIN"), 403);
-        response(purchase(adminId, TestData.purchase(cardId, "1.00")), 403);
+        response(purchase(adminId, purchaseRequest("1.00")), 403);
         assertThat(balance()).isEqualByComparingTo("201.00");
         assertThat(historyCount()).isEqualTo(1);
     }
 
     @Test
     void adminFreezeBlocksPurchasesButAllowsAnExistingPurchaseToBeRefunded() throws Exception {
-        Long purchaseId = response(purchase(ownerId, TestData.purchase(cardId, "50.00")), 201)
+        Long purchaseId = response(purchase(ownerId, purchaseRequest("50.00")), 201)
                 .path("transaction").path("id").asLong();
         response(patch("/api/admin/accounts/" + accountId + "/status")
                 .with(identity(adminId, "ADMIN")).param("status", "FROZEN"), 200);
-        JsonNode declined = response(purchase(ownerId, TestData.purchase(cardId, "1.00")), 201);
+        JsonNode declined = response(purchase(ownerId, purchaseRequest("1.00")), 201);
         assertThat(declined.path("transaction").path("reasonCode").asText()).isEqualTo("ACCOUNT_FROZEN");
         response(refund(ownerId, purchaseId, id()), 201);
         assertThat(balance()).isEqualByComparingTo("200.00");
@@ -141,10 +146,10 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void invalidInputLeavesTheExistingDatabaseAlone() throws Exception {
-        PurchaseRequest request = TestData.purchase(cardId, "1.00");
+        PurchaseRequest request = purchaseRequest("1.00");
         request.testCardNumber = "0".repeat(16);
         response(purchase(ownerId, request), 400);
-        request.testCardNumber = TestData.testNumber();
+        request.testCardNumber = "0000" + String.format("%012d", accountId);
         request.amount = new BigDecimal("1.001");
         response(purchase(ownerId, request), 400);
         assertThat(balance()).isEqualByComparingTo("200.00");
@@ -153,7 +158,7 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void historyPaginatesNewestFirstAndReportsTheRealTotal() throws Exception {
-        for (int i = 0; i < 51; i++) service.purchase(ownerId, accountId, TestData.purchase(cardId, "1.00"));
+        for (int i = 0; i < 51; i++) service.purchase(ownerId, accountId, purchaseRequest("1.00"));
         JsonNode first = response(get("/api/accounts/" + accountId + "/transactions?size=50")
                 .with(identity(ownerId, "USER")), 200);
         JsonNode last = response(get("/api/accounts/" + accountId + "/transactions?size=50&page=1")
@@ -171,8 +176,8 @@ class SimulatorIT extends SecurityTestSupport {
     void simultaneousPurchasesCannotSpendTheSameAvailableCredit() throws Exception {
         var workers = Executors.newFixedThreadPool(2);
         try {
-            var first = workers.submit(() -> service.purchase(ownerId, accountId, TestData.purchase(cardId, "500.00")));
-            var second = workers.submit(() -> service.purchase(ownerId, accountId, TestData.purchase(cardId, "500.00")));
+            var first = workers.submit(() -> service.purchase(ownerId, accountId, purchaseRequest("500.00")));
+            var second = workers.submit(() -> service.purchase(ownerId, accountId, purchaseRequest("500.00")));
             List<TransactionResultResponse> results = List.of(first.get(15, TimeUnit.SECONDS), second.get(15, TimeUnit.SECONDS));
             assertThat(results).extracting(result -> result.transaction.status.name())
                     .containsExactlyInAnyOrder("APPROVED", "DECLINED");
@@ -185,7 +190,7 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void simultaneousIdenticalRetriesCreateOnlyOnePurchase() throws Exception {
-        PurchaseRequest request = TestData.purchase(cardId, "50.00");
+        PurchaseRequest request = purchaseRequest("50.00");
         var workers = Executors.newFixedThreadPool(2);
         try {
             var first = workers.submit(() -> service.purchase(ownerId, accountId, request));
@@ -206,9 +211,15 @@ class SimulatorIT extends SecurityTestSupport {
             accounts.flush();
             throw new IllegalStateException("fictional-write-failure-marker");
         }).when(transactions).save(any());
-        response(purchase(ownerId, TestData.purchase(cardId, "50.00")), 500);
+        response(purchase(ownerId, purchaseRequest("50.00")), 500);
         assertThat(balance()).isEqualByComparingTo("200.00");
         assertThat(historyCount()).isZero();
+    }
+
+    private PurchaseRequest purchaseRequest(String amount) {
+        PurchaseRequest request = TestData.purchase(cardId, amount);
+        request.testCardNumber = "0000" + String.format("%012d", accountId);
+        return request;
     }
 
     private MockHttpServletRequestBuilder purchase(Long userId, PurchaseRequest request) {
@@ -223,7 +234,7 @@ class SimulatorIT extends SecurityTestSupport {
 
     private JsonNode response(MockHttpServletRequestBuilder request, int expectedStatus) throws Exception {
         String body = mvc.perform(request).andExpect(status().is(expectedStatus)).andReturn().getResponse().getContentAsString();
-        assertThat(body).doesNotContain(TestData.testNumber(), "testSecurityCode", "passwordHash", "$2b$", "accessToken");
+        assertThat(body).doesNotContain("0000" + String.format("%012d", accountId), TestData.testNumber(), "testSecurityCode", "passwordHash", "$2b$", "accessToken");
         return json.readTree(body);
     }
 

@@ -2,11 +2,11 @@
 
 ## Timing and order
 
-My target is 9 minutes and 15 seconds, with 45 seconds available for pauses or a slow page load. The order follows section 6.2, with the waived AWS section replaced by a brief scope note at the start. Questions follow the closing if the class format allows separate time.
+My target is 9 minutes and 15 seconds, with 45 seconds available for pauses or a slow page load. The presentation covers the problem and solution, architecture, live demo, technical deep dive, and lessons learned from section 6.2. Questions follow the closing if the class format allows separate time.
 
 | Time | Section | What I show |
 | --- | --- | --- |
-| 0:00–0:30 | Introduction and project scope | Credit Circuit title and local application scope. |
+| 0:00–0:30 | Introduction | Credit Circuit title and project purpose. |
 | 0:30–1:30 | Problem and solution | Customer problem, simulator purpose, customer/admin roles. |
 | 1:30–3:00 | Architecture overview | Application flow and four-table relationship diagram. |
 | 3:00–5:45 | Live demo | Sign-in, approved purchase, decline, history/refund, admin freeze. |
@@ -14,17 +14,45 @@ My target is 9 minutes and 15 seconds, with 45 seconds available for pauses or a
 | 7:45–8:45 | Lessons learned | Keeping the workflow understandable, testing failures, and using AI critically. |
 | 8:45–9:15 | Closing | What the finished simulator demonstrates. |
 
-## 1. Introduction and scope
+## 1. Introduction
 
-“I'm presenting Credit Circuit, my credit card transaction simulator. My instructor approved running the project locally, so AWS deployment and its related infrastructure are outside this project's scope. The application uses React, Spring Boot, and MySQL, and all card details and balances are fictional. I'll show the customer workflow, how the purchase logic works, and the checks I used to verify it.”
+### Title slide
 
-This replaces the infrastructure segment. I am not claiming a cloud deployment or implemented AWS resources.
+**Credit Circuit**
+
+Credit card transaction simulator
+
+React · Spring Boot · MySQL
+
+### Opening narration
+
+“I'm presenting Credit Circuit, a credit card transaction simulator I built with React, Spring Boot, and MySQL. Customers can make fictional purchases and manage their credit, while administrators can review activity and control account status. I'll show the application, walk through the purchase service, and explain how I tested the decisions behind it.”
 
 ## 2. Problem and solution
 
-“A purchase needs more than a successful button click. The application has to check available credit, make sure the account belongs to the customer, and prevent a repeated submission from charging twice. The balance and transaction history also need to agree. I built Credit Circuit to demonstrate those decisions in a small application.”
+### Slide: Keeping a purchase correct
 
-Customers can sign in, view credit, make fictional purchases, review history, and request a full refund. Administrators can review activity and freeze or reactivate accounts. The application connects to no bank or payment processor.
+**The problem**
+
+- Purchases can exceed available credit.
+- Repeated submissions can create duplicate charges.
+- Account balances and history need to agree.
+
+**My solution**
+
+Credit Circuit checks ownership and credit, protects against duplicate submissions, and records purchase and refund outcomes.
+
+### One-minute narration
+
+“The problem I focused on is what happens when someone submits a purchase. The account might not have enough available credit, the same request might be sent twice, or a balance update could fail before the transaction is recorded. The application also needs to make sure the customer is using their own account.
+
+I built Credit Circuit to handle those situations using fictional cards and balances. Customers can sign in, check their available credit, submit a purchase, and see whether it was approved or declined. They can also review their history and request a full refund. Administrators can review activity and freeze accounts.
+
+My goal was to build a complete workflow where the purchase decision, account balance, and saved history stay consistent.”
+
+### Transition to architecture
+
+“Here's how I organized the application to support that workflow.”
 
 ## 3. Architecture overview
 
@@ -99,7 +127,7 @@ AI helped with implementation and review, but I had to question unnecessary comp
 
 ## Slides and rehearsal
 
-The planned slides are title/scope, problem/solution, application architecture, database relationships, purchase logic, security/test evidence, and lessons/closing. The live application appears between the architecture and purchase-logic slides. Speaker notes hold the explanation; the slides hold short points and readable visuals.
+The planned slides are title, problem/solution, application architecture, database relationships, purchase logic, security/test evidence, and lessons/closing. The live application appears between the architecture and purchase-logic slides. Speaker notes hold the explanation; the slides hold short points and readable visuals.
 
 For the October 12 trial run, I will time the full presentation with the application open, including account switching. I will have customer and admin sessions ready, verify the backend/database are running, and keep screenshots of the demo outcomes available if a local service fails. Credentials, tokens, and configuration secrets stay out of slides and screenshots. The presentation is October 13.
 

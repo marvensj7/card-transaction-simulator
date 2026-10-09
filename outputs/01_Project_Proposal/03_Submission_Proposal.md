@@ -25,7 +25,7 @@ Customers register, sign in, view credit and a masked fictional card, submit pur
 12. As an administrator, I can page safe account/activity summaries.
 13. As an administrator, I can freeze spending and reactivate accounts while eligible refunds remain available.
 14. As a keyboard user, I can reach fields, errors, navigation, dialogs, and wide tables.
-15. As a user, I will be able to flip a planned 3D card after required application work, with an ordinary form and reduced-motion fallback.
+15. As a user, I can flip a fictional 3D card on home, dashboard, and purchase pages, with keyboard controls, an ordinary purchase form, and a reduced-motion fallback.
 
 ## Functional requirements
 
@@ -74,4 +74,4 @@ The tables are app_users, credit_accounts, demo_cards, and card_transactions. Se
 
 My instructor waived AWS and related infrastructure, deployment pipelines, and cloud monitoring. Jira and branch protection are outside this pass. Other written application/quality requirements remain required. The application runs locally.
 
-The flippable 3D card remains planned after required application work.
+The flippable 3D card is implemented as a shared React component with CSS rotation and a reduced-motion face switch. It displays masked fictional details only.

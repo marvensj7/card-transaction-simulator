@@ -1,6 +1,6 @@
 # React frontend
 
-Credit Circuit uses JSX, JSDoc prop checking, ordinary page state, and direct handlers. The dark green/lime home page and fictional card teaser remain.
+Credit Circuit uses JSX, JSDoc prop checking, ordinary page state, and direct handlers. The dark green/lime home page includes a flippable fictional card. Dashboard and purchase reuse the same FlippableCard with assigned masked details. Click, tap, Enter, or Space flips it; reduced-motion preferences switch faces without animation. The ordinary purchase form stays independent, and no number or security-code input is copied into the preview.
 
 ```powershell
 npm ci

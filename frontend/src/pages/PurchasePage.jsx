@@ -8,6 +8,7 @@ import AccountSummary from '../components/AccountSummary.jsx'
 import Input from '../components/Input.jsx'
 import Button from '../components/Button.jsx'
 import Loading from '../components/Loading.jsx'
+import FlippableCard from '../components/FlippableCard.jsx'
 
 const emptyPurchaseForm = {
   testCardNumber: '',
@@ -199,6 +200,7 @@ export default function PurchasePage() {
           <AccountSummary account={customerAccount} />
         </Card>
         <Card title="Fictional purchase">
+          <FlippableCard key={assignedCard.id} card={assignedCard} />
           <p>
             Assigned card: {assignedCard.maskedNumber}.
             {' '}Expiry {assignedCard.expiryMonth}/{assignedCard.expiryYear}.

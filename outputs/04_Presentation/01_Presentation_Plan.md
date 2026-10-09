@@ -84,7 +84,7 @@ The customer account must be active, its card unexpired, and its available credi
 
 Registration, reactivation, pagination, and detailed error cases can be shown during questions. Duplicate retries are explained with the service and test evidence rather than simulated by double-clicking a disabled button.
 
-The 3D card is still planned and is not included as a completed feature. If implemented and checked before the presentation, a brief flip fits inside the dashboard segment.
+The implemented 3D card can appear briefly in the dashboard segment of the demo video. It needs no dedicated slide or narration; explain its React state and CSS flip only if asked.
 
 ## 5. Technical deep dive
 

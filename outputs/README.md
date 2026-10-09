@@ -18,4 +18,4 @@
 
 - [Rubric checklist and measured results](03_Verification/01_Completion_Checklist.md)
 
-Documents describe implemented behavior, verification results, and planned application work. AWS/related deployment work are waived. Jira and branch protection are outside this pass. The 3D card remains planned.
+Documents describe implemented behavior, verification results, and planned application work. AWS/related deployment work are waived. Jira and branch protection are outside this pass. The 3D card is implemented on home, dashboard, and purchase with masked details, keyboard controls, and a reduced-motion fallback.

@@ -7,6 +7,7 @@ import Card from '../components/Card.jsx'
 import AccountSummary from '../components/AccountSummary.jsx'
 import Loading from '../components/Loading.jsx'
 import Button from '../components/Button.jsx'
+import FlippableCard from '../components/FlippableCard.jsx'
 
 export default function DashboardPage() {
   const { user } = useUserUi()
@@ -78,8 +79,7 @@ export default function DashboardPage() {
         <Card title="Your fictional card">
           {assignedCard ? (
             <>
-              <p>{assignedCard.label} · {assignedCard.maskedNumber}</p>
-              <p>Expiry {assignedCard.expiryMonth}/{assignedCard.expiryYear}</p>
+              <FlippableCard key={assignedCard.id} card={assignedCard} />
               <p className="hint">Follow your assigned card's entry instruction in the purchase form.</p>
             </>
           ) : (

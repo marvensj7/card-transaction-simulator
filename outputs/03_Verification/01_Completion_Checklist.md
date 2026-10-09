@@ -1,10 +1,10 @@
 # Credit Circuit verification checklist
 
-I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9, and Chromium. Browser/Postman evidence describes revision cd81a36; the final SonarQube scan describes revision f72dc2c. The original local CardTransaction.java edit was preserved and included in verification. My instructor waived AWS and related deployment/DevOps requirements. Jira and branch protection are excluded. Other written requirements remain required.
+I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9, and Chromium. Postman evidence describes revision cd81a36; browser evidence was refreshed for the 3D card changes before their commit; the final SonarQube scan describes revision f72dc2c. The original local CardTransaction.java edit was preserved and included in verification. My instructor waived AWS and related deployment/DevOps requirements. Jira and branch protection are excluded. Other written requirements remain required.
 
 | Rubric area | Implemented behavior and evidence | Remaining limitation or action |
 | --- | --- | --- |
-| 1.2-1.3 Planning | Current proposals; system/sequence, ERD, API, and React diagrams in [architecture](../02_Architecture/01_System_Architecture.md). | The planned 3D card is still future work. |
+| 1.2-1.3 Planning | Current proposals; system/sequence, ERD, API, and React diagrams in [architecture](../02_Architecture/01_System_Architecture.md). | The 3D card is implemented; its browser checks cover flipping, keyboard input, narrow layouts, and reduced motion. |
 | 2.1-2.4 Data/services | Four constrained tables, BCrypt seed hashes, JPA repositories/custom queries, bounded pages, constructor injection, custom exceptions, locking and atomic balance/history writes. [Java report](java-results.json). | Local fictional dataset; no production/load-test claim. |
 | 2.5-2.6 API | Request/entity validation, controller @Valid, safe global errors/logging, 201 new outcome/200 identical retry, generated OpenAPI. [API contract](../02_Architecture/03_API_Design.md). | No request bodies or secret values exported as logs. |
 | 3.1-3.3 React | Vite, small shared Button/Input/Card/Table/Modal components, more than five routes, JSX/JSDoc prop checks. State/effects control pages; Context/reducer handles authentication; memo/callback stabilize shared authentication values/actions. | No TypeScript migration or unused hook examples. |
@@ -17,7 +17,7 @@ I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9,
 
 ## How the browser evidence was obtained
 
-Twelve workflow groups used the real Spring Boot API and MySQL with temporary fictional fixtures that were removed afterward. Different assigned cards, full-number matching, purchases, saved declines, refunds, account status changes, ownership/role failures, and pagination reached the real application. For uncertain retries, the runner let the backend save before discarding the response, then verified the same UUID and one saved result. Sign-in, sign-out, and reload checks confirmed stable card details.
+Thirteen workflow groups used the real Spring Boot API and MySQL with temporary fictional fixtures that were removed afterward. Different assigned cards, full-number matching, purchases, saved declines, refunds, account status changes, ownership/role failures, and pagination reached the real application. For uncertain retries, the runner let the backend save before discarding the response, then verified the same UUID and one saved result. Sign-in, sign-out, and reload checks confirmed stable card details.
 
 The runner explicitly injected a 401 expiration response, a 503 dashboard failure, and empty account/card/admin list responses. Empty customer history was real. The React state tests separately exercised its expiration timer; Java tests verified genuinely expired JWTs. These are distinct checks, not a claim that the browser waited 15 minutes.
 
@@ -29,4 +29,4 @@ The final frontend pass passed prop checking, 35 API tests, nine route tests, se
 
 An [actual backend restart](restart-results.json) preserved the assigned card and returned the same saved purchase on an identical retry. The [seed rerun](seed-results.json) preserved existing data and confirmed four tables with no migration. New cards use ACCOUNT_V1: 0000 followed by the account ID padded to 12 digits; only the profile and last four digits are stored. Existing DEMO_4242 cards retain their original behavior and history. The backend checks the complete expected number and owned card/expiry; security codes remain format-only.
 
-This checklist covers application implementation and verification. The final SonarQube scan passed on October 9, and its temporary project token was revoked. The flippable 3D card remains planned.
+This checklist covers application implementation and verification. The final SonarQube scan passed on October 9, and its temporary project token was revoked. The flippable 3D card is implemented and checked in Chromium. Its frontend changes postdate the recorded SonarQube scan.

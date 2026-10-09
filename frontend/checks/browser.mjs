@@ -88,6 +88,41 @@ try {
     await accessible()
     await page.screenshot({path: fileURLToPath(new URL('home-desktop.png', output)), fullPage: true})
   })
+  await check('3D card flips with pointer and keyboard, fits narrow screens, and respects reduced motion', async () => {
+    const flip = page.getByRole('button', {name: 'Flip fictional card', exact: true})
+    const rotator = page.locator('.credit-card-rotator')
+    await expect(flip).toHaveAttribute('aria-pressed', 'false')
+    await flip.click()
+    await expect(flip).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('.credit-card-back')).toHaveAttribute('aria-hidden', 'false')
+    await expect(rotator).toHaveCSS('transform', 'matrix3d(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1)')
+    await accessible()
+    await page.screenshot({path: fileURLToPath(new URL('card-back-desktop.png', output)), fullPage: true})
+    await page.keyboard.press('Enter')
+    await expect(flip).toHaveAttribute('aria-pressed', 'false')
+    await page.keyboard.press('Space')
+    await expect(flip).toHaveAttribute('aria-pressed', 'true')
+    await expect(flip).toBeFocused()
+    await page.emulateMedia({reducedMotion: 'reduce'})
+    await expect(rotator).toHaveCSS('transform', 'none')
+    await expect(rotator).toHaveCSS('transition-duration', '0s')
+    await expect(page.locator('.credit-card-front')).toHaveCSS('visibility', 'hidden')
+    await expect(page.locator('.credit-card-back')).toBeVisible()
+    for (const width of [768, 390, 320]) {
+      await page.setViewportSize({width, height: 844})
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No overflow at ${width}px`)
+      for (const side of [false, true]) {
+        if ((await flip.getAttribute('aria-pressed')) !== String(side)) await flip.click()
+        const face = page.locator(side ? '.credit-card-back' : '.credit-card-front')
+        assert.ok(await face.evaluate(element => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth), `Card content fits at ${width}px`)
+        await accessible()
+      }
+    }
+    await page.screenshot({path: fileURLToPath(new URL('card-back-phone.png', output)), fullPage: true})
+    await flip.click()
+    await page.emulateMedia({reducedMotion: 'no-preference'})
+    await page.setViewportSize({width: 1440, height: 900})
+  })
   await check('Registration, controlled sign-in, loading skeleton and empty history', async () => {
     await navigation('Sign in')
     await page.getByRole('button', {name: 'New here? Create account'}).click()
@@ -106,6 +141,12 @@ try {
     const accounts = await api('/api/accounts')
     accountId = accounts.data[0].id
     assignedCard = (await api(`/api/accounts/${accountId}/cards`)).data[0]
+    await expect(page.locator('.credit-card-front')).toContainText(assignedCard.maskedNumber)
+    await expect(page.locator('.credit-card-front')).toContainText(`${String(assignedCard.expiryMonth).padStart(2, '0')}/${assignedCard.expiryYear}`)
+    await page.getByRole('button', {name: 'Flip fictional card', exact: true}).click()
+    await expect(page.locator('.credit-card-back')).toHaveAttribute('aria-hidden', 'false')
+    await accessible()
+    await page.getByRole('button', {name: 'Flip fictional card', exact: true}).click()
     await accessible()
     await page.screenshot({path: fileURLToPath(new URL('dashboard-desktop.png', output)), fullPage: true})
     await navigation('Transactions')
@@ -147,6 +188,10 @@ try {
     const otherNumber = '0000' + String(fixtures.other.accountId).padStart(12, '0')
     assert.ok(ownNumber !== otherNumber, 'Different accounts need different assigned fictional numbers.')
     await expect(page.getByText(assignedCard.numberEntryHint, {exact: true})).toBeVisible()
+    await page.getByRole('button', {name: 'Flip fictional card', exact: true}).click()
+    await expect(page.getByLabel('Fictional card number', {exact: true})).toBeVisible()
+    await expect(page.getByLabel('Fictional security code', {exact: true})).toHaveValue('')
+    await page.getByRole('button', {name: 'Flip fictional card', exact: true}).click()
     assert.ok(!JSON.stringify(assignedCard).includes(ownNumber), 'Card API displays remain masked.')
     const request = {
       cardId: assignedCard.id,

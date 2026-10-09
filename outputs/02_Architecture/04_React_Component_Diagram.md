@@ -12,6 +12,9 @@ flowchart TD
     ProtectedRoute --> PurchasePage
     ProtectedRoute --> TransactionsPage
     ProtectedRoute --> AdminPage
+    HomePage --> FlippableCard
+    DashboardPage --> FlippableCard
+    PurchasePage --> FlippableCard
     DashboardPage --> AccountSummary
     PurchasePage --> AccountSummary
     LoginPage --> Input
@@ -25,7 +28,7 @@ flowchart TD
     AdminPage --> Pagination
 ```
 
-Button supplies pending/disabled feedback, Input connects labels/errors with useId, Card provides section headings, Table provides caption/headers and a focusable scroll region, ConfirmModal uses native dialog, and Loading supplies a spinner/skeleton. These small pieces serve current workflows. Home retains its visual teaser. The future 3D card remains planned.
+Button supplies pending/disabled feedback, Input connects labels/errors with useId, Card provides section headings, Table provides caption/headers and a focusable scroll region, ConfirmModal uses native dialog, and Loading supplies a spinner/skeleton. These small pieces serve current workflows. FlippableCard uses one local useState boolean and a native button to flip CSS card faces on home, dashboard, and purchase. It receives only the safe DemoCard response; the home teaser uses a masked placeholder. Hidden faces are excluded from assistive technology, and reduced-motion preferences switch faces without rotation. Purchase form fields remain ordinary independent inputs.
 
 | React item | Use and reason |
 | --- | --- |

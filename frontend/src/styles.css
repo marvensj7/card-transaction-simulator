@@ -66,8 +66,7 @@ main:focus-visible {
 .site-header,
 .brand,
 .site-footer,
-.card-heading,
-.card-footer {
+.card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -160,7 +159,6 @@ main:focus-visible {
 .project-label,
 .eyebrow,
 .signal-route,
-.card-footer,
 .card-stage figcaption,
 .site-footer {
   font-family: var(--mono);
@@ -269,21 +267,6 @@ h1 span {
   stroke: #7b9562;
 }
 
-.display-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: min(75%, 19rem);
-  aspect-ratio: 5 / 7;
-  padding: 1.75rem;
-  border: 1px solid #f7faed;
-  border-radius: 1.25rem;
-  background: #e7ebdf;
-  color: #1d281e;
-  box-shadow: 0 1.5rem 4rem #080d0940;
-}
-
 .card-heading {
   align-items: flex-start;
   flex-wrap: wrap;
@@ -314,36 +297,6 @@ h1 span {
   inset: 35% 0;
   border: 0;
   border-block: 1px solid #7d8b69;
-}
-
-.card-emblem {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  padding-block: 1.5rem;
-}
-
-.card-emblem .circuit-mark {
-  width: 9rem;
-  max-width: 100%;
-  height: auto;
-}
-
-.masked-number {
-  margin: 0 0 1.25rem;
-  font-family: var(--mono);
-  font-size: 1.15rem;
-  letter-spacing: 0.1em;
-}
-
-.card-footer {
-  flex-wrap: wrap;
-  padding-top: 0.8rem;
-  border-top: 1px solid #b8c2ad;
-}
-
-.card-edition {
-  color: #59674e;
 }
 
 .card-stage figcaption {
@@ -485,15 +438,6 @@ h1 span {
   .signal-traces {
     width: 100%;
   }
-
-  .display-card {
-    width: min(100%, 16rem);
-    padding: 1.5rem;
-  }
-
-  .card-emblem .circuit-mark {
-    width: 7rem;
-  }
 }
 
 /* Working account screens share the home page's colors and spacing. */
@@ -537,3 +481,96 @@ dialog { width: min(36rem, calc(100% - 2rem)); border: 1px solid var(--accent); 
 dialog::backdrop { background: #080d09cc; }
 
 .notice { display: block; margin-block: 1rem; }
+
+/* A native button provides mouse, touch, Enter, and Space controls. */
+.credit-card-preview {
+  position: relative;
+  width: min(100%, 28rem);
+  margin: 1rem 0;
+}
+
+.credit-card-flip {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 1.25rem;
+  background: transparent;
+  color: #1d281e;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1000px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.credit-card-rotator {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(.22, .7, .2, 1);
+}
+
+.credit-card-rotator[data-flipped="true"] { transform: rotateY(180deg); }
+
+.credit-card-face {
+  --card-padding: clamp(1rem, 3vw, 1.75rem);
+  grid-area: 1 / 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 14rem;
+  width: 100%;
+  aspect-ratio: 1.586;
+  padding: var(--card-padding);
+  border: 1px solid #f7faed;
+  border-radius: 1.25rem;
+  background: linear-gradient(125deg, #f2f3ea, #d2ddbf);
+  box-shadow: 0 1.5rem 3rem #080d0940;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.credit-card-watermark {
+  position: absolute;
+  top: 22%;
+  right: 8%;
+  width: 35%;
+  color: #62754b;
+  opacity: .18;
+}
+
+.credit-card-watermark .circuit-mark { width: 100%; height: auto; }
+.credit-card-details { position: relative; display: grid; gap: .6rem; margin-top: 1.4rem; }
+.credit-card-number { font-family: var(--mono); font-size: clamp(.95rem, 2.5vw, 1.25rem); letter-spacing: .08em; }
+.credit-card-meta { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; font-size: .75rem; }
+.credit-card-meta > :first-child { max-width: 70%; }
+.credit-card-meta > :last-child { flex-shrink: 0; text-align: right; }
+.credit-card-footer { display: flex; justify-content: space-between; gap: 1rem; padding-top: .6rem; border-top: 1px solid #98aa81; font-family: var(--mono); font-size: .65rem; }
+
+.credit-card-back {
+  transform: rotateY(180deg);
+  justify-content: flex-start;
+  gap: .65rem;
+  background: linear-gradient(125deg, #d2ddbf, #e7ebdf);
+}
+
+.credit-card-stripe { height: 2.7rem; flex-shrink: 0; margin: -.2rem calc(-1 * var(--card-padding)) .3rem; background: #1d281e; }
+.credit-card-signature { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem .75rem; background: #f7faed; font-family: var(--mono); font-size: .7rem; }
+.credit-card-back-copy { font-size: .85rem; font-weight: 600; }
+.credit-card-back-note { font-size: .7rem; }
+.credit-card-back-brand { display: flex; align-items: center; justify-content: flex-end; gap: .4rem; margin-top: auto; font-size: .75rem; font-weight: 650; }
+.credit-card-back-brand .circuit-mark { width: 1.5rem; height: 1.5rem; }
+.credit-card-preview figcaption { margin-top: 1.25rem; color: var(--muted); font-family: var(--mono); font-size: .7rem; text-align: center; }
+
+/* Swap faces without rotation when the user requests reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .credit-card-rotator,
+  .credit-card-rotator[data-flipped="true"],
+  .credit-card-back { transform: none; transition: none; }
+  .credit-card-face[aria-hidden="true"] { visibility: hidden; }
+}

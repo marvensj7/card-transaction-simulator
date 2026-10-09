@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-09T17:46:01.918Z",
+  "date": "2026-10-09T20:51:07.622Z",
   "realBackend": true,
   "database": "MySQL",
   "injectedFailures": [
@@ -18,6 +18,10 @@
   "results": [
     {
       "name": "Home teaser, desktop layout, skip link and keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "3D card flips with pointer and keyboard, fits narrow screens, and respects reduced motion",
       "passed": true
     },
     {

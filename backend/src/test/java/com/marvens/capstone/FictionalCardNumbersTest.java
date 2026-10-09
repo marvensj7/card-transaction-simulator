@@ -1,6 +1,5 @@
 package com.marvens.capstone;
 
-import com.marvens.capstone.dto.CardResponse;
 import com.marvens.capstone.entity.AppUser;
 import com.marvens.capstone.entity.CreditAccount;
 import com.marvens.capstone.entity.DemoCard;
@@ -34,10 +33,9 @@ class FictionalCardNumbersTest {
     void recreatedCardObjectsUseOnlyPersistedDetailsAndReturnMaskedInstructions() {
         DemoCard assignedCard = assignedCard(10017L);
         DemoCard reloadedCard = assignedCard(10017L);
-        CardResponse response = new CardResponse(reloadedCard);
-        assertThat(response.maskedNumber).isEqualTo("•••• 0017");
-        assertThat(response.numberEntryHint).contains("account ID 10017", "12 digits");
-        assertThat(response.numberEntryHint).doesNotContain("0000" + String.format("%012d", 10017L));
+        assertThat(reloadedCard.getMaskedNumber()).isEqualTo("•••• 0017");
+        assertThat(reloadedCard.getNumberEntryHint()).contains("account ID 10017", "12 digits");
+        assertThat(reloadedCard.getNumberEntryHint()).doesNotContain("0000" + String.format("%012d", 10017L));
         assertThat(reloadedCard.getTestProfile()).isEqualTo(assignedCard.getTestProfile());
         assertThat(FictionalCardNumbers.matchesAssignedNumber(reloadedCard,
                 "0000" + String.format("%012d", 10017L))).isTrue();

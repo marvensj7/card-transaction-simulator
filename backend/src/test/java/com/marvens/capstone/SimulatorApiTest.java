@@ -87,10 +87,16 @@ class SimulatorApiTest extends SecurityTestSupport {
     @Test
     void accountAndCardResponsesContainOnlySafeDisplayFields() throws Exception {
         String summary = mvc.perform(get("/api/accounts").with(identity(1L, "USER")))
+                .andExpect(jsonPath("$[0]", org.hamcrest.Matchers.aMapWithSize(6)))
+                .andExpect(jsonPath("$[0].user").doesNotExist())
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].ownerName").value("Demo Customer"))
                 .andExpect(jsonPath("$[0].availableCredit").value(800))
                 .andReturn().getResponse().getContentAsString();
         String masked = mvc.perform(get("/api/accounts/7/cards").with(identity(1L, "USER")))
+                .andExpect(jsonPath("$[0]", org.hamcrest.Matchers.aMapWithSize(6)))
+                .andExpect(jsonPath("$[0].account").doesNotExist())
+                .andExpect(jsonPath("$[0].testProfile").doesNotExist())
+                .andExpect(jsonPath("$[0].lastFour").doesNotExist())
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].maskedNumber").value("\u2022\u2022\u2022\u2022 4242"))
                 .andReturn().getResponse().getContentAsString();
         assertThat(summary + masked).doesNotContain("passwordHash", "$2b$", TestData.testNumber(), "testSecurityCode");

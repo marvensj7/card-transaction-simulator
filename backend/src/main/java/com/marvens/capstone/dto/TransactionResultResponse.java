@@ -7,7 +7,7 @@ import com.marvens.capstone.entity.CreditAccount;
 // One purchase/refund result plus the account's current balance.
 public class TransactionResultResponse {
     public final TransactionResponse transaction;
-    public final AccountResponse account;
+    public final CreditAccount account;
     @JsonIgnore
     public final boolean replayed;
 
@@ -18,6 +18,6 @@ public class TransactionResultResponse {
     public TransactionResultResponse(CardTransaction savedTransaction, CreditAccount currentAccount, boolean replayed) {
         this.replayed = replayed;
         transaction = new TransactionResponse(savedTransaction);
-        account = new AccountResponse(currentAccount);
+        account = currentAccount;
     }
 }

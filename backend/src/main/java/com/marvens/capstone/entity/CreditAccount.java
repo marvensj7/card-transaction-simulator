@@ -3,7 +3,10 @@ package com.marvens.capstone.entity;
 import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +21,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "credit_accounts")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CreditAccount {
     public enum Status { ACTIVE, FROZEN }
 
@@ -49,13 +53,48 @@ public class CreditAccount {
         // JPA needs a no-argument constructor to load existing rows.
     }
 
-    public Long getId() { return id; }
-    public AppUser getUser() { return user; }
-    public void setUser(AppUser user) { this.user = user; }
-    public BigDecimal getCreditLimit() { return creditLimit; }
-    public void setCreditLimit(BigDecimal creditLimit) { this.creditLimit = creditLimit; }
-    public BigDecimal getOutstandingBalance() { return outstandingBalance; }
-    public void setOutstandingBalance(BigDecimal outstandingBalance) { this.outstandingBalance = outstandingBalance; }
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
+    public Long getId() {
+        return id;
+    }
+
+    @JsonIgnore
+    public AppUser getUser() {
+        return user;
+    }
+
+    public void setUser(AppUser user) {
+        this.user = user;
+    }
+
+    public String getOwnerName() {
+        return user.getDisplayName();
+    }
+
+    public BigDecimal getCreditLimit() {
+        return creditLimit;
+    }
+
+    public void setCreditLimit(BigDecimal creditLimit) {
+        this.creditLimit = creditLimit;
+    }
+
+    public BigDecimal getOutstandingBalance() {
+        return outstandingBalance;
+    }
+
+    public void setOutstandingBalance(BigDecimal outstandingBalance) {
+        this.outstandingBalance = outstandingBalance;
+    }
+
+    public BigDecimal getAvailableCredit() {
+        return creditLimit.subtract(outstandingBalance);
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }

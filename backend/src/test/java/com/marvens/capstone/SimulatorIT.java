@@ -85,6 +85,40 @@ class SimulatorIT extends SecurityTestSupport {
     }
 
     @Test
+    void accountAndCardModelsSerializeAfterServiceTransactionsClose() throws Exception {
+        JsonNode customerAccount = response(get("/api/accounts")
+                .with(identity(ownerId, "USER")), 200).get(0);
+        assertThat(customerAccount.size()).isEqualTo(6);
+        assertThat(customerAccount.path("ownerName").asText()).isEqualTo("Demo Customer");
+        assertThat(customerAccount.path("availableCredit").decimalValue()).isEqualByComparingTo("800.00");
+        assertThat(customerAccount.has("user")).isFalse();
+
+        JsonNode assignedCard = response(get("/api/accounts/" + accountId + "/cards")
+                .with(identity(ownerId, "USER")), 200).get(0);
+        assertThat(assignedCard.size()).isEqualTo(6);
+        assertThat(assignedCard.path("maskedNumber").asText()).startsWith("•••• ");
+        assertThat(assignedCard.path("numberEntryHint").asText()).contains(accountId.toString());
+        assertThat(assignedCard.has("account")).isFalse();
+        assertThat(assignedCard.has("testProfile")).isFalse();
+        assertThat(assignedCard.has("lastFour")).isFalse();
+
+        JsonNode updatedAccount = response(patch("/api/admin/accounts/" + accountId + "/status")
+                .with(identity(adminId, "ADMIN")).param("status", "FROZEN"), 200);
+        assertThat(updatedAccount.size()).isEqualTo(6);
+        assertThat(updatedAccount.path("ownerName").asText()).isEqualTo("Demo Customer");
+        assertThat(updatedAccount.path("status").asText()).isEqualTo("FROZEN");
+
+        JsonNode adminAccounts = response(get("/api/admin/accounts")
+                .with(identity(adminId, "ADMIN")), 200).path("items");
+        assertThat(adminAccounts.isEmpty()).isFalse();
+        for (JsonNode account : adminAccounts) {
+            assertThat(account.size()).isEqualTo(6);
+            assertThat(account.path("ownerName").isTextual()).isTrue();
+            assertThat(account.has("user")).isFalse();
+        }
+    }
+
+    @Test
     void purchaseRetryDeclineAndRefundKeepRealBalancesAndHistoryCorrect() throws Exception {
         PurchaseRequest purchase = purchaseRequest("50.00");
         JsonNode approved = response(purchase(ownerId, purchase), 201);

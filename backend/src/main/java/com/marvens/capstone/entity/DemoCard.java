@@ -1,6 +1,9 @@
 package com.marvens.capstone.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.marvens.capstone.service.FictionalCardNumbers;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -19,6 +22,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "demo_cards")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DemoCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +35,7 @@ public class DemoCard {
     @NotNull
     private CreditAccount account;
 
+    @JsonIgnore
     @Column(name = "test_profile", nullable = false, length = 20)
     @NotBlank
     @Size(max = 20)
@@ -41,6 +46,7 @@ public class DemoCard {
     @Size(max = 50)
     private String label;
 
+    @JsonIgnore
     @Column(name = "last_four", nullable = false, length = 4, columnDefinition = "char(4)")
     @NotBlank
     @Pattern(regexp = "\\d{4}")
@@ -66,6 +72,7 @@ public class DemoCard {
         return id;
     }
 
+    @JsonIgnore
     public CreditAccount getAccount() {
         return account;
     }
@@ -74,6 +81,7 @@ public class DemoCard {
         this.account = account;
     }
 
+    @JsonIgnore
     public String getTestProfile() {
         return testProfile;
     }
@@ -90,12 +98,22 @@ public class DemoCard {
         this.label = label;
     }
 
+    @JsonIgnore
     public String getLastFour() {
         return lastFour;
     }
 
     public void setLastFour(String lastFour) {
         this.lastFour = lastFour;
+    }
+
+    public String getMaskedNumber() {
+        return "•••• " + lastFour;
+    }
+
+    @Schema(description = "Simulation-only entry instruction; the full fictional number is never returned")
+    public String getNumberEntryHint() {
+        return FictionalCardNumbers.entryHint(this);
     }
 
     public Byte getExpiryMonth() {

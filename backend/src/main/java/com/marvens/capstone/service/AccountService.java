@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import com.marvens.capstone.dto.PageResponse;
-import com.marvens.capstone.dto.AccountResponse;
-import com.marvens.capstone.dto.CardResponse;
 import com.marvens.capstone.entity.AppUser;
 import com.marvens.capstone.entity.CreditAccount;
 import com.marvens.capstone.entity.DemoCard;
@@ -32,14 +30,14 @@ public class AccountService {
         this.cardRepository = cardRepository;
     }
 
-    public List<AccountResponse> getAccounts(Long userId) {
+    public List<CreditAccount> getAccounts(Long userId) {
         requireRole(userId, AppUser.Role.USER);
-        List<AccountResponse> accountResponses = new ArrayList<>();
+        List<CreditAccount> customerAccounts = new ArrayList<>();
         CreditAccount customerAccount = accountRepository.findByUser_Id(userId);
         if (customerAccount != null) {
-            accountResponses.add(new AccountResponse(customerAccount));
+            customerAccounts.add(customerAccount);
         }
-        return accountResponses;
+        return customerAccounts;
     }
 
     public CreditAccount getOwnedAccount(Long userId, Long accountId) {
@@ -51,28 +49,24 @@ public class AccountService {
         return customerAccount;
     }
 
-    public List<CardResponse> getCards(Long userId, Long accountId) {
+    public List<DemoCard> getCards(Long userId, Long accountId) {
         getOwnedAccount(userId, accountId);
-        List<CardResponse> cardResponses = new ArrayList<>();
+        List<DemoCard> assignedCards = new ArrayList<>();
         DemoCard assignedCard = cardRepository.findByAccount_Id(accountId);
         if (assignedCard != null) {
-            cardResponses.add(new CardResponse(assignedCard));
+            assignedCards.add(assignedCard);
         }
-        return cardResponses;
+        return assignedCards;
     }
 
-    public PageResponse<AccountResponse> getAdminAccounts(Long adminId, int page, int size) {
+    public PageResponse<CreditAccount> getAdminAccounts(Long adminId, int page, int size) {
         requireRole(adminId, AppUser.Role.ADMIN);
-        List<AccountResponse> accountResponses = new ArrayList<>();
         Page<CreditAccount> customerAccounts = accountRepository.findAllByOrderByIdAsc(PageRequest.of(page, size));
-        for (CreditAccount customerAccount : customerAccounts) {
-            accountResponses.add(new AccountResponse(customerAccount));
-        }
-        return new PageResponse<>(accountResponses, customerAccounts);
+        return new PageResponse<>(customerAccounts.getContent(), customerAccounts);
     }
 
     @Transactional
-    public AccountResponse changeStatus(Long adminId, Long accountId, CreditAccount.Status status) {
+    public CreditAccount changeStatus(Long adminId, Long accountId, CreditAccount.Status status) {
         requireRole(adminId, AppUser.Role.ADMIN);
         if (status == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be ACTIVE or FROZEN.");
@@ -83,7 +77,7 @@ public class AccountService {
         }
         customerAccount.setStatus(status);
         accountRepository.save(customerAccount);
-        return new AccountResponse(customerAccount);
+        return customerAccount;
     }
 
     void requireRole(Long userId, AppUser.Role requiredRole) {

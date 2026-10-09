@@ -8,7 +8,6 @@ import com.marvens.capstone.dto.PageResponse;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
-import com.marvens.capstone.dto.AccountResponse;
 import com.marvens.capstone.dto.TransactionResponse;
 import com.marvens.capstone.entity.CreditAccount;
 import com.marvens.capstone.service.AccountService;
@@ -34,7 +33,7 @@ public class AdminController {
 
     @Operation(summary = "Page accounts by ascending ID")
     @GetMapping("/accounts")
-    public PageResponse<AccountResponse> accounts(@AuthenticationPrincipal Jwt principal, @RequestParam(defaultValue = "0") @Min(0) @Max(10000) int page,
+    public PageResponse<CreditAccount> accounts(@AuthenticationPrincipal Jwt principal, @RequestParam(defaultValue = "0") @Min(0) @Max(10000) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
         Long adminId = Long.valueOf(principal.getSubject());
         return accounts.getAdminAccounts(adminId, page, size);
@@ -50,7 +49,7 @@ public class AdminController {
 
     @Operation(summary = "Freeze or reactivate an account")
     @PatchMapping("/accounts/{accountId}/status")
-    public AccountResponse changeStatus(@AuthenticationPrincipal Jwt principal,
+    public CreditAccount changeStatus(@AuthenticationPrincipal Jwt principal,
             @PathVariable @Positive Long accountId, @RequestParam CreditAccount.Status status) {
         Long adminId = Long.valueOf(principal.getSubject());
         return accounts.changeStatus(adminId, accountId, status);

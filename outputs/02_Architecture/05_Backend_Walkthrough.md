@@ -16,7 +16,9 @@ Explicit if/else decisions check card expiry, frozen status, and available credi
 
 AuthController validates register/login JSON and calls AuthService. Registration normalizes email, hashes the password with BCrypt, and saves USER/account/card in one transaction. Callers cannot choose ADMIN. A failed card write rolls back user/account creation. Duplicate email uses fixed 409.
 
-Login checks BCrypt, including a dummy comparison for unknown email, and returns safe user/token/expiration. Incorrect credentials share one 401 message. Spring/Nimbus handle signatures and intended claims. JWT_SECRET remains in ignored config/environment. No invented cryptography or refresh-token system exists.
+AuthService names its database dependencies userRepository, accountRepository, and cardRepository. passwordEncoder performs BCrypt operations, and jwtTokenService issues the signed token. Registration reads in order: validate password bytes and normalize email, reject a duplicate, save the USER, save customerAccount, save assignedCard, and return the safe user response.
+
+Login validates password bytes, normalizes email, and loads the user. It selects the stored passwordHash or dummyPasswordHash, then calls passwordEncoder.matches. The dummy hash makes an unknown email perform a BCrypt comparison too, reducing response-time differences. Incorrect credentials share one 401 message. A successful check returns safe user/token/expiration. Spring/Nimbus handle signatures and intended claims. JWT_SECRET remains in ignored config/environment. No invented cryptography or refresh-token system exists.
 
 React holds the token in a ref. Sign-out/reload/expiration discard it. A copied token remains valid until expiry. See the [API contract](03_API_Design.md) for CORS/CSRF/rate-limit/logout behavior.
 

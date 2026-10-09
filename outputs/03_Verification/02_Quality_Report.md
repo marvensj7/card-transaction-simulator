@@ -2,6 +2,10 @@
 
 I tested the actual local application with MySQL and kept sanitized reports. This report separates measured results, reviewed findings, and limits.
 
+**October 9, 2026 follow-up:** The AuthService naming/readability change passed Maven verify with the mysql-verification profile: 27 HTTP/unit tests and ten MySQL integration tests, with no failures, errors, or skips. Fresh JaCoCo measured 470/491 Java lines (95.72%) and 120/152 branches (78.95%); the 70% line gate passed. AuthService covered all 54 lines and 12 branches.
+
+The sections and linked exports below preserve the earlier October 8 verification. Frontend/browser checks, Postman, and SonarQube were not rerun for this behavior-preserving change. The fresh Java report remains in the local Maven build output.
+
 ## Java and frontend checks
 
 Maven verify with the mysql-verification profile passed 36 tests: 26 HTTP/unit tests and ten MySQL integration tests. No failures, errors, or skips were reported. The tests cover authentication/claims, registration rollback and concurrent email conflicts, roles/ownership, validation/pages, purchase approval/decline, identical/changed retries, concurrent spending/refunds, full-refund rules, frozen accounts, and transaction rollback.

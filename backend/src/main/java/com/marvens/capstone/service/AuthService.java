@@ -98,7 +98,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email or password is incorrect.");
         }
 
-        return new LoginResponse(user, jwtTokenService.issue(user));
+        return new LoginResponse(user, jwtTokenService.issueAccessToken(user));
     }
 
     public AppUser currentUser(Long userId) {

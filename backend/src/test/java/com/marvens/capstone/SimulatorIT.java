@@ -1,6 +1,8 @@
 package com.marvens.capstone;
 
 import java.math.BigDecimal;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -154,6 +156,29 @@ class SimulatorIT extends SecurityTestSupport {
         response(purchase(ownerId, request), 400);
         assertThat(balance()).isEqualByComparingTo("200.00");
         assertThat(historyCount()).isZero();
+    }
+
+    @Test
+    void expiredAssignedCardDeclinesAndTheCurrentExpiryMonthStillApproves() throws Exception {
+        YearMonth currentMonth = YearMonth.now(ZoneOffset.UTC);
+        jdbc.update("UPDATE demo_cards SET expiry_month=?, expiry_year=? WHERE id=?",
+                currentMonth.getMonthValue(), currentMonth.getYear() - 1, cardId);
+        PurchaseRequest expiredRequest = purchaseRequest("1.00");
+        expiredRequest.expiryMonth = currentMonth.getMonthValue();
+        expiredRequest.expiryYear = currentMonth.getYear() - 1;
+        JsonNode decline = response(purchase(ownerId, expiredRequest), 201);
+        assertThat(decline.path("transaction").path("reasonCode").asText()).isEqualTo("CARD_EXPIRED");
+        assertThat(balance()).isEqualByComparingTo("200.00");
+        assertThat(historyCount()).isEqualTo(1);
+
+        jdbc.update("UPDATE demo_cards SET expiry_year=? WHERE id=?", currentMonth.getYear(), cardId);
+        PurchaseRequest currentRequest = purchaseRequest("1.00");
+        currentRequest.expiryMonth = currentMonth.getMonthValue();
+        currentRequest.expiryYear = currentMonth.getYear();
+        JsonNode approval = response(purchase(ownerId, currentRequest), 201);
+        assertThat(approval.path("transaction").path("status").asText()).isEqualTo("APPROVED");
+        assertThat(balance()).isEqualByComparingTo("201.00");
+        assertThat(historyCount()).isEqualTo(2);
     }
 
     @Test

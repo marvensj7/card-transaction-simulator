@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-09T17:49:10Z",
+  "evidenceRecordedAt": "2026-10-09T18:04:47.281258+00:00",
+  "sourceRevision": "cd81a36f3a0c123d3229cb3e2e0150374fdc8af4",
+  "server": "SonarQube Community Build 26.9.0.129388",
+  "scanner": "SonarScanner CLI 8.1.0.6389",
+  "status": "AUTHENTICATION_REQUIRED",
+  "httpStatus": 401,
+  "failedEndpoint": "/api/v2/analysis/version",
+  "analysisCompleted": false,
+  "qualityGate": null,
+  "credentialsExported": false,
+  "historicalResults": {
+    "path": "sonar-results.json",
+    "date": "2026-10-08T19:30:05.805Z",
+    "sourceRevision": "e7c9f1fad8b53372fe5c26505308da9919ea085a"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-09T17:57:02.385Z",
+  "database": "MySQL",
+  "baseTables": 4,
+  "existingSeedRowsPreserved": true,
+  "schemaMigrationRequired": false
+}

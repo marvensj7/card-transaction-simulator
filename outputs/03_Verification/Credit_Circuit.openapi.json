@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:8080",
+      "url": "http://127.0.0.1:8082",
       "description": "Generated server url"
     }
   ],
@@ -41,8 +41,8 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "New saved outcome",
+          "200": {
+            "description": "Identical retry; no new write",
             "content": {
               "*/*": {
                 "schema": {
@@ -51,8 +51,8 @@
               }
             }
           },
-          "200": {
-            "description": "Identical retry; no new write",
+          "201": {
+            "description": "New saved outcome",
             "content": {
               "*/*": {
                 "schema": {
@@ -137,6 +137,7 @@
           "transaction-controller"
         ],
         "summary": "Save an approved or declined fictional purchase",
+        "description": "Use the owned assigned card and its numberEntryHint. Security code validation checks format only.",
         "operationId": "purchase",
         "parameters": [
           {
@@ -161,8 +162,8 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "New saved outcome",
+          "200": {
+            "description": "Identical retry; no new write",
             "content": {
               "*/*": {
                 "schema": {
@@ -171,8 +172,8 @@
               }
             }
           },
-          "200": {
-            "description": "Identical retry; no new write",
+          "201": {
+            "description": "New saved outcome",
             "content": {
               "*/*": {
                 "schema": {
@@ -818,6 +819,10 @@
           },
           "maskedNumber": {
             "type": "string"
+          },
+          "numberEntryHint": {
+            "type": "string",
+            "description": "Simulation-only entry instruction; the full fictional number is never returned"
           },
           "expiryMonth": {
             "type": "integer",

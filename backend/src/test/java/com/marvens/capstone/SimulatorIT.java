@@ -183,7 +183,9 @@ class SimulatorIT extends SecurityTestSupport {
 
     @Test
     void historyPaginatesNewestFirstAndReportsTheRealTotal() throws Exception {
-        for (int i = 0; i < 51; i++) service.purchase(ownerId, accountId, purchaseRequest("1.00"));
+        for (int transactionNumber = 0; transactionNumber < 51; transactionNumber++) {
+            service.purchase(ownerId, accountId, purchaseRequest("1.00"));
+        }
         JsonNode first = response(get("/api/accounts/" + accountId + "/transactions?size=50")
                 .with(identity(ownerId, "USER")), 200);
         JsonNode last = response(get("/api/accounts/" + accountId + "/transactions?size=50&page=1")

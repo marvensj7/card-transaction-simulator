@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08T19:26:34.423Z",
+  "date": "2026-10-09T17:46:01.918Z",
   "realBackend": true,
   "database": "MySQL",
   "injectedFailures": [
@@ -30,6 +30,10 @@
     },
     {
       "name": "Customer route, backend role and account ownership protection",
+      "passed": true
+    },
+    {
+      "name": "Different assigned cards, full-number matching, safe displays and unchanged history on invalid input",
       "passed": true
     },
     {

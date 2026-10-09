@@ -3,7 +3,7 @@
     "_postman_id": "7ee289b5-e10e-4132-ae13-301e2f7b0859",
     "name": "Credit Circuit local verification",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "All application endpoints, authentication, validation, ownership, pagination, duplicate purchases/refunds, declines and admin status. Only fictional data. Run in order against local MySQL. Supply private variables locally; exported tokens and credentials are blank. The final rate-limit test consumes the local authentication window. The companion runner creates and cleans up its own fixtures."
+    "description": "All application endpoints, authentication, validation, ownership, pagination, duplicate purchases/refunds, declines and admin status. Only fictional data. Run in order against local MySQL. Supply private variables locally; exported tokens and credentials are blank. The final rate-limit test consumes the local authentication window. The companion runner creates and cleans up its own fixtures. New ACCOUNT_V1 cards use 0000 plus the account ID padded to 12 digits, derived only in memory. Full-number matching, different owned cards and unchanged state after invalid card input are exercised."
   },
   "variable": [
     {
@@ -59,6 +59,11 @@
     {
       "key": "invalidToken",
       "value": "invalid.signature.token",
+      "type": "string"
+    },
+    {
+      "key": "otherTestCardNumber",
+      "value": "",
       "type": "string"
     }
   ],
@@ -419,7 +424,8 @@
             "type": "text/javascript",
             "exec": [
               "pm.test('Own accounts: HTTP 200', () => pm.response.to.have.status(200));",
-              "const account=pm.response.json()[0];pm.collectionVariables.set('accountId',account.id);pm.test('Zero opening balance',()=>pm.expect(Number(account.outstandingBalance)).to.eql(0));"
+              "const account=pm.response.json()[0];pm.collectionVariables.set('accountId',account.id);pm.test('Zero opening balance',()=>pm.expect(Number(account.outstandingBalance)).to.eql(0));",
+              "pm.collectionVariables.set('testCardNumber', '0000' + String(account.id).padStart(12, '0'));"
             ]
           }
         }
@@ -448,7 +454,8 @@
             "type": "text/javascript",
             "exec": [
               "pm.test('Other accounts: HTTP 200', () => pm.response.to.have.status(200));",
-              "pm.collectionVariables.set('otherAccountId',pm.response.json()[0].id);"
+              "pm.collectionVariables.set('otherAccountId',pm.response.json()[0].id);",
+              "pm.collectionVariables.set('otherTestCardNumber', '0000' + String(pm.response.json()[0].id).padStart(12, '0'));"
             ]
           }
         }
@@ -477,7 +484,273 @@
             "type": "text/javascript",
             "exec": [
               "pm.test('Own masked card: HTTP 200', () => pm.response.to.have.status(200));",
-              "const card=pm.response.json()[0];for(const key of ['id','expiryMonth','expiryYear'])pm.collectionVariables.set(key==='id'?'cardId':key,card[key]);pm.test('Only masked card data',()=>{pm.expect(card.maskedNumber).to.eql('\u2022\u2022\u2022\u2022 4242');pm.expect(card).not.to.have.property('testCardNumber');pm.expect(card).not.to.have.property('testSecurityCode');});"
+              "const card = pm.response.json()[0];",
+              "for (const key of ['id', 'expiryMonth', 'expiryYear']) {",
+              "  pm.collectionVariables.set(key === 'id' ? 'cardId' : key, card[key]);",
+              "}",
+              "pm.test('Only masked card data and simulation instructions', () => {",
+              "  pm.expect(card.maskedNumber).to.eql('•••• ' + String(pm.collectionVariables.get('accountId')).padStart(12, '0').slice(-4));",
+              "  pm.expect(card.numberEntryHint).to.include('account ID ' + pm.collectionVariables.get('accountId'));",
+              "  pm.expect(JSON.stringify(card).includes(pm.collectionVariables.get('testCardNumber'))).to.eql(false);",
+              "  pm.expect(card).not.to.have.property('testCardNumber');",
+              "  pm.expect(card).not.to.have.property('testSecurityCode');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other assigned masked card",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{otherAccountId}}/cards"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other assigned masked card: HTTP 200', () => pm.response.to.have.status(200));",
+              "const otherCard = pm.response.json()[0];",
+              "pm.collectionVariables.set('otherCardId', otherCard.id);",
+              "pm.collectionVariables.set('otherExpiryMonth', otherCard.expiryMonth);",
+              "pm.collectionVariables.set('otherExpiryYear', otherCard.expiryYear);",
+              "pm.test('Different assigned fictional numbers', () => pm.expect(pm.collectionVariables.get('testCardNumber') === pm.collectionVariables.get('otherTestCardNumber')).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Another assigned number fails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{otherTestCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Another assigned number fails: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Another assigned card fails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{otherCardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": {{expiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Another assigned card fails: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mismatched assigned expiry fails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{cardId}},\n  \"testCardNumber\": \"{{testCardNumber}}\",\n  \"expiryMonth\": {{expiryMonth}},\n  \"expiryYear\": 2000,\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Mismatched assigned expiry fails: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid card details leave balance unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid card details leave balance unchanged: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('No balance write', () => pm.expect(Number(pm.response.json()[0].outstandingBalance)).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid card details leave history unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{accountId}}/transactions?page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid card details leave history unchanged: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('No history write', () => pm.expect(pm.response.json().totalElements).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other correct assigned card succeeds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/accounts/{{otherAccountId}}/purchases",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardId\": {{otherCardId}},\n  \"testCardNumber\": \"{{otherTestCardNumber}}\",\n  \"expiryMonth\": {{otherExpiryMonth}},\n  \"expiryYear\": {{otherExpiryYear}},\n  \"testSecurityCode\": \"{{testSecurityCode}}\",\n  \"merchantName\": \"Postman Fixture\",\n  \"amount\": 25,\n  \"requestId\": \"{{$guid}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Other correct assigned card succeeds: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Other customer approval and balance', () => { pm.expect(pm.response.json().transaction.status).to.eql('APPROVED'); pm.expect(Number(pm.response.json().account.outstandingBalance)).to.eql(25); });"
             ]
           }
         }

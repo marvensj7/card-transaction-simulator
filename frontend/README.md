@@ -32,6 +32,15 @@ npm run check:browser
 node checks/postman.mjs
 ```
 
+From the repository root, verify that an assigned card and an identical purchase retry survive an actual backend restart:
+
+```powershell
+$env:DEMO_RESTART_JAR = 'C:/path/to/verified/card-transaction-simulator-0.0.1-SNAPSHOT.jar'
+node frontend/checks/restart.mjs
+```
+
+This check starts its own backend on port 8083, stops and restarts that process, and removes only its temporary MySQL fixtures. It requires the ignored local backend configuration and a free port 8083. `DEMO_JAVA` can specify the Java 17 executable if it is not on PATH.
+
 Runners create temporary fictional users with random passwords in memory and clean only their own rows. The browser deliberately loses responses after real saves, injects a 401 for UI expiration, and injects failure/empty responses for otherwise unavailable states. Real expired-token rejection and timer expiration have separate tests. Reports identify injected cases. Browser coverage uses Chromium V8/source maps and is separate from Java coverage.
 
 The Postman runner supplies private values in memory and exports no raw response/environment. Its final test consumes the authentication limit. Wait at least one minute between browser/Postman runs. [Evidence](../outputs/03_Verification/01_Completion_Checklist.md) records actual results.

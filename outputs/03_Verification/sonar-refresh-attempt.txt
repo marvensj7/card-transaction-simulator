@@ -1,0 +1,7 @@
+13:49:07.785 INFO  Scanner configuration file: C:\Users\marve\.cache\credit-circuit-quality\sonar-scanner-8.1.0.6389\bin\..\conf\sonar-scanner.properties
+13:49:07.799 INFO  Project root configuration file: C:\Users\marve\OneDrive\Documents\ChatGPT\Card Simulator Capstone\sonar-project.properties
+13:49:07.819 INFO  SonarScanner CLI 8.1.0.6389
+13:49:07.828 INFO  Windows 11 10.0 amd64
+13:49:10.768 ERROR Failed to query server version: GET http://127.0.0.1:9000/api/v2/analysis/version failed with HTTP 401 Unauthorized. Please check the property sonar.token or the environment variable SONAR_TOKEN.
+13:49:10.770 INFO  EXECUTION FAILURE
+13:49:10.771 INFO  Total time: 2.990s

@@ -1,9 +1,12 @@
 {
-  "date": "2026-10-08T19:27:27.626Z",
+  "date": "2026-10-09T18:03:16.007Z",
   "tool": "Postman CLI 1.71.0",
   "realBackend": true,
   "database": "MySQL",
-  "exportedRequests": 47,
+  "exportedRequests": 54,
+  "httpRequestsExecuted": 56,
+  "assertionsExecuted": 83,
+  "assertionsFailed": 0,
   "exitCode": 0,
   "rawResponsesExported": false
 }

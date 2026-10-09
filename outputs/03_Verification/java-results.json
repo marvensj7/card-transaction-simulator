@@ -1,5 +1,8 @@
 {
-  "date": "2026-10-08",
+  "date": "2026-10-09T17:46:55Z",
+  "evidenceRecordedAt": "2026-10-09T18:04:47.281258+00:00",
+  "sourceRevision": "cd81a36f3a0c123d3229cb3e2e0150374fdc8af4",
+  "preservedLocalCardTransactionEditIncludedInBuild": true,
   "java": "17",
   "mysql": "8.4.9",
   "gate": {
@@ -7,31 +10,36 @@
     "minimum": 70,
     "passed": true
   },
+  "coverageReport": "java-coverage.xml",
+  "historicalHtmlReport": {
+    "path": "jacoco/index.html",
+    "date": "2026-10-08"
+  },
   "coverage": {
     "INSTRUCTION": {
-      "covered": 2199,
-      "missed": 101,
-      "percent": 95.61
+      "covered": 2303,
+      "missed": 87,
+      "percent": 96.36
     },
     "BRANCH": {
-      "covered": 116,
-      "missed": 34,
-      "percent": 77.33
+      "covered": 148,
+      "missed": 26,
+      "percent": 85.06
     },
     "LINE": {
-      "covered": 472,
-      "missed": 21,
-      "percent": 95.74
+      "covered": 529,
+      "missed": 23,
+      "percent": 95.83
     },
     "COMPLEXITY": {
-      "covered": 188,
-      "missed": 40,
-      "percent": 82.46
+      "covered": 211,
+      "missed": 32,
+      "percent": 86.83
     },
     "METHOD": {
-      "covered": 147,
+      "covered": 150,
       "missed": 6,
-      "percent": 96.08
+      "percent": 96.15
     },
     "CLASS": {
       "covered": 34,
@@ -48,8 +56,22 @@
       "skipped": "0"
     },
     {
-      "name": "com.marvens.capstone.SecurityConfigurationTest",
+      "name": "com.marvens.capstone.FictionalCardNumbersTest",
       "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.security.AuthenticationRateLimitFilterTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.marvens.capstone.SecurityConfigurationTest",
+      "tests": "5",
       "failures": "0",
       "errors": "0",
       "skipped": "0"
@@ -63,14 +85,14 @@
     },
     {
       "name": "com.marvens.capstone.AuthIT",
-      "tests": "2",
+      "tests": "3",
       "failures": "0",
       "errors": "0",
       "skipped": "0"
     },
     {
       "name": "com.marvens.capstone.SimulatorIT",
-      "tests": "8",
+      "tests": "9",
       "failures": "0",
       "errors": "0",
       "skipped": "0"

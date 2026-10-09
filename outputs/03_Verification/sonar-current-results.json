@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-09T16:14:46-04:00",
+  "server": "SonarQube Community Build 26.9.0.129388",
+  "scanner": "SonarScanner CLI 8.1.0.6389",
+  "project": "credit-circuit",
+  "sourceRevision": "f72dc2c2de459cf0fc8e8f5d1b8bf184e4251c57",
+  "preservedLocalCardTransactionEditIncluded": true,
+  "ceTaskId": "c2409356-fd76-4731-bc1f-1ca70a91a0ef",
+  "qualityGate": "PASSED",
+  "evidenceSource": "Scanner log and authenticated SonarQube dashboard; this is a recorded summary, not a raw Web API export.",
+  "metrics": {
+    "openReliabilityIssues": 0,
+    "openSecurityIssues": 0,
+    "openMaintainabilityIssues": 0,
+    "duplicatedLinesPercent": 0.0,
+    "overallCoveragePercent": 95.3,
+    "securityHotspots": 0,
+    "newIssues": 0,
+    "reliabilityRating": "A",
+    "securityRating": "A",
+    "maintainabilityRating": "A",
+    "newCodeCoveragePercent": 96.0,
+    "acceptedIssues": 0
+  },
+  "javaVerification": {
+    "errors": 0,
+    "passed": 47,
+    "gatePassed": true,
+    "branchCoveragePercent": 84.88,
+    "failures": 0,
+    "minimumLineGatePercent": 70,
+    "lineCoveragePercent": 95.56,
+    "skipped": 0
+  },
+  "frontendVerification": {
+    "stateTestsPassed": 7,
+    "apiTestsPassed": 35,
+    "propCheck": "passed",
+    "productionBuild": "passed",
+    "routeTestsPassed": 9
+  },
+  "javascriptCoverageSource": "Existing October 9 browser-derived LCOV; no new browser coverage run in this scan pass.",
+  "warning": "Missing SCM blame for the preserved uncommitted CardTransaction.java edit; analysis included the file.",
+  "temporaryTokenRevoked": true,
+  "dashboardScreenshot": "sonar-current-dashboard.jpg",
+  "scannerLog": "sonar-current-scanner.txt"
+}

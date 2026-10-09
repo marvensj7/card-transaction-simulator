@@ -63,7 +63,15 @@ export function updateAccountStatus(accountId, status) {
 }
 
 /** @param {{email: string, password: string}} credentials */
-export function login(credentials) { return fetchJson('/api/auth/login', 'POST', credentials) }
+export function login(credentials) {
+  return fetchJson('/api/auth/login', 'POST', credentials)
+}
+
 /** @param {{displayName: string, email: string, password: string}} registration */
-export function register(registration) { return fetchJson('/api/auth/register', 'POST', registration) }
-export function getCurrentUser() { return fetchJson('/api/auth/me') }
+export function register(registration) {
+  return fetchJson('/api/auth/register', 'POST', registration)
+}
+
+export function getCurrentUser() {
+  return fetchJson('/api/auth/me')
+}

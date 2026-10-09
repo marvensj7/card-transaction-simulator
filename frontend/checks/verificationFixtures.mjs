@@ -30,7 +30,7 @@ export async function createFixtures() {
     people[name] = {id: saved.insertId, email: emails[index]}
     if (name !== 'admin') {
       const [account] = await connection.execute("INSERT INTO credit_accounts(user_id,credit_limit,outstanding_balance,status) VALUES(?,1000,0,'ACTIVE')", [saved.insertId])
-      const [card] = await connection.execute("INSERT INTO demo_cards(account_id,test_profile,label,last_four,expiry_month,expiry_year) VALUES(?,'DEMO_4242','Verification Card','4242',12,2035)", [account.insertId])
+      const [card] = await connection.execute("INSERT INTO demo_cards(account_id,test_profile,label,last_four,expiry_month,expiry_year) VALUES(?,'ACCOUNT_V1','Verification Card',?,12,2035)", [account.insertId, String(account.insertId).padStart(12, '0').slice(-4)])
       people[name].accountId = account.insertId; people[name].cardId = card.insertId
     }
   }

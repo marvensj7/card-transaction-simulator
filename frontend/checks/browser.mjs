@@ -134,12 +134,47 @@ try {
     await expect(page.getByRole('heading', {name: 'Access restricted'})).toBeVisible()
     await navigation('Purchase')
   })
+  await check('Different assigned cards, full-number matching, safe displays and unchanged history on invalid input', async () => {
+    const otherLogin = await fetch(backend + '/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: fixtures.other.email, password: fixtures.password}),
+    })
+    assert.equal(otherLogin.status, 200)
+    const otherToken = (await otherLogin.json()).accessToken
+    const otherCard = (await api(`/api/accounts/${fixtures.other.accountId}/cards`, 'GET', undefined, otherToken)).data[0]
+    const ownNumber = '0000' + String(accountId).padStart(12, '0')
+    const otherNumber = '0000' + String(fixtures.other.accountId).padStart(12, '0')
+    assert.ok(ownNumber !== otherNumber, 'Different accounts need different assigned fictional numbers.')
+    await expect(page.getByText(assignedCard.numberEntryHint, {exact: true})).toBeVisible()
+    assert.ok(!JSON.stringify(assignedCard).includes(ownNumber), 'Card API displays remain masked.')
+    const request = {
+      cardId: assignedCard.id,
+      testCardNumber: otherNumber,
+      expiryMonth: assignedCard.expiryMonth,
+      expiryYear: assignedCard.expiryYear,
+      testSecurityCode: '9'.repeat(3),
+      merchantName: 'Assigned card check',
+      amount: '1.00',
+      requestId: randomUUID(),
+    }
+    assert.equal((await api(`/api/accounts/${accountId}/purchases`, 'POST', request)).status, 400)
+    assert.equal((await api(`/api/accounts/${accountId}/purchases`, 'POST', {...request, cardId: otherCard.id})).status, 404)
+    assert.equal((await api(`/api/accounts/${accountId}/purchases`, 'POST', {...request, testCardNumber: ownNumber}, otherToken)).status, 404)
+    assert.equal((await api(`/api/accounts/${accountId}/transactions`)).data.totalElements, 0)
+    assert.equal((await api('/api/accounts')).data[0].outstandingBalance, 0)
+    const otherResult = await api(`/api/accounts/${fixtures.other.accountId}/purchases`, 'POST', {
+      ...request, cardId: otherCard.id, expiryMonth: otherCard.expiryMonth, expiryYear: otherCard.expiryYear,
+    }, otherToken)
+    assert.equal(otherResult.status, 201)
+    assert.equal(otherResult.data.transaction.status, 'APPROVED')
+  })
   await check('Purchase field errors, pending controls and identical retry after a lost response', async () => {
     await expect(page.getByLabel('Amount (USD)')).toBeVisible()
     await page.getByRole('button', {name: 'Submit purchase'}).click()
     await expect(page.getByRole('alert')).toContainText('Check the highlighted fields.')
     await expect(page.getByLabel('Amount (USD)')).toHaveAttribute('aria-invalid', 'true')
-    await page.getByLabel('Fictional card number', {exact: true}).fill('4242'.repeat(4))
+    await page.getByLabel('Fictional card number', {exact: true}).fill('0000' + String(accountId).padStart(12, '0'))
     await page.getByLabel('Fictional security code', {exact: true}).fill('9'.repeat(3))
     await page.getByLabel('Fictional merchant', {exact: true}).fill('Verification Bookstore')
     await page.getByLabel('Amount (USD)').fill('50.00')
@@ -168,7 +203,7 @@ try {
   await check('Saved insufficient-credit decline is an outcome on a phone layout', async () => {
     await page.setViewportSize({width: 390, height: 844})
     await page.getByRole('button', {name: 'Start another purchase'}).click()
-    await page.getByLabel('Fictional card number', {exact: true}).fill('4242'.repeat(4))
+    await page.getByLabel('Fictional card number', {exact: true}).fill('0000' + String(accountId).padStart(12, '0'))
     await page.getByLabel('Fictional security code', {exact: true}).fill('9'.repeat(3))
     await page.getByLabel('Fictional merchant', {exact: true}).fill('Verification Decline')
     await page.getByLabel('Amount (USD)').fill('2000')
@@ -238,9 +273,10 @@ try {
   })
   await check('Frozen account decline, refund while frozen, and admin reactivation', async () => {
     await signOut(); await signIn(fixtures.signupEmail)
+    assert.deepEqual((await api(`/api/accounts/${accountId}/cards`)).data[0], assignedCard)
     await navigation('Purchase')
     await expect(page.getByLabel('Amount (USD)')).toBeVisible()
-    await page.getByLabel('Fictional card number', {exact: true}).fill('4242'.repeat(4))
+    await page.getByLabel('Fictional card number', {exact: true}).fill('0000' + String(accountId).padStart(12, '0'))
     await page.getByLabel('Fictional security code', {exact: true}).fill('9'.repeat(3))
     await page.getByLabel('Fictional merchant', {exact: true}).fill('Frozen fixture')
     await page.getByLabel('Amount (USD)').fill('1')
@@ -267,6 +303,9 @@ try {
     await expect(page.getByRole('heading', {name: 'Dashboard', exact: true})).toBeVisible()
     await page.reload()
     await expect(page.getByRole('heading', {name: 'Sign in', exact: true})).toBeVisible()
+    await signIn(fixtures.signupEmail)
+    assert.deepEqual((await api(`/api/accounts/${accountId}/cards`)).data[0], assignedCard)
+    await signOut()
     await page.goto(frontend + '/transactions')
     await expect(page.getByRole('heading', {name: 'Sign in', exact: true})).toBeVisible()
     await page.setViewportSize({width: 320, height: 844})

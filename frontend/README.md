@@ -14,7 +14,7 @@ npm run build
 
 Vite serves [the app](http://127.0.0.1:5173) and proxies /api to port 8080. Protected workflows need the backend and MySQL. Home and the sign-in form render without account data.
 
-LoginPage registers/signs in. DashboardPage loads the own account/card. PurchasePage validates controlled input and displays approval/decline. TransactionsPage pages history and confirms full refunds. AdminPage pages account/activity summaries and changes ACTIVE/FROZEN status. ProtectedRoute checks navigation; the backend enforces authorization.
+LoginPage registers/signs in. DashboardPage loads the own account/card. PurchasePage loads the owned account/card, validates controlled input, submits one stable request, and displays approval/decline. The assigned masked card includes numberEntryHint from the backend. Follow that simulation-only instruction; new cards use `0000` followed by the account ID padded to 12 digits. Existing legacy cards keep their displayed instruction. Security codes are format-only. No full number is returned or stored. TransactionsPage pages history and confirms full refunds. AdminPage pages account/activity summaries and changes ACTIVE/FROZEN status. ProtectedRoute checks navigation; the backend enforces authorization.
 
 UserUiContext stores the access token in one ref and safe user/expiration/notice state in a reducer. Context shares identity. Stable useCallback handlers configure API/expiration behavior; useMemo supplies the shared Context value. Effects check expiration/visibility. Pages use useState/useEffect for forms/data. No token goes to browser storage. Reload/sign-out require login. A copied token remains valid until server expiration.
 

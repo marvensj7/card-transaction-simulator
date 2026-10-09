@@ -1,16 +1,83 @@
 # How I explain the backend
 
-## One $50 purchase
+## Purchase workflow, starting with the service
 
-A customer with a $1,000 limit and $200 outstanding has $800 available. PurchasePage controls fictional input, creates one UUID, and calls submitPurchase. fetchJson adds the memory token and sends JSON.
+My purchase workflow starts with `TransactionService.purchase`. This method decides whether a purchase is approved, updates the account when it is approved, and saves the outcome in history. The controller and React page pass information in and display the result.
 
-Spring Security verifies the signed token and USER authority. TransactionController uses @Valid for format, reads the verified ID, and calls TransactionService.purchase. The service checks the stored USER role and locks the account by both account ID and owner ID. Checking only an account ID would not protect ownership.
+### The objects the service works with
 
-The service loads the owned assigned card and validates its full fictional number and expiry through FictionalCardNumbers, and finds the account/request ID. An identical retry returns the existing transaction with HTTP 200. Changed details under that UUID return 409.
+| Object | What it represents | Relationship |
+| --- | --- | --- |
+| `AppUser` | The signed-in customer and stored role. | `CreditAccount.user` identifies the account owner. |
+| `CreditAccount` | The credit limit, outstanding balance, and account status. | One customer owns one account. |
+| `DemoCard` | The assigned fictional card and expiry. | `DemoCard.account` links the card to that account. |
+| `CardTransaction` | A saved purchase or refund outcome. | Each transaction links to its account and the card used. |
 
-Explicit if/else decisions check card expiry, frozen status, and available credit. Approval adds $50 with BigDecimal, making outstanding $250/available $750. Declines preserve the balance. Both create history with amount/status/reason/outstandingAfter. A new outcome returns 201 with transaction and current account summary.
+```mermaid
+flowchart LR
+    Account[CreditAccount] -->|user| User[AppUser]
+    Card[DemoCard] -->|account| Account
+    Purchase[CardTransaction: PURCHASE] -->|account| Account
+    Purchase -->|card| Card
+```
 
-@Transactional commits balance/history together or rolls both back. Pessimistic account locks make concurrent changes take turns. READ_COMMITTED lets waiting retries see committed results. The unique account/request ID constraint backs duplicate protection. Each protection has a different job.
+These arrows follow the Java references. In MySQL, they become `user_id`, `account_id`, and `card_id` foreign keys. One account and one card can appear in many transaction rows. A new purchase has no `originalPurchase`; that relationship is set later on a refund row to identify the purchase being reversed.
+
+### What purchase does, in order
+
+1. **Check the customer and load the account.** `accountService.requireRole` checks the stored USER role. `lockOwnedAccount` searches by both account ID and user ID. It also locks that account so another balance-changing request waits its turn.
+2. **Load and check the assigned card.** The card repository searches by card ID and account ID together. `validateAssignedCard` compares the full fictional number and entered expiry with the assigned card. The controller has already checked input format with Bean Validation. The security code is checked for format only; it is not stored or compared with a saved code.
+3. **Check for an earlier submission.** The service looks up the account and normalized request ID. If the saved purchase has the same card, merchant, and amount, it returns that existing transaction. Changed details under the same request ID return a conflict. A replay does not change the balance or add history.
+4. **Decide approval or decline.** The service checks expired card, frozen account, and insufficient available credit, in that order. Available credit is the credit limit minus the outstanding balance.
+5. **Apply the decision.** An approval adds the purchase amount to the outstanding balance using `BigDecimal` and saves the account. A decline leaves the balance unchanged. Both outcomes create a `CardTransaction` with their status and any decline reason.
+6. **Link and save the history row.** `fillTransactionHistory` sets the account, card, amount, merchant, request ID, UTC timestamp, and balance after the decision. The transaction repository saves the row. The method returns the transaction display data and current account together.
+
+`checkRequestId` normalizes a valid UUID before the duplicate lookup. The request ID identifies a submission, while the account and card IDs identify stored records.
+
+### Where the relationships are saved
+
+Inside `fillTransactionHistory`, these two lines connect the purchase to the rows the service already checked:
+
+```java
+transaction.setAccount(customerAccount);
+transaction.setCard(assignedCard);
+```
+
+JPA uses those references to write `account_id` and `card_id`. It does not create another customer, account, or card. The same helper records `outstandingAfter`, so history retains the balance at the time of that outcome even when later purchases change the current account balance.
+
+The repositories handle database queries and saves. The service decides whether those saves should happen. MySQL foreign keys prevent a history row from pointing to a missing account or card.
+
+### One $50 purchase
+
+My example account has a $1,000 limit and $200 outstanding, so it has $800 available. With the matching unexpired card and an active account, a $50 purchase is approved. The account now has $250 outstanding and $750 available. The saved purchase records $50, APPROVED, and an `outstandingAfter` value of $250.
+
+If I submit $900 instead, the service records an INSUFFICIENT_CREDIT decline and leaves the outstanding balance at $200. If I retry the original $50 submission with its original request ID, the service returns its saved result without adding another $50.
+
+`@Transactional` makes the balance update and history save one unit: both commit or both roll back. The account lock makes concurrent spending take turns. READ_COMMITTED lets a waiting request see the previous request's committed result. The unique account/request-ID constraint also prevents duplicate history rows.
+
+### The information entering and leaving the service
+
+The purchase path uses three DTO classes. They describe one submitted form and one returned result:
+
+```text
+PurchaseRequest -> purchase service -> TransactionResultResponse
+                                      |-- transaction: TransactionResponse
+                                      |-- account: CreditAccount
+```
+
+| Class | Its job in this purchase |
+| --- | --- |
+| `PurchaseRequest` | Holds the submitted card details, merchant, amount, and request ID. It is input, not a database row. |
+| `TransactionResponse` | Selects the transaction display fields, converts the timestamp to UTC, and represents related rows by their IDs. |
+| `TransactionResultResponse` | Holds that transaction display data and the current account. Its internal `replayed` flag lets the controller select HTTP 200 or 201 and is excluded from JSON. |
+
+The two response classes form one response body. `PageResponse` belongs to the separate history/admin list workflow. Registration and login classes belong to authentication.
+
+### The controller and React page around the service
+
+`TransactionController.purchase` receives the JSON form, checks its format with `@Valid`, and gets the customer ID from the verified JWT. It passes that ID, the account ID from the URL, and the form data to the service. A new saved outcome returns HTTP 201, including a saved decline. An identical retry returns HTTP 200. The transaction's status tells the page whether spending was approved.
+
+`PurchasePage` calls `submitPurchase`, which sends the request through `fetchJson`. The page creates the request ID once and keeps the same submitted details for an uncertain retry. It then displays the returned transaction outcome and updated account credit. The full fictional number and security code are never included in the result.
 
 ## Authentication
 
@@ -47,8 +114,6 @@ React holds the token in a ref. Sign-out/reload/expiration discard it. A copied 
 
 Entities follow foreign keys in one direction with no reverse collections or deletion cascades. Four tables suffice. BigDecimal handles decimals; available credit is calculated rather than stored twice. SQL constraints and boundary validation support service rules without duplicating every business decision.
 
-## Practice and evidence
-
-Trace register/login/purchase/retry/decline/refund/freeze from page to database. Explain HTTP 201 versus financial DECLINED. Explain why UUID, lock, and transaction are each necessary. Predict balances before running examples.
+## Verification
 
 HTTP/security tests use mocked repositories; separate MySQL tests prove persistence/concurrency/rollback behavior. Mocks alone cannot prove atomicity. [Verification](../03_Verification/01_Completion_Checklist.md) includes coverage, Postman, and SonarQube.

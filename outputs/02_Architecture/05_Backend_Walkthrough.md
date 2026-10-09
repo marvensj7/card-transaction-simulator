@@ -26,7 +26,7 @@ React holds the token in a ref. Sign-out/reload/expiration discard it. A copied 
 
 ## Other workflows
 
-- Account/card: stored USER role, ownership, safe summary DTOs.
+- Account/card: stored USER role, ownership, safe model JSON with computed display getters.
 - History: owned account, bounded newest-first page, batch refunded-purchase lookup.
 - Refund: owned purchase, locked account, duplicate/eligibility checks, original full amount, linked reversal. Frozen accounts may receive it.
 - Admin: stored ADMIN role, paged summaries, locked ACTIVE/FROZEN change.
@@ -38,9 +38,9 @@ React holds the token in a ref. Sign-out/reload/expiration discard it. A copied 
 | Controller | HTTP path, verified identity, @Valid, page bounds, status. |
 | Service | Direct business/ownership decisions, locks, transaction boundaries. |
 | Repository | Named JPA searches, page queries, explicit queries when needed. |
-| Entity | Private mapped fields/getters/setters. JPA needs its no-argument constructor. |
+| Entity | Private mapped fields/getters/setters. Account/card models also provide display JSON; linked entities and internal fields are ignored. JPA needs its no-argument constructor. |
 | Request DTO | Input fields and annotations. Sensitive fields are write-only. |
-| Response DTO | Account/card/transaction display fields and login token details. Authentication reuses AppUser; @JsonIgnore excludes its password hash. |
+| Response DTO | Transaction display fields, purchase/refund results, and login token details. Authentication reuses AppUser; @JsonIgnore excludes its password hash. |
 | PageResponse | items/page/size/totals for list navigation. |
 | Exceptions/handler | Safe missing-resource/conflict/shared errors. |
 | Security configuration | One stateless JWT path and explicit route/CORS/CSRF settings. |

@@ -45,7 +45,7 @@ Spring Security verifies HS256 signature/algorithm, expiry, issuer, exact audien
 
 Controllers validate request shape/page bounds and call services directly. AuthService atomically creates user/account/card and checks BCrypt. AccountService handles role/ownership/summaries. TransactionService handles purchases/refunds/history. Repositories query rows and lock accounts. MySQL enforces foreign keys, allowed values, balance bounds, and uniqueness.
 
-Balance/history share a transaction. READ_COMMITTED and pessimistic account locks protect concurrent changes/retries. Account, card, and transaction response DTOs copy display fields inside service transactions. Authentication returns AppUser directly: it has no entity relationships, and @JsonIgnore excludes its passwordHash field and getter. No cascade deletes financial history. Four tables remain sufficient.
+Balance/history share a transaction. READ_COMMITTED and pessimistic account locks protect concurrent changes/retries. CreditAccount and DemoCard provide their display JSON directly through getters. @JsonIgnore excludes their relationships and internal card fields. Repository entity graphs load the owner or linked account needed by display getters before the service transaction closes. TransactionResponse still copies transaction display fields inside service transactions. Authentication returns AppUser directly: it has no entity relationships, and @JsonIgnore excludes its passwordHash field and getter. No cascade deletes financial history. Four tables remain sufficient.
 
 ## Separation of concerns
 
@@ -61,11 +61,11 @@ I kept each part responsible for a specific job in the existing application flow
 | Controllers | HTTP paths, input validation, verified identity, response status, and direct service calls. |
 | Services | Registration/login workflows, stored roles, ownership, purchase/refund rules, and transaction boundaries. |
 | Repositories | Database searches, pagination queries, and account-lock queries. |
-| Entities / MySQL | Stored fields, relationships, and database constraints. |
+| Entities / MySQL | Stored fields, relationships, database constraints, and safe user/account/card display getters. |
 | Response classes / exception handler | Response fields and safe HTTP error formatting. |
 
-The browser checks form input for immediate feedback. Bean Validation checks incoming format on the server. Services make the financial decisions using stored data. MySQL constraints protect valid stored state. These checks serve different responsibilities; the browser does not decide approval, refund eligibility, or the saved balance. AccountResponse calculates available credit for display, while TransactionService checks available credit before spending.
+The browser checks form input for immediate feedback. Bean Validation checks incoming format on the server. Services make the financial decisions using stored data. MySQL constraints protect valid stored state. These checks serve different responsibilities; the browser does not decide approval, refund eligibility, or the saved balance. CreditAccount calculates available credit for display, while TransactionService checks available credit before spending.
 
-The separation has a few small-project compromises. Services use ResponseStatusException and response classes, which connect them to the REST API. AppUser also serves as the authentication response, so changes to its serialized fields affect that API. Its password hash remains excluded. AccountService shares role checks with TransactionService, and AuthService coordinates three repositories to create the customer/account/card in one transaction. I kept those direct calls within the service layer without adding more classes.
+The separation has a few small-project compromises. Services use ResponseStatusException and response classes, which connect them to the REST API. AppUser, CreditAccount, and DemoCard also serve as API responses, so their serialized fields are part of the API contract. Password hashes, linked entities, and internal card fields remain excluded. Response tests check the exact account/card fields. AccountService shares role checks with TransactionService, and AuthService coordinates three repositories to create the customer/account/card in one transaction. I kept those direct calls within the service layer without adding more classes.
 
 The application runs locally using the [backend](../../backend/README.md), [frontend](../../frontend/README.md), and [SQL](../../sql/README.md) setup instructions. AWS deployment is waived.

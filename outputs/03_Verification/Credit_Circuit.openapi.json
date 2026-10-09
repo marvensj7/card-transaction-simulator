@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:8082",
+      "url": "http://127.0.0.1:8080",
       "description": "Generated server url"
     }
   ],
@@ -41,8 +41,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Identical retry; no new write",
+          "201": {
+            "description": "New saved outcome",
             "content": {
               "*/*": {
                 "schema": {
@@ -51,8 +51,8 @@
               }
             }
           },
-          "201": {
-            "description": "New saved outcome",
+          "200": {
+            "description": "Identical retry; no new write",
             "content": {
               "*/*": {
                 "schema": {
@@ -162,8 +162,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Identical retry; no new write",
+          "201": {
+            "description": "New saved outcome",
             "content": {
               "*/*": {
                 "schema": {
@@ -172,8 +172,8 @@
               }
             }
           },
-          "201": {
-            "description": "New saved outcome",
+          "200": {
+            "description": "Identical retry; no new write",
             "content": {
               "*/*": {
                 "schema": {
@@ -227,7 +227,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccountResponse"
+                  "$ref": "#/components/schemas/CreditAccount"
                 }
               }
             }
@@ -357,7 +357,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageResponseAccountResponse"
+                  "$ref": "#/components/schemas/PageResponseCreditAccount"
                 }
               }
             }
@@ -385,7 +385,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AccountResponse"
+                    "$ref": "#/components/schemas/CreditAccount"
                   }
                 }
               }
@@ -488,7 +488,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CardResponse"
+                    "$ref": "#/components/schemas/DemoCard"
                   }
                 }
               }
@@ -505,24 +505,20 @@
   },
   "components": {
     "schemas": {
-      "AccountResponse": {
+      "CreditAccount": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
             "format": "int64"
           },
-          "ownerName": {
-            "type": "string"
-          },
           "creditLimit": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0.01
           },
           "outstandingBalance": {
-            "type": "number"
-          },
-          "availableCredit": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0.0
           },
           "status": {
             "type": "string",
@@ -530,8 +526,19 @@
               "ACTIVE",
               "FROZEN"
             ]
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "availableCredit": {
+            "type": "number"
           }
-        }
+        },
+        "required": [
+          "creditLimit",
+          "outstandingBalance",
+          "status"
+        ]
       },
       "TransactionResponse": {
         "type": "object",
@@ -594,7 +601,7 @@
             "$ref": "#/components/schemas/TransactionResponse"
           },
           "account": {
-            "$ref": "#/components/schemas/AccountResponse"
+            "$ref": "#/components/schemas/CreditAccount"
           }
         }
       },
@@ -780,13 +787,13 @@
           }
         }
       },
-      "PageResponseAccountResponse": {
+      "PageResponseCreditAccount": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AccountResponse"
+              "$ref": "#/components/schemas/CreditAccount"
             }
           },
           "page": {
@@ -807,7 +814,7 @@
           }
         }
       },
-      "CardResponse": {
+      "DemoCard": {
         "type": "object",
         "properties": {
           "id": {
@@ -815,24 +822,33 @@
             "format": "int64"
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
           },
-          "maskedNumber": {
-            "type": "string"
+          "expiryMonth": {
+            "type": "string",
+            "format": "byte"
+          },
+          "expiryYear": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 9999,
+            "minimum": 2000
           },
           "numberEntryHint": {
             "type": "string",
             "description": "Simulation-only entry instruction; the full fictional number is never returned"
           },
-          "expiryMonth": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "expiryYear": {
-            "type": "integer",
-            "format": "int32"
+          "maskedNumber": {
+            "type": "string"
           }
-        }
+        },
+        "required": [
+          "expiryMonth",
+          "expiryYear",
+          "label"
+        ]
       }
     },
     "securitySchemes": {

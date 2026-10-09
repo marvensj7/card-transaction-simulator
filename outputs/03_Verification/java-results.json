@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-09T17:46:55Z",
-  "evidenceRecordedAt": "2026-10-09T18:04:47.281258+00:00",
-  "sourceRevision": "cd81a36f3a0c123d3229cb3e2e0150374fdc8af4",
+  "date": "2026-10-09T19:26:25.896260+00:00",
+  "evidenceRecordedAt": "2026-10-09T19:26:25.896260+00:00",
+  "sourceRevision": "825927cfb72db30769a4a96c7f97de505182658b",
   "preservedLocalCardTransactionEditIncludedInBuild": true,
   "java": "17",
   "mysql": "8.4.9",
@@ -17,32 +17,32 @@
   },
   "coverage": {
     "INSTRUCTION": {
-      "covered": 2303,
-      "missed": 87,
-      "percent": 96.36
+      "covered": 2223,
+      "missed": 90,
+      "percent": 96.11
     },
     "BRANCH": {
-      "covered": 148,
+      "covered": 146,
       "missed": 26,
-      "percent": 85.06
+      "percent": 84.88
     },
     "LINE": {
-      "covered": 529,
-      "missed": 23,
-      "percent": 95.83
+      "covered": 516,
+      "missed": 24,
+      "percent": 95.56
     },
     "COMPLEXITY": {
       "covered": 211,
-      "missed": 32,
-      "percent": 86.83
+      "missed": 33,
+      "percent": 86.48
     },
     "METHOD": {
-      "covered": 150,
-      "missed": 6,
-      "percent": 96.15
+      "covered": 151,
+      "missed": 7,
+      "percent": 95.57
     },
     "CLASS": {
-      "covered": 34,
+      "covered": 32,
       "missed": 0,
       "percent": 100.0
     }
@@ -92,7 +92,7 @@
     },
     {
       "name": "com.marvens.capstone.SimulatorIT",
-      "tests": "9",
+      "tests": "10",
       "failures": "0",
       "errors": "0",
       "skipped": "0"

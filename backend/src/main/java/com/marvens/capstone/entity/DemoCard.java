@@ -116,6 +116,7 @@ public class DemoCard {
         return FictionalCardNumbers.entryHint(this);
     }
 
+    @Schema(type = "integer", format = "int32")
     public Byte getExpiryMonth() {
         return expiryMonth;
     }

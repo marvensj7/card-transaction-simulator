@@ -1,21 +1,21 @@
 # Quality report - October 9, 2026
 
-I verified the registration, assigned fictional card, and purchase workflow against the real local application and MySQL. The current application revision is **cd81a36**. The original uncommitted CardTransaction.java edit was preserved during these checks and is not included in the commits for this pass.
+I verified the registration, assigned fictional card, and purchase workflow against the real local application and MySQL. The latest Java and OpenAPI checks cover revision **825927c**. The browser, React, Postman, restart, and seed checks below were recorded earlier against **cd81a36**. The original uncommitted CardTransaction.java edit was preserved during these checks and is not included in the commits for this pass.
 
-The fresh Java, React, browser, Postman, restart, seed, and OpenAPI evidence describes this pass. The SonarQube exports and JaCoCo HTML directory still describe October 8; they are historical evidence. A fresh SonarQube scan was attempted but requires restored access to the local SonarQube server.
+The Java and OpenAPI exports were refreshed after removing AccountResponse and CardResponse. CreditAccount and DemoCard now return the same six display fields directly; tests confirm that linked entities and internal card fields remain excluded. The earlier React, browser, Postman, restart, and seed evidence remains dated to its original pass. The SonarQube exports and JaCoCo HTML directory still describe October 8; they are historical evidence. A fresh SonarQube scan was attempted but requires restored access to the local SonarQube server.
 
 ## Java and frontend checks
 
-Maven verify with the mysql-verification profile passed **46 tests**: 34 HTTP/unit tests and 12 real MySQL integration tests. There were no failures, errors, or skips. Tests cover registration rollback and concurrent email conflicts, signed authentication and claims, roles and ownership, different assigned cards, full-number matching even when masks match, validation and pages, approval and saved declines, identical and changed retries, concurrent spending and refunds, full-refund restrictions, and atomic rollback.
+Maven verify with the mysql-verification profile passed **47 tests**: 34 HTTP/unit tests and 13 real MySQL integration tests. The added MySQL test checks account/card serialization after service transactions close, including customer reads and admin list/status responses. There were no failures, errors, or skips. Tests cover registration rollback and concurrent email conflicts, signed authentication and claims, roles and ownership, different assigned cards, full-number matching even when masks match, validation and pages, approval and saved declines, identical and changed retries, concurrent spending and refunds, full-refund restrictions, and atomic rollback.
 
-JaCoCo 0.8.14 measured all 34 production classes without coverage exclusions:
+JaCoCo 0.8.14 measured all 32 production classes without coverage exclusions:
 
 | Metric | Covered / total | Result |
 | --- | --- | --- |
-| Java lines | 529 / 552 | 95.83% |
-| Java branches | 148 / 174 | 85.06% |
-| Java instructions | 2303 / 2390 | 96.36% |
-| Java methods | 150 / 156 | 96.15% |
+| Java lines | 516 / 540 | 95.56% |
+| Java branches | 146 / 172 | 84.88% |
+| Java instructions | 2223 / 2313 | 96.11% |
+| Java methods | 151 / 158 | 95.57% |
 
 The enforced 70% Java line gate passed, exceeding the rubric's 80% target. The [current XML](java-coverage.xml) and [measured summary](java-results.json) preserve this measurement. The [older HTML report](jacoco/index.html) and its adjacent XML/CSV remain October 8 evidence. They were not replaced with source HTML containing the preserved, uncommitted CardTransaction.java edit. No raw test response output was exported.
 
@@ -27,7 +27,7 @@ The [restart check](restart-results.json) stopped and restarted its own backend 
 
 Postman CLI 1.71.0 exercised the [exported collection](Credit_Circuit.postman_collection.json): 54 collection items plus two rate-limit subrequests, **56 HTTP requests and 83 assertions**, with zero failures. It covers all application endpoints plus authentication, roles and ownership, invalid fields/pages, duplicate emails/requests, assigned cards and mismatched details, unchanged balance/history after invalid input, approval/decline, full refunds, account status, cookie-only access, CORS, and authentication rate limiting.
 
-The [CLI output](postman-results.txt) and [summary](postman-results.json) contain no active credentials, JWTs, full card numbers, or raw response bodies. Exported credential/token/card/code variables are blank. The runner derives fictional numbers and supplies temporary credentials in memory, then removes its own fixtures. No Postman cloud publication is claimed. The refreshed [OpenAPI export](Credit_Circuit.openapi.json) comes from the verified running backend and includes the masked card's simulation-only numberEntryHint.
+The [CLI output](postman-results.txt) and [summary](postman-results.json) contain no active credentials, JWTs, full card numbers, or raw response bodies. Exported credential/token/card/code variables are blank. The runner derives fictional numbers and supplies temporary credentials in memory, then removes its own fixtures. No Postman cloud publication is claimed. The refreshed [OpenAPI export](Credit_Circuit.openapi.json) comes from the running backend at revision 825927c. Its CreditAccount and DemoCard schemas contain exactly their six display fields; the deleted DTO schemas are absent. The masked card retains its simulation-only numberEntryHint.
 
 ## Fresh SonarQube attempt
 

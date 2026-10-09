@@ -33,7 +33,7 @@ export default function TransactionsPage() {
         const account = (await getAccounts())[0]
         const result = account ? await getTransactions(account.id, page) : {items: [], page: 0, size: 10, totalPages: 0, totalElements: 0}
         if (active) setHistory(result)
-      } catch (failure) { if (active) setError(failure instanceof Error ? failure.message : 'History could not be loaded.') }
+      } catch (error_) { if (active) setError(error_ instanceof Error ? error_.message : 'History could not be loaded.') }
       finally { if (active) setLoading(false) }
     }
     load()
@@ -59,12 +59,12 @@ export default function TransactionsPage() {
       const result = await refundPurchase(submission.current.purchaseId, submission.current.requestId)
       setMessage(`Full refund saved: ${money(result.transaction.amount)}. Available credit: ${money(result.account.availableCredit)}.`)
       setUncertain(false); closeModal(); setReload(previous => previous + 1)
-    } catch (failure) {
-      setRefundError(failure instanceof Error ? failure.message : 'The refund could not be confirmed.')
-      if (!(failure instanceof ApiError) || failure.status === 0 || failure.status >= 500) {
+    } catch (error_) {
+      setRefundError(error_ instanceof Error ? error_.message : 'The refund could not be confirmed.')
+      if (!(error_ instanceof ApiError) || error_.status === 0 || error_.status >= 500) {
         setUncertain(true); setSelected(null); refundButton.current?.focus()
       } else if (uncertain) {
-        setUncertain(false); submission.current = null; setError(failure.message)
+        setUncertain(false); submission.current = null; setError(error_.message)
       }
     } finally { inFlight.current = false; setPending(false) }
   }

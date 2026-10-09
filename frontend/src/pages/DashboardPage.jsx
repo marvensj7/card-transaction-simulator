@@ -34,9 +34,9 @@ export default function DashboardPage() {
           setCustomerAccount(loadedAccount)
           setAssignedCard(loadedCard)
         }
-      } catch (failure) {
+      } catch (error_) {
         if (pageIsActive) {
-          setAccountLoadError(failure instanceof Error ? failure.message : 'Account could not be loaded.')
+          setAccountLoadError(error_ instanceof Error ? error_.message : 'Account could not be loaded.')
         }
       } finally {
         if (pageIsActive) {

@@ -30,7 +30,7 @@ export default function AdminPage() {
     let active = true
     setAccountsLoading(true); setAccountsError('')
     getAdminAccounts(accountPage).then(result => { if (active) setAccounts(result) })
-      .catch(failure => { if (active) setAccountsError(failure instanceof Error ? failure.message : 'Accounts could not be loaded.') })
+      .catch(error_ => { if (active) setAccountsError(error_ instanceof Error ? error_.message : 'Accounts could not be loaded.') })
       .finally(() => { if (active) setAccountsLoading(false) })
     return () => { active = false }
   }, [accountPage, reload])
@@ -39,7 +39,7 @@ export default function AdminPage() {
     let active = true
     setActivityLoading(true); setActivityError('')
     getAdminTransactions(activityPage).then(result => { if (active) setActivity(result) })
-      .catch(failure => { if (active) setActivityError(failure instanceof Error ? failure.message : 'Activity could not be loaded.') })
+      .catch(error_ => { if (active) setActivityError(error_ instanceof Error ? error_.message : 'Activity could not be loaded.') })
       .finally(() => { if (active) setActivityLoading(false) })
     return () => { active = false }
   }, [activityPage, reload])
@@ -52,7 +52,7 @@ export default function AdminPage() {
       const result = await updateAccountStatus(selected.id, target)
       setMessage(`Account #${result.id} is ${result.status}.`)
       setSelected(null); setReload(previous => previous + 1)
-    } catch (failure) { setStatusError(failure instanceof Error ? failure.message : 'Status could not be confirmed. Refresh the accounts before retrying.') }
+    } catch (error_) { setStatusError(error_ instanceof Error ? error_.message : 'Status could not be confirmed. Refresh the accounts before retrying.') }
     finally { inFlight.current = false; setPending(false) }
   }
 

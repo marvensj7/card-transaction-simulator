@@ -58,9 +58,9 @@ export default function PurchasePage() {
             }))
           }
         }
-      } catch (failure) {
+      } catch (error_) {
         if (pageIsActive) {
-          setAccountLoadError(failure instanceof Error ? failure.message : 'Purchase details could not be loaded.')
+          setAccountLoadError(error_ instanceof Error ? error_.message : 'Purchase details could not be loaded.')
         }
       } finally {
         if (pageIsActive) {
@@ -149,15 +149,15 @@ export default function PurchasePage() {
       setPurchaseSubmissionStatus('complete')
       pendingPurchaseRequest.current = null
       setPurchaseForm(previousForm => ({ ...previousForm, testCardNumber: '', testSecurityCode: '' }))
-    } catch (failure) {
-      setPurchaseError(failure instanceof Error ? failure.message : 'The purchase could not be confirmed.')
-      if (!(failure instanceof ApiError) || failure.status === 0 || failure.status >= 500) {
+    } catch (error_) {
+      setPurchaseError(error_ instanceof Error ? error_.message : 'The purchase could not be confirmed.')
+      if (!(error_ instanceof ApiError) || error_.status === 0 || error_.status >= 500) {
         // A lost response may follow a saved purchase. Retry the exact body and UUID.
         setPurchaseSubmissionStatus('uncertain')
       } else {
         pendingPurchaseRequest.current = null
         setPurchaseSubmissionStatus('editing')
-        setFieldErrors(failure.fields)
+        setFieldErrors(error_.fields)
         setPurchaseForm(previousForm => ({ ...previousForm, testSecurityCode: '' }))
       }
     } finally {

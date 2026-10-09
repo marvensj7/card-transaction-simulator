@@ -51,10 +51,10 @@ export default function LoginPage() {
         signIn(loginResult)
         navigate(loginResult.user.role === 'ADMIN' ? '/admin' : '/dashboard', { replace: true })
       }
-    } catch (failure) {
-      setAuthenticationError(failure instanceof Error ? failure.message : 'Please try again.')
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fields)
+    } catch (error_) {
+      setAuthenticationError(error_ instanceof Error ? error_.message : 'Please try again.')
+      if (error_ instanceof ApiError) {
+        setFieldErrors(error_.fields)
       }
     } finally {
       setAuthenticationRequestPending(false)

@@ -29,10 +29,14 @@ body {
 }
 
 a:focus-visible,
-button:focus-visible,
-main:focus-visible {
+button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
+}
+
+/* Navigation focuses the page content without drawing a page-sized border. */
+#main-content:focus {
+  outline: none;
 }
 
 .sr-only {

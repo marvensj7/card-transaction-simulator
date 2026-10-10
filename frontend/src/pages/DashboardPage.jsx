@@ -8,6 +8,7 @@ import AccountSummary from '../components/AccountSummary.jsx'
 import Loading from '../components/Loading.jsx'
 import Button from '../components/Button.jsx'
 import FlippableCard from '../components/FlippableCard.jsx'
+import { fictionalCardNumber } from '../api/fictionalCardNumber.js'
 
 export default function DashboardPage() {
   const { user } = useUserUi()
@@ -79,7 +80,10 @@ export default function DashboardPage() {
         <Card title="Your card">
           {assignedCard ? (
             <>
-              <FlippableCard key={assignedCard.id} card={assignedCard} />
+              <FlippableCard key={assignedCard.id} card={assignedCard} account={customerAccount} allowReveal />
+              {fictionalCardNumber(assignedCard, customerAccount.id) && (
+                <Link className="button card-wallet-action" to="/purchase?useCard=1">Use this card</Link>
+              )}
               <p className="hint">Follow your assigned card's entry instruction in the purchase form.</p>
             </>
           ) : (

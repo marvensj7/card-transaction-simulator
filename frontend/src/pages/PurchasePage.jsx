@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { getAccounts, getCards, submitPurchase } from '../api/creditCircuitApi.js'
 import { ApiError } from '../api/fetchJson.js'
 import { money, reasonLabel } from '../api/format.js'
@@ -9,6 +10,7 @@ import Input from '../components/Input.jsx'
 import Button from '../components/Button.jsx'
 import Loading from '../components/Loading.jsx'
 import FlippableCard from '../components/FlippableCard.jsx'
+import { fictionalCardNumber } from '../api/fictionalCardNumber.js'
 
 const emptyPurchaseForm = {
   testCardNumber: '',
@@ -20,6 +22,9 @@ const emptyPurchaseForm = {
 }
 
 export default function PurchasePage() {
+  const [searchParams] = useSearchParams()
+  const useCardRequested = searchParams.get('useCard') === '1'
+  const cardPrefillUsed = useRef(false)
   const [customerAccount, setCustomerAccount] = useState(/** @type {import('../api/types.js').Account | null} */ (null))
   const [assignedCard, setAssignedCard] = useState(/** @type {import('../api/types.js').DemoCard | null} */ (null))
   const [purchaseForm, setPurchaseForm] = useState(emptyPurchaseForm)
@@ -51,9 +56,15 @@ export default function PurchasePage() {
         if (pageIsActive) {
           setCustomerAccount(loadedAccount)
           setAssignedCard(loadedCard)
-          if (loadedCard) {
+          if (loadedCard && loadedAccount) {
+            let prefilledNumber = ''
+            if (useCardRequested && !cardPrefillUsed.current) {
+              prefilledNumber = fictionalCardNumber(loadedCard, loadedAccount.id)
+              cardPrefillUsed.current = true
+            }
             setPurchaseForm(previousForm => ({
               ...previousForm,
+              testCardNumber: prefilledNumber || previousForm.testCardNumber,
               expiryMonth: String(loadedCard.expiryMonth),
               expiryYear: String(loadedCard.expiryYear),
             }))
@@ -74,7 +85,7 @@ export default function PurchasePage() {
     return () => {
       pageIsActive = false
     }
-  }, [accountRefreshCounter])
+  }, [accountRefreshCounter, useCardRequested])
 
   function handleAccountRefresh() {
     setAccountRefreshCounter(previousCounter => previousCounter + 1)
@@ -200,7 +211,7 @@ export default function PurchasePage() {
           <AccountSummary account={customerAccount} />
         </Card>
         <Card title="Purchase details">
-          <FlippableCard key={assignedCard.id} card={assignedCard} />
+          <FlippableCard key={assignedCard.id} card={assignedCard} account={customerAccount} />
           <p>
             Assigned card: {assignedCard.maskedNumber}.
             {' '}Expiry {assignedCard.expiryMonth}/{assignedCard.expiryYear}.

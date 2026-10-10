@@ -1,6 +1,7 @@
-// Only safe display fields are drawn here. Purchase inputs never reach this canvas.
-/** @param {string} label @param {string} maskedNumber @param {string} expiry @param {boolean} back */
-export function drawCardArtwork(label, maskedNumber, expiry, back) {
+// Revealed fictional details are transient artwork, never exported or saved.
+// Purchase inputs never reach this canvas.
+/** @param {string} label @param {string} displayNumber @param {string} expiry @param {boolean} back @param {string} [sampleCode] */
+export function drawCardArtwork(label, displayNumber, expiry, back, sampleCode = '') {
   const canvas = document.createElement('canvas')
   canvas.width = 1024
   canvas.height = 646
@@ -14,8 +15,8 @@ export function drawCardArtwork(label, maskedNumber, expiry, back) {
     context.fillRect(72, 245, 880, 75)
     context.font = '26px monospace'
     context.fillStyle = '#173d30'
-    context.fillText('CREDIT CIRCUIT', 94, 294)
-    context.fillText('•••', 875, 294)
+    context.fillText(sampleCode ? 'DEMO SECURITY CODE' : 'CREDIT CIRCUIT', 94, 294)
+    context.fillText(sampleCode || '•••', 875, 294)
     context.fillStyle = '#f2f6e9'
     context.font = '600 32px "Segoe UI", sans-serif'
     context.fillText('Every purchase starts a signal.', 72, 395)
@@ -52,7 +53,7 @@ export function drawCardArtwork(label, maskedNumber, expiry, back) {
     drawCircuit(context, 676, 205, 245, '#b9dbba38')
     context.fillStyle = '#f2f6e9'
     context.font = '42px monospace'
-    context.fillText(maskedNumber, 72, 390)
+    context.fillText(displayNumber, 72, 390)
     context.font = '30px "Segoe UI", sans-serif'
     context.fillText(label, 72, 489, 650)
     context.font = '20px "Segoe UI", sans-serif'

@@ -15,7 +15,7 @@ Customers register, sign in, view credit and a masked fictional card, submit pur
 2. As a visitor, I can register without choosing ADMIN.
 3. As a user, I can sign in/out and receive an expiration message.
 4. As a customer, I can see my limit, outstanding balance, and available credit.
-5. As a customer, I can see masked details for my assigned fictional card.
+5. As a customer, I can see my assigned card masked by default, briefly reveal fictional details, and use it to prefill a purchase.
 6. As a customer, I can complete a labeled purchase form and correct specific errors.
 7. As a customer, I can see approval or a saved decline with its reason.
 8. As a customer, I can page history, newest first.
@@ -36,7 +36,7 @@ Customers register, sign in, view credit and a masked fictional card, submit pur
 | Sign out and expire access | Discard memory access on sign-out/reload/expiry and explain when another sign-in is needed. |
 | Authorize | USER/ADMIN routes plus stored-role and account-ownership checks. |
 | View credit | Show the customer's limit, outstanding balance, available credit, and account status. |
-| View the assigned card | Show safe masked details and expiry for the customer's fictional card. |
+| View the assigned card | Show masked details, expiry, and loaded account status; explicitly reveal fictional number/sample code with automatic hiding. Use this card prefills number/expiry in memory. |
 | Purchase | Assigned fictional card/expiry, positive decimal amount, active account, available credit. Expired/frozen/insufficient-credit outcomes save declines. |
 | Duplicate protection | Account/request UUID, identical retry returns saved result, changed details conflict. |
 | Review history | Page the customer's transaction outcomes newest first, including refund links/status. |
@@ -74,4 +74,4 @@ The tables are app_users, credit_accounts, demo_cards, and card_transactions. Se
 
 My instructor waived AWS and related infrastructure, deployment pipelines, and cloud monitoring. Jira and branch protection are outside this pass. Other written application/quality requirements remain required. The application runs locally.
 
-The flippable 3D card is implemented as a shared React component with a Three.js model, rounded edges, hover foil gradient, and idle shimmer. It displays masked fictional details only, supports reduced motion, and retains an HTML/CSS fallback when graphics rendering is unavailable.
+The shared Three.js card includes rounded edges, hover foil gradient, and idle shimmer. The dashboard adds temporary reveal/hide controls, a 20-second/focus-loss privacy timer, a Use this card purchase shortcut, and ACTIVE/FROZEN appearance. Full fictional details stay in memory only; public cards remain masked. Reduced motion and the HTML/CSS graphics fallback remain supported.

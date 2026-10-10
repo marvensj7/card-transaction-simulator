@@ -60,6 +60,7 @@ export function createCardScene(host, label, maskedNumber, expiry, onUnavailable
 
   let showBack = false
   let hovering = false
+  let frozen = false
   let pointerX = 0, pointerY = 0
   let visible = true
   let dirty = true
@@ -106,16 +107,16 @@ export function createCardScene(host, label, maskedNumber, expiry, onUnavailable
     const time = milliseconds / 1000
     const easing = reducedMotion ? 1 : 1 - Math.exp(-delta / 100)
     hoverAmount += ((hovering ? 1 : 0) - hoverAmount) * easing
-    const tiltX = reducedMotion ? 0 : hovering ? -pointerY * .14 : Math.sin(time * .6) * .025
-    const tiltY = reducedMotion ? 0 : hovering ? pointerX * .18 : Math.sin(time * .4) * .04
+    const tiltX = reducedMotion || frozen ? 0 : hovering ? -pointerY * .14 : Math.sin(time * .6) * .025
+    const tiltY = reducedMotion || frozen ? 0 : hovering ? pointerX * .18 : Math.sin(time * .4) * .04
     model.rotation.x += (tiltX - model.rotation.x) * easing
     model.rotation.y += ((showBack ? Math.PI : 0) + tiltY - model.rotation.y) * easing
-    const scale = reducedMotion ? 1 : 1 + hoverAmount * .025
+    const scale = reducedMotion || frozen ? 1 : 1 + hoverAmount * .025
     model.scale.setScalar(scale)
     for (const material of [frontMaterial, backMaterial]) {
       material.uniforms.time.value = reducedMotion ? 0 : time
-      material.uniforms.hover.value = hoverAmount
-      material.uniforms.motion.value = reducedMotion ? 0 : 1
+      material.uniforms.hover.value = frozen ? 0 : hoverAmount
+      material.uniforms.motion.value = reducedMotion || frozen ? 0 : 1
       material.uniforms.pointer.value.set(pointerX, pointerY)
     }
     renderer.render(scene, camera)
@@ -127,6 +128,20 @@ export function createCardScene(host, label, maskedNumber, expiry, onUnavailable
     setSide(backVisible) { showBack = backVisible; dirty = true },
     /** @param {boolean} active @param {number} x @param {number} y */
     setPointer(active, x, y) { hovering = active; pointerX = x; pointerY = y; dirty = true },
+    /** @param {boolean} accountFrozen */
+    setFrozen(accountFrozen) { frozen = accountFrozen; dirty = true },
+    /** @param {string} number @param {string} sampleCode */
+    setDetails(number, sampleCode) {
+      // Clear old canvas pixels before replacing their textures.
+      frontTexture.image.width = 1
+      backTexture.image.width = 1
+      frontTexture.image = drawCardArtwork(label, number, expiry, false)
+      backTexture.image = drawCardArtwork(label, number, expiry, true, sampleCode)
+      frontTexture.needsUpdate = true
+      backTexture.needsUpdate = true
+      renderer.render(scene, camera)
+      dirty = true
+    },
     dispose() {
       renderer.setAnimationLoop(null)
       resizeObserver.disconnect()
@@ -140,6 +155,8 @@ export function createCardScene(host, label, maskedNumber, expiry, onUnavailable
       backMaterial.dispose()
       frontTexture.dispose()
       backTexture.dispose()
+      frontTexture.image.width = 1
+      backTexture.image.width = 1
       renderer.dispose()
       renderer.forceContextLoss()
       canvas.remove()

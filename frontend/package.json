@@ -13,6 +13,7 @@
     "check:api": "node --test checks/api.test.mjs",
     "check:browser": "node checks/browser.mjs",
     "check:card": "node checks/cardModel.mjs",
+    "check:wallet": "node --test checks/fictionalCardNumber.test.mjs && node checks/cardWallet.mjs",
     "check:postman": "node checks/postman.mjs",
     "demo:admin": "node checks/createAdmin.mjs"
   },

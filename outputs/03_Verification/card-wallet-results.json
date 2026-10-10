@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-10T17:44:00.522Z",
+  "realBackend": true,
+  "database": "MySQL",
+  "exportedViews": "Masked views only; revealed pixels, card numbers, codes, and tokens are never exported",
+  "injectedCases": [
+    "browser clock advanced for 20-second timeout",
+    "window blur event",
+    "hidden-tab visibility event",
+    "WebGL context loss"
+  ],
+  "results": [
+    {
+      "name": "Public home stays masked and has no reveal control",
+      "passed": true
+    },
+    {
+      "name": "Owned dashboard card starts masked and reflects real ACTIVE status",
+      "passed": true
+    },
+    {
+      "name": "Reveal updates the model and front/back text; hiding clears both faces",
+      "passed": true
+    },
+    {
+      "name": "Twenty-second timeout hides details (browser clock advanced)",
+      "passed": true
+    },
+    {
+      "name": "Window blur and hidden-tab events hide details immediately (events injected)",
+      "passed": true
+    },
+    {
+      "name": "Use this card prefills number and expiry in memory; a real purchase succeeds",
+      "passed": true
+    },
+    {
+      "name": "Status badge and muted model reflect a real admin freeze",
+      "passed": true
+    },
+    {
+      "name": "Reveal and hide remain accessible on a narrow screen and without WebGL",
+      "passed": true
+    },
+    {
+      "name": "Legacy assigned card still reveals and prefills its original number rule",
+      "passed": true
+    }
+  ]
+}

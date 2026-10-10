@@ -1,6 +1,8 @@
 # React frontend
 
-Credit Circuit uses JSX, JSDoc prop checking, ordinary page state, and direct handlers. Home, dashboard, and purchase share FlippableCard. It loads a Three.js model with rounded edges, actual thickness, a pointer-controlled foil gradient, and an idle shimmer. Click, tap, Enter, or Space flips it. Reduced-motion preferences stop shimmer/tilt and switch faces immediately. If WebGL2 or the graphics download is unavailable, or the graphics context is lost, the ordinary HTML/CSS card remains usable. The purchase form stays independent; only masked display details are drawn on the model.
+Credit Circuit uses JSX, JSDoc prop checking, ordinary page state, and direct handlers. Home, dashboard, and purchase share FlippableCard. It loads a Three.js model with rounded edges, actual thickness, a pointer-controlled foil gradient, and an idle shimmer. Click, tap, Enter, or Space flips it. Reduced-motion preferences stop shimmer/tilt and switch faces immediately. If WebGL2 or the graphics download is unavailable, or the graphics context is lost, the ordinary HTML/CSS card remains usable. Cards start masked. Only the owned dashboard card offers Show/Hide details: the front reveals the derived fictional number and the back reveals a temporary sample security code. Both are cleared after 20 seconds, window blur, a hidden tab, or navigation. Home remains masked.
+
+Use this card navigates to `/purchase?useCard=1`. That flag contains no card details. PurchasePage reconstructs the assigned fictional number and fills it and the expiry once in React memory; the security-code field stays empty and the ordinary form remains editable. Unknown instructions or a mismatched mask disable reveal/prefill. The helper follows the current ACCOUNT_V1 and legacy rules in the backend's entry instruction without changing API fields. ACTIVE/FROZEN badges reflect the loaded account; a frozen card is muted with shimmer and tilt stopped. Admin permissions and server purchase checks are unchanged.
 
 FlippableCard owns the side and input handlers. cardScene creates the geometry, face shader, rendering loop, and cleanup; cardArtwork draws safe labels onto textures. The scene pauses drawing while offscreen or the document is hidden, limits pixel density to 2, and releases graphics resources when its page unmounts. Three.js loads in a separate optional bundle (about 142 kB compressed) after the ordinary card renders.
 
@@ -15,6 +17,8 @@ npm run build
 ```
 
 With Vite running, `npm run check:card` verifies the real WebGL model in Chromium using software graphics, hover/idle changes, keyboard/touch flips, reduced motion, phone layouts, and graphics fallbacks. Its dashboard/purchase display checks use explicitly mocked safe API data. [Card model results](../outputs/03_Verification/card-model-results.json) are separate from the real backend workflow results below.
+
+With Vite, backend, and MySQL running, `npm run check:wallet` runs six fictional-rule checks and the real owned-card reveal/prefill/purchase/freeze/legacy workflow with temporary fixtures. The timer uses an advanced browser clock; blur, visibility, and graphics-loss events are explicitly injected. [Wallet results](../outputs/03_Verification/card-wallet-results.json) record the checks. Only masked screenshots are exported; revealed pixels and credentials stay in process memory.
 
 Vite serves [the app](http://127.0.0.1:5173) and proxies /api to port 8080. Protected workflows need the backend and MySQL. Home and the sign-in form render without account data.
 

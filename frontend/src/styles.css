@@ -159,7 +159,6 @@ main:focus-visible {
 .project-label,
 .eyebrow,
 .signal-route,
-.card-stage figcaption,
 .site-footer {
   font-family: var(--mono);
   font-size: 0.75rem;
@@ -297,12 +296,6 @@ h1 span {
   inset: 35% 0;
   border: 0;
   border-block: 1px solid #7d8b69;
-}
-
-.card-stage figcaption {
-  position: relative;
-  margin-top: 1.5rem;
-  color: var(--muted);
 }
 
 .site-footer {
@@ -593,7 +586,6 @@ dialog::backdrop { background: #080d09cc; }
 .credit-card-back-note { font-size: .7rem; }
 .credit-card-back-brand { display: flex; align-items: center; justify-content: flex-end; gap: .4rem; margin-top: auto; font-size: .75rem; font-weight: 650; }
 .credit-card-back-brand .circuit-mark { width: 1.5rem; height: 1.5rem; }
-.credit-card-preview figcaption { margin-top: 1.25rem; color: var(--muted); font-family: var(--mono); font-size: .7rem; text-align: center; }
 
 /* Swap faces without rotation when the user requests reduced motion. */
 @media (prefers-reduced-motion: reduce) {

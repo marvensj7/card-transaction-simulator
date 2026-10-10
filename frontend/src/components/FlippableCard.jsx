@@ -146,7 +146,6 @@ export default function FlippableCard({ card = null, account = null, allowReveal
         </span>
         <span className="credit-card-viewport" ref={modelHost} aria-hidden="true" />
       </button>
-      <figcaption>{showBack ? 'Back' : 'Front'} · Click, tap, or press Enter to flip</figcaption>
       {canReveal && (
         <div className="card-privacy-controls">
           <Button type="button" onClick={handleReveal} aria-expanded={detailsVisible} aria-controls={detailsId}>

@@ -1,7 +1,7 @@
 # Credit Circuit
 
 **UCI 2123 individual capstone proposal and implementation scope**
-**Updated October 8, 2026**
+**Updated October 10, 2026**
 
 ## Problem and solution
 
@@ -74,4 +74,4 @@ The tables are app_users, credit_accounts, demo_cards, and card_transactions. Se
 
 My instructor waived AWS and related infrastructure, deployment pipelines, and cloud monitoring. Jira and branch protection are outside this pass. Other written application/quality requirements remain required. The application runs locally.
 
-The flippable 3D card is implemented as a shared React component with CSS rotation and a reduced-motion face switch. It displays masked fictional details only.
+The flippable 3D card is implemented as a shared React component with a Three.js model, rounded edges, hover foil gradient, and idle shimmer. It displays masked fictional details only, supports reduced motion, and retains an HTML/CSS fallback when graphics rendering is unavailable.

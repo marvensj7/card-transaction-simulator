@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-10T17:06:13.530Z",
+  "renderer": "Three.js WebGL2",
+  "browser": "Chromium with SwiftShader software graphics",
+  "realBackend": false,
+  "mockedData": "Login and safe account/card responses for display checks only",
+  "results": [
+    {
+      "name": "Real WebGL model renders, shimmers while idle, and changes its gradient on hover",
+      "passed": true
+    },
+    {
+      "name": "Pointer and keyboard flip both faces while keeping focus",
+      "passed": true
+    },
+    {
+      "name": "Reduced motion stops idle rendering and switches faces without animation",
+      "passed": true
+    },
+    {
+      "name": "Model fits tablet and phone layouts without page overflow",
+      "passed": true
+    },
+    {
+      "name": "Touchscreen tap flips the real model",
+      "passed": true
+    },
+    {
+      "name": "Unavailable WebGL keeps the ordinary accessible card usable",
+      "passed": true
+    },
+    {
+      "name": "A failed graphics-module download preserves the usable fallback",
+      "passed": true
+    },
+    {
+      "name": "Lost graphics context restores the HTML card and its flip controls",
+      "passed": true
+    },
+    {
+      "name": "Dashboard and purchase models use safe assigned details and leave form inputs separate (mock API)",
+      "passed": true
+    }
+  ]
+}

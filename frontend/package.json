@@ -12,6 +12,7 @@
     "check:state": "node --test checks/state.test.mjs",
     "check:api": "node --test checks/api.test.mjs",
     "check:browser": "node checks/browser.mjs",
+    "check:card": "node checks/cardModel.mjs",
     "check:postman": "node checks/postman.mjs",
     "demo:admin": "node checks/createAdmin.mjs"
   },
@@ -21,13 +22,15 @@
   "dependencies": {
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router": "^8.4.0"
+    "react-router": "^8.4.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.64.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
     "bcryptjs": "^3.0.3",
     "istanbul-lib-coverage": "^3.2.2",

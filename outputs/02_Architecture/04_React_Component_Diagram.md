@@ -15,6 +15,8 @@ flowchart TD
     HomePage --> FlippableCard
     DashboardPage --> FlippableCard
     PurchasePage --> FlippableCard
+    FlippableCard -->|lazy import| CardScene[Three.js scene]
+    CardScene --> CardArtwork[Safe canvas artwork]
     DashboardPage --> AccountSummary
     PurchasePage --> AccountSummary
     LoginPage --> Input
@@ -28,7 +30,7 @@ flowchart TD
     AdminPage --> Pagination
 ```
 
-Button supplies pending/disabled feedback, Input connects labels/errors with useId, Card provides section headings, Table provides caption/headers and a focusable scroll region, ConfirmModal uses native dialog, and Loading supplies a spinner/skeleton. These small pieces serve current workflows. FlippableCard uses one local useState boolean and a native button to flip CSS card faces on home, dashboard, and purchase. It receives only the safe DemoCard response; the home teaser uses a masked placeholder. Hidden faces are excluded from assistive technology, and reduced-motion preferences switch faces without rotation. Purchase form fields remain ordinary independent inputs.
+Button supplies pending/disabled feedback, Input connects labels/errors with useId, Card provides section headings, Table provides caption/headers and a focusable scroll region, ConfirmModal uses native dialog, and Loading supplies a spinner/skeleton. FlippableCard uses local state for the side and model availability, a ref for the graphics scene, and a native button for pointer/keyboard controls. An effect lazily imports cardScene, which creates an extruded Three.js card with separate textured faces, hover foil gradients, and idle shimmer. cardArtwork draws only safe masked DemoCard details; home uses a masked placeholder. The effect releases scene resources on unmount. A failed download, unavailable WebGL2, or lost context leaves the HTML/CSS fallback usable. The accessible text summary stays outside the decorative canvas. Reduced motion stops the shimmer and tilt and flips immediately. Purchase fields remain ordinary independent inputs.
 
 | React item | Use and reason |
 | --- | --- |

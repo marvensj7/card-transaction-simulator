@@ -17,6 +17,8 @@ I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9,
 
 ## How the browser evidence was obtained
 
+The October 10 Three.js visual update has separate [card model results](card-model-results.json): real WebGL2 rendering in Chromium with SwiftShader software graphics, idle shimmer/hover changes, keyboard/touch flips, reduced motion, narrow layouts, and download/context fallbacks. Dashboard/purchase display data in that runner is explicitly mocked. It does not rerun the real MySQL workflows, Java coverage, Postman, or SonarQube checks recorded below.
+
 Thirteen workflow groups used the real Spring Boot API and MySQL with temporary fictional fixtures that were removed afterward. Different assigned cards, full-number matching, purchases, saved declines, refunds, account status changes, ownership/role failures, and pagination reached the real application. For uncertain retries, the runner let the backend save before discarding the response, then verified the same UUID and one saved result. Sign-in, sign-out, and reload checks confirmed stable card details.
 
 The runner explicitly injected a 401 expiration response, a 503 dashboard failure, and empty account/card/admin list responses. Empty customer history was real. The React state tests separately exercised its expiration timer; Java tests verified genuinely expired JWTs. These are distinct checks, not a claim that the browser waited 15 minutes.

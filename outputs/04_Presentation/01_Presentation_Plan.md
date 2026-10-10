@@ -1,18 +1,26 @@
 # Credit Circuit presentation plan
 
+[Canva presentation](https://canva.link/8o6196kln13luk6)
+
 ## Timing and order
 
 My target is 9 minutes and 15 seconds, with 45 seconds available for pauses or a slow page load. The presentation covers the problem and solution, architecture, live demo, technical deep dive, and lessons learned from section 6.2. Questions follow the closing if the class format allows separate time.
 
-| Time | Section | What I show |
-| --- | --- | --- |
-| 0:00–0:30 | Introduction | Credit Circuit title and project purpose. |
-| 0:30–1:30 | Problem and solution | Customer problem, simulator purpose, customer/admin roles. |
-| 1:30–3:00 | Architecture overview | Application flow and four-table relationship diagram. |
-| 3:00–5:45 | Live demo | Sign-in, approved purchase, decline, history/refund, admin freeze. |
-| 5:45–7:45 | Technical deep dive | Purchase service, duplicate protection, atomic writes, security and test evidence. |
-| 7:45–8:45 | Lessons learned | Keeping the workflow understandable, testing failures, and using AI critically. |
-| 8:45–9:15 | Closing | What the finished simulator demonstrates. |
+| Time | Slide |
+| --- | --- |
+| 0:00–0:20 | Credit Circuit |
+| 0:20–0:40 | About Me |
+| 0:40–1:25 | Problem and Solution |
+| 1:25–2:10 | The Stack |
+| 2:10–3:10 | The Purchase Service |
+| 3:10–3:55 | The Relationships |
+| 3:55–4:25 | The Request and Result |
+| 4:25–5:00 | When Something Goes Wrong |
+| 5:00–5:45 | Security and Testing |
+| 5:45–8:30 | Live Demo |
+| 8:30–9:15 | Lessons Learned and Closing |
+
+The slide order follows the reviewed reference presentation, with the purchase explanation starting inside the service. The [speaker notes](02_Speaker_Notes.md) contain the timed narration for all eleven slides. The sections below hold supporting content.
 
 ## 1. Introduction
 
@@ -127,7 +135,7 @@ AI helped with implementation and review, but I had to question unnecessary comp
 
 ## Slides and rehearsal
 
-The planned slides are title, problem/solution, application architecture, database relationships, purchase logic, security/test evidence, and lessons/closing. The live application appears between the architecture and purchase-logic slides. Speaker notes hold the explanation; the slides hold short points and readable visuals.
+The eleven slides are title, about me, problem/solution, stack, purchase service, relationships, request/result, failures, security/testing, live demo, and lessons/closing. The live application appears after the technical explanation. Speaker notes hold the explanation; the slides hold short points and readable visuals.
 
 For the October 12 trial run, I will time the full presentation with the application open, including account switching. I will have customer and admin sessions ready, verify the backend/database are running, and keep screenshots of the demo outcomes available if a local service fails. Credentials, tokens, and configuration secrets stay out of slides and screenshots. The presentation is October 13.
 

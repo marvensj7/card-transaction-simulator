@@ -74,16 +74,16 @@ export default function DashboardPage() {
           {customerAccount.status === 'FROZEN' && (
             <p>New purchases will be declined while this account is frozen. Eligible refunds remain available.</p>
           )}
-          <Link className="text-link" to="/purchase">Make a fictional purchase</Link>
+          <Link className="text-link" to="/purchase">Make a purchase</Link>
         </Card>
-        <Card title="Your fictional card">
+        <Card title="Your card">
           {assignedCard ? (
             <>
               <FlippableCard key={assignedCard.id} card={assignedCard} />
               <p className="hint">Follow your assigned card's entry instruction in the purchase form.</p>
             </>
           ) : (
-            <p>No fictional card is assigned.</p>
+            <p>No card is assigned.</p>
           )}
         </Card>
       </>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
       <PageHeading
         eyebrow="Credit Circuit / Account"
         title="Dashboard"
-        description={`Welcome, ${user?.displayName || 'customer'}. Your fictional credit at a glance.`}
+        description={`Welcome, ${user?.displayName || 'customer'}. Your credit at a glance.`}
       />
       {dashboardContent}
     </main>

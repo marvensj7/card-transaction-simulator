@@ -73,7 +73,7 @@ export default function TransactionsPage() {
   if (loading) content = <Loading skeleton />
   else if (error) content = <div role="alert"><p className="error">{error}</p><Button onClick={() => setReload(reload + 1)}>Try again</Button></div>
   else if (history) content = <Card title="Your history">
-      {history.items.length ? <TransactionTable items={history.items} pending={pending || uncertain} onRefund={selectRefund} /> : <p>No transactions yet. Your next fictional purchase will appear here.</p>}
+      {history.items.length ? <TransactionTable items={history.items} pending={pending || uncertain} onRefund={selectRefund} /> : <p>No transactions yet. Your next purchase will appear here.</p>}
       <Pagination page={page} totalPages={history.totalPages} pending={loading || pending || uncertain} onPage={setPage} />
     </Card>
 

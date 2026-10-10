@@ -10,7 +10,7 @@ export function reasonLabel(reasonCode) {
   } else if (reasonCode === 'INSUFFICIENT_CREDIT') {
     return 'There is not enough available credit.'
   } else if (reasonCode === 'CARD_EXPIRED') {
-    return 'The fictional card has expired.'
+    return 'The card has expired.'
   } else {
     return ''
   }

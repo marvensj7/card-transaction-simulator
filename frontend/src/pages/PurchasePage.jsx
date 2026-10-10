@@ -98,10 +98,10 @@ export default function PurchasePage() {
     /** @type {Record<string, string>} */
     const validationErrors = {}
     if (!/^\d{16}$/.test(purchaseForm.testCardNumber)) {
-      validationErrors.testCardNumber = 'Enter the 16-digit fictional test number.'
+      validationErrors.testCardNumber = 'Enter the assigned 16-digit card number.'
     }
     if (!/^\d{3,4}$/.test(purchaseForm.testSecurityCode)) {
-      validationErrors.testSecurityCode = 'Enter 3 or 4 fictional digits.'
+      validationErrors.testSecurityCode = 'Enter 3 or 4 digits.'
     }
     if (!/^\d{1,2}$/.test(purchaseForm.expiryMonth)
         || Number(purchaseForm.expiryMonth) < 1 || Number(purchaseForm.expiryMonth) > 12) {
@@ -111,7 +111,7 @@ export default function PurchasePage() {
       validationErrors.expiryYear = 'Enter a four-digit year from 2000.'
     }
     if (!purchaseForm.merchantName.trim()) {
-      validationErrors.merchantName = 'Enter a fictional merchant.'
+      validationErrors.merchantName = 'Enter a merchant name.'
     }
     if (!/^\d{1,12}(\.\d{1,2})?$/.test(purchaseForm.amount) || Number(purchaseForm.amount) <= 0) {
       validationErrors.amount = 'Enter a positive amount with at most 12 whole digits and 2 decimal places.'
@@ -199,14 +199,14 @@ export default function PurchasePage() {
         <Card title="Available credit">
           <AccountSummary account={customerAccount} />
         </Card>
-        <Card title="Fictional purchase">
+        <Card title="Purchase details">
           <FlippableCard key={assignedCard.id} card={assignedCard} />
           <p>
             Assigned card: {assignedCard.maskedNumber}.
             {' '}Expiry {assignedCard.expiryMonth}/{assignedCard.expiryYear}.
           </p>
           <p className="hint">{assignedCard.numberEntryHint}</p>
-          <p className="hint">The security code checks format only. Never enter real card details.</p>
+          <p className="hint">The security code checks format only.</p>
 
           {purchaseError && (
             <p className="error" role="alert">{purchaseError}</p>
@@ -234,7 +234,7 @@ export default function PurchasePage() {
             <form onSubmit={handlePurchaseSubmit} noValidate>
               <fieldset disabled={purchaseSubmissionStatus !== 'editing'}>
                 <Input
-                  label="Fictional card number"
+                  label="Card number"
                   name="testCardNumber"
                   inputMode="numeric"
                   autoComplete="off"
@@ -267,7 +267,7 @@ export default function PurchasePage() {
                   />
                 </div>
                 <Input
-                  label="Fictional security code"
+                  label="Security code"
                   name="testSecurityCode"
                   type="password"
                   inputMode="numeric"
@@ -279,7 +279,7 @@ export default function PurchasePage() {
                   error={fieldErrors.testSecurityCode}
                 />
                 <Input
-                  label="Fictional merchant"
+                  label="Merchant"
                   name="merchantName"
                   maxLength={100}
                   required
@@ -313,7 +313,7 @@ export default function PurchasePage() {
       <PageHeading
         eyebrow="Credit Circuit / Request"
         title="Purchase"
-        description="Every purchase starts a signal. Use fictional test details only."
+        description="Every purchase starts a signal."
       />
       {purchaseContent}
     </main>

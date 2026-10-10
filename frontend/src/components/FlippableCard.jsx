@@ -9,7 +9,7 @@ export default function FlippableCard({ card = null }) {
   const modelScene = useRef(/** @type {ReturnType<typeof import('./cardScene.js').createCardScene>} */ (null))
   const currentSide = useRef(false)
   const maskedNumber = card?.maskedNumber || '•••• 4242'
-  const label = card?.label || 'Fictional display card'
+  const label = card?.label || 'Credit Circuit card'
   const expiry = card ? `${String(card.expiryMonth).padStart(2, '0')}/${card.expiryYear}` : 'DEMO'
 
   useEffect(() => {
@@ -59,13 +59,13 @@ export default function FlippableCard({ card = null }) {
   }
 
   return (
-    <figure className="credit-card-preview" aria-label="Fictional Credit Circuit display card">
+    <figure className="credit-card-preview" aria-label="Credit Circuit display card">
       <p className="sr-only">{label}. Card ending in {maskedNumber.slice(-4)}. {card && `Expiry ${expiry}.`}</p>
       <button
         type="button"
         className="credit-card-flip"
         data-renderer={modelReady ? 'three' : 'css'}
-        aria-label="Flip fictional card"
+        aria-label="Flip card"
         aria-pressed={showBack}
         onClick={handleFlip}
         onPointerMove={handlePointerMove}
@@ -80,14 +80,14 @@ export default function FlippableCard({ card = null }) {
             <span className="credit-card-details">
               <span className="credit-card-number"><span aria-hidden="true">{maskedNumber}</span></span>
               <span className="credit-card-meta"><span>{label}</span><span>Valid thru<br />{expiry}</span></span>
-              <span className="credit-card-footer"><span>Fictional card</span><span>CC / 01</span></span>
+              <span className="credit-card-footer"><span>Signal / Credit</span><span>CC / 01</span></span>
             </span>
           </span>
           <span className="credit-card-face credit-card-back" aria-hidden={!showBack}>
             <span className="credit-card-stripe" />
-            <span className="credit-card-signature"><span>Simulation only</span><span>•••</span></span>
+            <span className="credit-card-signature"><span>Credit Circuit</span><span>•••</span></span>
             <span className="credit-card-back-copy">Every purchase starts a signal.</span>
-            <span className="credit-card-back-note">Fictional card · No real payments</span>
+            <span className="credit-card-back-note">Request · Checks · Outcome</span>
             <span className="credit-card-back-brand"><CircuitMark /><span>Credit Circuit</span></span>
           </span>
         </span>

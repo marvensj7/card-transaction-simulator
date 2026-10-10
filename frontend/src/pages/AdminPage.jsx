@@ -75,7 +75,7 @@ export default function AdminPage() {
       </>
 
   return <main id="main-content" className="content-page" tabIndex={-1}>
-    <PageHeading eyebrow="Credit Circuit / Oversight" title="Administration" description="Review fictional customer accounts and activity. Freeze controls new spending; eligible refunds remain available." />
+    <PageHeading eyebrow="Credit Circuit / Oversight" title="Administration" description="Review customer accounts and activity. Freeze controls new spending; eligible refunds remain available." />
     {message && <output className="notice">{message}</output>}
     <Button onClick={() => setReload(reload + 1)} disabled={accountsLoading || activityLoading || pending}>Refresh accounts and activity</Button>
     <Card title="Customer accounts">

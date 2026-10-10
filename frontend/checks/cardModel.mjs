@@ -17,7 +17,7 @@ const page = await context.newPage()
 const errors = []
 page.on('pageerror', () => errors.push('page error'))
 page.on('console', message => { if (message.type() === 'error') errors.push('rendering error') })
-const flip = page.getByRole('button', {name: 'Flip fictional card', exact: true})
+const flip = page.getByRole('button', {name: 'Flip card', exact: true})
 const canvas = page.locator('.credit-card-viewport canvas')
 let currentCheck = ''
 async function check(name, action) {
@@ -92,7 +92,7 @@ try {
     const touchPage = await touchContext.newPage()
     try {
       await touchPage.goto(frontend)
-      const touchFlip = touchPage.getByRole('button', {name: 'Flip fictional card'})
+      const touchFlip = touchPage.getByRole('button', {name: 'Flip card'})
       await expect(touchFlip).toHaveAttribute('data-renderer', 'three')
       await touchFlip.tap()
       await expect(touchFlip).toHaveAttribute('aria-pressed', 'true')
@@ -105,7 +105,7 @@ try {
     try {
       await fallbackPage.addInitScript(() => { Object.defineProperty(window, 'WebGL2RenderingContext', {value: undefined}) })
       await fallbackPage.goto(frontend)
-      const fallbackFlip = fallbackPage.getByRole('button', {name: 'Flip fictional card'})
+      const fallbackFlip = fallbackPage.getByRole('button', {name: 'Flip card'})
       await expect(fallbackFlip).toHaveAttribute('data-renderer', 'css')
       await expect(fallbackPage.locator('.credit-card-front')).toBeVisible()
       await fallbackFlip.click()
@@ -122,7 +122,7 @@ try {
       await downloadPage.route('**/*cardScene*', route => { blocked = true; return route.abort() })
       await downloadPage.goto(frontend)
       await expect.poll(() => blocked).toBe(true)
-      const fallbackFlip = downloadPage.getByRole('button', {name: 'Flip fictional card'})
+      const fallbackFlip = downloadPage.getByRole('button', {name: 'Flip card'})
       await expect(fallbackFlip).toHaveAttribute('data-renderer', 'css')
       await fallbackFlip.click()
       await expect(fallbackFlip).toHaveAttribute('aria-pressed', 'true')
@@ -162,8 +162,8 @@ try {
     await expect(flip).toHaveAttribute('data-renderer', 'three')
     await flip.click()
     await expect(flip).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByLabel('Fictional card number', {exact: true})).toHaveValue('')
-    await expect(page.getByLabel('Fictional security code', {exact: true})).toHaveValue('')
+    await expect(page.getByLabel('Card number', {exact: true})).toHaveValue('')
+    await expect(page.getByLabel('Security code', {exact: true})).toHaveValue('')
     await expect(page.getByLabel('Expiry month', {exact: true})).toHaveValue('12')
     await page.setViewportSize({width: 320, height: 844})
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))

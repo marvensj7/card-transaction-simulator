@@ -44,7 +44,7 @@ export default function LoginPage() {
         await register({ displayName: displayName.trim(), email: email.trim(), password })
         setRegistrationFormVisible(false)
         setPassword('')
-        setRegistrationMessage('Your fictional account is ready. Sign in to continue.')
+        setRegistrationMessage('Your account is ready. Sign in to continue.')
       } else {
         const loginResult = await login({ email: email.trim(), password })
         setPassword('')
@@ -74,10 +74,10 @@ export default function LoginPage() {
       <PageHeading
         eyebrow="Credit Circuit / Access"
         title={registrationFormVisible ? 'Create account' : 'Sign in'}
-        description="Fictional cards. Real application rules."
+        description="Your credit, connected."
       />
-      <Card title={registrationFormVisible ? 'Start your simulation' : 'Welcome back'}>
-        <p>Use a fictional identity and a password you do not use elsewhere.</p>
+      <Card title={registrationFormVisible ? 'Get started' : 'Welcome back'}>
+        <p>Use a test identity and a password you do not use elsewhere.</p>
         {notice && <output className="notice">{notice}</output>}
         {registrationMessage && <output className="notice">{registrationMessage}</output>}
         {authenticationError && (

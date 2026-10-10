@@ -36,7 +36,7 @@ export default function App() {
 
         <footer className="site-footer">
           <span>Credit Circuit</span>
-          <span>Credit Card Transaction Simulator</span>
+          <span>Simulator · Fictional cards and balances. No real payments.</span>
         </footer>
       </div>
     </UserUiProvider>

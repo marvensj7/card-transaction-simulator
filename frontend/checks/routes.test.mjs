@@ -60,9 +60,9 @@ test('an unknown nested address offers a link home without a current nav item', 
   assert.doesNotMatch(html, /aria-current="page"/)
 })
 
-test('home keeps the fictional display card and purchase-path teaser', () => {
+test('home keeps the display card and purchase-path teaser', () => {
   const html = renderRoute('/')
-  assert.ok(html.includes('Fictional Credit Circuit display card'))
+  assert.ok(html.includes('Credit Circuit display card'))
   assert.ok(html.includes('Card ending in 4242'))
   assert.doesNotMatch(html, /<p\b[^>]*aria-label=/, 'paragraphs use readable text instead of an unsupported ARIA name')
   assert.ok(html.includes('<span aria-hidden="true">•••• 4242</span>'), 'the mask is visual; assistive technology gets the card ending as text')

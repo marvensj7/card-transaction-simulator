@@ -14,13 +14,13 @@ export function drawCardArtwork(label, maskedNumber, expiry, back) {
     context.fillRect(72, 245, 880, 75)
     context.font = '26px monospace'
     context.fillStyle = '#173d30'
-    context.fillText('SIMULATION ONLY', 94, 294)
+    context.fillText('CREDIT CIRCUIT', 94, 294)
     context.fillText('•••', 875, 294)
     context.fillStyle = '#f2f6e9'
     context.font = '600 32px "Segoe UI", sans-serif'
     context.fillText('Every purchase starts a signal.', 72, 395)
     context.font = '25px "Segoe UI", sans-serif'
-    context.fillText('Fictional card · No real payments', 72, 443)
+    context.fillText('Request · Checks · Outcome', 72, 443)
     context.font = '600 28px "Segoe UI", sans-serif'
     context.fillText('Credit Circuit', 742, 566)
     drawCircuit(context, 668, 523, 60, '#d6f58b')
@@ -65,7 +65,7 @@ export function drawCardArtwork(label, maskedNumber, expiry, back) {
     context.fillRect(72, 525, 880, 2)
     context.fillStyle = '#d6f58b'
     context.font = '20px monospace'
-    context.fillText('FICTIONAL CARD', 72, 575)
+    context.fillText('SIGNAL / CREDIT', 72, 575)
     context.fillText('CC / 01', 852, 575)
   }
   return canvas

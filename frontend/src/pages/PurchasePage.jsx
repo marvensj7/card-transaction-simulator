@@ -232,10 +232,45 @@ export default function PurchasePage() {
             </section>
           )}
           {purchaseResult && (
-            <section aria-live="polite" aria-label="Purchase outcome">
-              <h3>Purchase {purchaseResult.transaction.status === 'APPROVED' ? 'approved' : 'declined'}</h3>
-              <p>{money(purchaseResult.transaction.amount)} · Transaction #{purchaseResult.transaction.id}</p>
-              <p>{reasonLabel(purchaseResult.transaction.reasonCode)}</p>
+            <section
+              className="purchase-receipt"
+              data-status={purchaseResult.transaction.status}
+              aria-live="polite"
+              aria-label="Purchase outcome"
+            >
+              <div className="receipt-heading">
+                <svg className="receipt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  {purchaseResult.transaction.status === 'APPROVED' ? (
+                    <path d="m5 12 4 4L19 6" />
+                  ) : (
+                    <path d="m6 6 12 12M6 18 18 6" />
+                  )}
+                </svg>
+                <div>
+                  <p className="receipt-label">Credit Circuit / Simulation receipt</p>
+                  <h3>Purchase {purchaseResult.transaction.status === 'APPROVED' ? 'approved' : 'declined'}</h3>
+                </div>
+              </div>
+              <p className="receipt-amount">{money(purchaseResult.transaction.amount)}</p>
+              <p className="receipt-message">
+                {purchaseResult.transaction.status === 'APPROVED'
+                  ? 'The purchase was added to your outstanding balance.'
+                  : `${reasonLabel(purchaseResult.transaction.reasonCode)} Your balance was unchanged.`}
+              </p>
+              <dl className="receipt-details">
+                <div>
+                  <dt>Merchant</dt>
+                  <dd>{purchaseResult.transaction.merchantName}</dd>
+                </div>
+                <div>
+                  <dt>Transaction ID</dt>
+                  <dd>#{purchaseResult.transaction.id}</dd>
+                </div>
+                <div>
+                  <dt>Balance after this purchase</dt>
+                  <dd>{money(purchaseResult.transaction.outstandingAfter)}</dd>
+                </div>
+              </dl>
             </section>
           )}
 

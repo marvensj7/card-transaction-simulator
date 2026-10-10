@@ -1,6 +1,6 @@
 # Credit Circuit verification checklist
 
-I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9, and Chromium. Postman evidence describes revision cd81a36; browser evidence was refreshed for the 3D card changes before their commit; the final SonarQube scan describes revision f72dc2c. The original local CardTransaction.java edit was preserved and included in verification. My instructor waived AWS and related deployment/DevOps requirements. Jira and branch protection are excluded. Other written requirements remain required.
+I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9, and Chromium. Postman evidence describes revision cd81a36; browser evidence was refreshed on October 10 for the receipt and credit-use meter changes; the final SonarQube scan describes revision f72dc2c. The original local CardTransaction.java edit was preserved and included in verification. My instructor waived AWS and related deployment/DevOps requirements. Jira and branch protection are excluded. Other written requirements remain required.
 
 | Rubric area | Implemented behavior and evidence | Remaining limitation or action |
 | --- | --- | --- |
@@ -17,7 +17,9 @@ I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9,
 
 ## How the browser evidence was obtained
 
-The October 10 wallet update has separate [real MySQL wallet results](card-wallet-results.json): owned-card masking/reveal, model texture replacement, automatic hiding, purchase prefill and a real approval, actual admin freeze, graphics fallback, narrow-screen accessibility, and the legacy rule. Six rule checks reject mismatched/unknown details. Browser time and blur/visibility/context-loss events are explicitly injected. Revealed screenshots, numbers, sample codes, and credentials are never exported. Existing full-workflow and coverage results below retain their original date.
+The October 10 receipt and credit-use meter update passed prop checking, 37 API tests, nine route tests, seven state tests, and the production build. All thirteen real MySQL browser workflow groups passed again, including approval/decline, purchase/refund retries, account freezing, responsive layouts, and automated accessibility checks. [Browser results](browser-results.json), [dashboard screenshot](dashboard-desktop.png), [phone receipt screenshot](purchase-phone.png), and frontend coverage were refreshed. Java coverage, Postman, and SonarQube retain their previously recorded dates and revisions.
+
+The October 10 wallet update has separate [real MySQL wallet results](card-wallet-results.json): owned-card masking/reveal, model texture replacement, automatic hiding, purchase prefill and a real approval, actual admin freeze, graphics fallback, narrow-screen accessibility, and the legacy rule. Six rule checks reject mismatched/unknown details. Browser time and blur/visibility/context-loss events are explicitly injected. Revealed screenshots, numbers, sample codes, and credentials are never exported.
 
 The October 10 Three.js visual update has separate [card model results](card-model-results.json): real WebGL2 rendering in Chromium with SwiftShader software graphics, idle shimmer/hover changes, keyboard/touch flips, reduced motion, narrow layouts, and download/context fallbacks. Dashboard/purchase display data in that runner is explicitly mocked. It does not rerun the real MySQL workflows, Java coverage, Postman, or SonarQube checks recorded below.
 
@@ -29,7 +31,7 @@ Widths checked were 1440, 768, 390, and 320 pixels. Keyboard checks covered the 
 
 ## Other checks and boundaries
 
-The final frontend pass passed prop checking, 35 API tests, nine route tests, seven state tests, the private admin-setup MySQL test, and the production build. npm audit reported zero vulnerabilities. [Frontend summary](frontend-checks.json). Browser-derived V8 coverage is recorded separately in [frontend-coverage.json](frontend-coverage.json) and [LCOV](lcov.info); it does not replace the Java gate.
+The October 9 frontend pass passed prop checking, 35 API tests, nine route tests, seven state tests, the private admin-setup MySQL test, and the production build. npm audit reported zero vulnerabilities. [Historical frontend summary](frontend-checks.json). Browser-derived V8 coverage is recorded separately in [frontend-coverage.json](frontend-coverage.json) and [LCOV](lcov.info); it does not replace the Java gate.
 
 An [actual backend restart](restart-results.json) preserved the assigned card and returned the same saved purchase on an identical retry. The [seed rerun](seed-results.json) preserved existing data and confirmed four tables with no migration. New cards use ACCOUNT_V1: 0000 followed by the account ID padded to 12 digits; only the profile and last four digits are stored. Existing DEMO_4242 cards retain their original behavior and history. The backend checks the complete expected number and owned card/expiry; security codes remain format-only.
 

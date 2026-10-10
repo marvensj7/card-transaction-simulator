@@ -53,6 +53,8 @@ Pages own their form values, request state, and event handlers. They call named 
 
 Shared components receive data and callbacks through props. ConfirmModal manages its dialog and focus, while its page decides which refund or status change to request. AccountSummary and TransactionTable display API data. format.js provides currency and reason-label formatting, and types.js describes shared JSON shapes for JSDoc checks. Neither file makes requests. These two small files currently live beside the API modules because the pages share them.
 
+AccountSummary calculates the percentage of credit used from the loaded outstanding balance and credit limit and displays it in a labeled accessible meter beneath the totals. A zero limit avoids division, and the visual fill stays within 0–100%. PurchasePage displays confirmed outcomes as simulation receipts with an icon, approval/decline text, amount, merchant, transaction ID, server decline reason, and the transaction's saved outstandingAfter balance. The receipt uses the existing response; it adds no endpoint or financial decision. The account summary uses the returned account's current totals, including after an identical retry. Reduced motion disables the meter's width transition.
+
 Page components contain both JSX and the local interaction logic for their workflow. This keeps each page readable in one file. Financial rules and database access remain on the backend.
 
 Purchase/refund actions keep the original UUID while uncertain and guard repeated clicks. Declines are saved results. Forms have labeled errors/loading/recovery. Dialogs focus Cancel, support Escape, and restore focus. Lists show empty states and bounded navigation. Wide tables scroll within a keyboard-focusable region.

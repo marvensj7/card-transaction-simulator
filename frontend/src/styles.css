@@ -459,6 +459,28 @@ input[aria-invalid="true"] { border-color: #ffb6a3; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .summary-grid dt { color: var(--muted); }
 .summary-grid dd { margin: .4rem 0; font-size: clamp(1.25rem, 3vw, 2rem); }
+.credit-use { margin-block: 1.5rem; }
+.credit-use-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; margin-bottom: .6rem; color: var(--muted); font-size: .9rem; }
+.panel .credit-use-label { max-width: none; }
+.credit-use-track { height: .6rem; overflow: hidden; border-radius: 1rem; background: var(--line); }
+.credit-use-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s ease; }
+@media (prefers-reduced-motion: reduce) { .credit-use-fill { transition: none; } }
+
+.purchase-receipt { max-width: 36rem; margin-block: 1.5rem; padding: 1.5rem; border: 1px solid #607846; border-top: 3px solid var(--accent); border-radius: .75rem; background: #202d21; }
+.receipt-heading { display: flex; align-items: center; gap: 1rem; }
+.receipt-icon { width: 2.75rem; height: 2.75rem; flex-shrink: 0; padding: .6rem; border: 1px solid currentColor; border-radius: 50%; color: var(--accent); }
+.receipt-label { margin: 0 0 .35rem; color: var(--muted); font-family: var(--mono); font-size: .7rem; }
+.receipt-heading h3 { margin: 0; font-size: 1.35rem; }
+.receipt-amount { margin: 1.25rem 0 .5rem; font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 650; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.receipt-message { margin: 0 0 1.25rem; color: #d2d9ce; }
+.receipt-details { margin: 0; padding-top: 1rem; border-top: 1px dashed #607846; }
+.receipt-details div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; margin-block: .65rem; }
+.receipt-details dt { color: var(--muted); }
+.receipt-details dd { margin: 0; font-weight: 600; }
+.purchase-receipt[data-status="DECLINED"] { border-color: #8e6256; border-top-color: #ffb6a3; background: #30251f; }
+.purchase-receipt[data-status="DECLINED"] .receipt-icon { color: #ffb6a3; }
+.purchase-receipt[data-status="DECLINED"] .receipt-details { border-color: #8e6256; }
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
 @media (max-width: 40rem) { .summary-grid, .form-grid { grid-template-columns: minmax(0, 1fr); } .panel { padding: 1rem; } }
 

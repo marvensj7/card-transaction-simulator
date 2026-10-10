@@ -236,6 +236,16 @@ test('a non-JSON HTTP error uses a fallback without echoing its raw content', as
     assertSafeError(error, 'The request failed (HTTP 401). Please try again.'))
 })
 
+for (const status of [502, 504]) {
+  test(`HTTP ${status} explains backend availability without echoing the gateway response`, async () => {
+    mock.method(globalThis, 'fetch', async () => new Response('Gateway unavailable', { status }))
+    await assert.rejects(fetchJson('/api/auth/login', 'POST'), {
+      status,
+      message: 'Credit Circuit cannot reach the backend. Make sure Spring Boot is running on port 8080, then try again.',
+    })
+  })
+}
+
 test('unreadable successful JSON hides the parser failure and card fields', async () => {
   mock.method(globalThis, 'fetch', async () => ({
     ok: true,

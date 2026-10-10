@@ -79,6 +79,9 @@ function safeMessage(message, fallbackMessage, sensitiveValues) {
 
 /** @param {number} status @param {any} responseData @param {Record<string, unknown> | undefined} requestBody @param {string} accessToken */
 function createResponseError(status, responseData, requestBody, accessToken) {
+  if (status === 502 || status === 504) {
+    return new ApiError('Credit Circuit cannot reach the backend. Make sure Spring Boot is running on port 8080, then try again.', status)
+  }
   const fallbackMessage = `The request failed (HTTP ${status}). Please try again.`
   const sensitiveValues = [requestBody?.password, requestBody?.testCardNumber, requestBody?.testSecurityCode, accessToken]
   /** @type {Record<string, string>} */

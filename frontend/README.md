@@ -18,6 +18,15 @@ With Vite running, `npm run check:card` verifies the real WebGL model in Chromiu
 
 Vite serves [the app](http://127.0.0.1:5173) and proxies /api to port 8080. Protected workflows need the backend and MySQL. Home and the sign-in form render without account data.
 
+If signing in returns HTTP 502 or 504, check that Spring Boot is running. The React server can display the form while the API is stopped. Start MySQL, then run the following in a separate terminal from the repository root and keep that terminal open:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local" "-Dcapstone.build.directory=C:/Users/marve/.cache/credit-circuit-build"
+```
+
+Wait for the backend's `Started` message and confirm that the [OpenAPI UI](http://127.0.0.1:8080/swagger-ui/index.html) opens, then retry signing in. If startup fails, check the ignored local configuration described in the [backend README](../backend/README.md).
+
 LoginPage registers/signs in. DashboardPage loads the own account/card. PurchasePage loads the owned account/card, validates controlled input, submits one stable request, and displays approval/decline. The assigned masked card includes numberEntryHint from the backend. Follow that simulation-only instruction; new cards use `0000` followed by the account ID padded to 12 digits. Existing legacy cards keep their displayed instruction. Security codes are format-only. No full number is returned or stored. TransactionsPage pages history and confirms full refunds. AdminPage pages account/activity summaries and changes ACTIVE/FROZEN status. ProtectedRoute checks navigation; the backend enforces authorization.
 
 UserUiContext stores the access token in one ref and safe user/expiration/notice state in a reducer. Context shares identity. Stable useCallback handlers configure API/expiration behavior; useMemo supplies the shared Context value. Effects check expiration/visibility. Pages use useState/useEffect for forms/data. No token goes to browser storage. Reload/sign-out require login. A copied token remains valid until server expiration.

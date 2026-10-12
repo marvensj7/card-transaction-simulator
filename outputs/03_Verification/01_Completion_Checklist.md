@@ -25,7 +25,7 @@ Checked against the UCI 2123 rubric on October 12, 2026.
 | Peer review with two peers, feedback given and received | No completed feedback record found in the project folder. | Needs my input |
 | Self-assessment | No completed self-assessment found in the project folder. | Needs my input |
 | Test credentials for the instructor's demo | Provide existing fictional customer/admin sign-in details privately, outside Git and submitted source. | Needs my private handoff |
-| All code committed and pushed to main | Public repository and final cleanup commit | Check final Git status and remote after push |
+| All code committed and pushed to main | Public repository and final cleanup commit | main branch; verified cleanup pushed to origin/main |
 | Repository URL submitted to Canvas | https://github.com/marvensj7/card-transaction-simulator | My Canvas action |
 | All documentation uploaded to Canvas | Final local submission package, including slide PDF and Postman JSON | My Canvas action |
 

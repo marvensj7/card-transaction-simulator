@@ -1,9 +1,9 @@
 {
-  "date": "2026-10-09",
-  "sourceRevision": "cd81a36f3a0c123d3229cb3e2e0150374fdc8af4",
+  "date": "2026-10-12T20:24:39.926760+00:00",
+  "sourceRevision": "57a1a190ac74c3dc43404660d4429f020bcc609e",
   "propCheck": "passed",
   "apiTests": {
-    "passed": 35,
+    "passed": 37,
     "failed": 0
   },
   "routeTests": {
@@ -14,13 +14,11 @@
     "passed": 7,
     "failed": 0
   },
-  "privateAdminMySQLTest": {
-    "passed": 1,
+  "fictionalCardRuleTests": {
+    "passed": 6,
     "failed": 0
   },
   "productionBuild": "passed",
-  "npmAudit": {
-    "vulnerabilities": 0
-  },
-  "evidenceRecordedAt": "2026-10-09T18:04:47.281258+00:00"
+  "buildAdvisory": "Optional Three.js chunk is 562.89 kB, 142.32 kB gzip.",
+  "scope": "Local unit/state/route/rule checks and production build. Browser, wallet, model, Postman, and SonarQube reports retain their recorded run dates."
 }

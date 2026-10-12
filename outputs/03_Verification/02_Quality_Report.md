@@ -1,43 +1,49 @@
-# Quality report - October 9, 2026
+# Credit Circuit quality report
 
-October 10 wallet update: 53 existing API/route/state tests and six fictional-rule tests passed, plus nine model checks and nine wallet workflow groups. [Wallet evidence](card-wallet-results.json) reaches the real Spring Boot/MySQL application for owned-card loading, a purchase approval, and an admin freeze; it also verifies legacy details. Timeout, focus-loss, and graphics-loss cases identify their injected events. Only a masked dashboard screenshot is exported. Java coverage, full browser coverage, Postman, and SonarQube evidence below were not rerun for this frontend update.
+The results below come from saved local verification runs. Each run has its own date. The Java checks were repeated during final cleanup on October 12; Postman and SonarQube retain their recorded October 9 results.
 
-October 10 visual update: the shared card now uses a Three.js model with an extruded body, rounded edges, a hover foil gradient, and idle shimmer. The 51 API/route/state tests, prop check, and production build passed again. [Targeted card results](card-model-results.json) record real WebGL2 rendering with Chromium software graphics and explicitly mocked account/card display responses. Earlier Java, real MySQL browser, Postman, coverage, and SonarQube results below remain historical; they were not rerun for this visual change. The optional graphics bundle is about 563 kB (142 kB gzip), and Vite reports its large-chunk advisory. It is loaded separately after the ordinary card appears.
+## Java tests and coverage
 
-I verified the registration, assigned fictional card, and purchase workflow against the real local application and MySQL. The latest Java and OpenAPI checks cover revision **825927c**. The earlier React, Postman, restart, and seed checks below describe **cd81a36**. Browser evidence was refreshed on October 9 for the 3D card changes, before their commit. The original uncommitted CardTransaction.java edit was preserved during these checks and is not included in the commits for this pass.
+Maven verify with the mysql-verification profile passed 47 tests: 34 HTTP/unit tests and 13 real MySQL integration tests. There were no failures, errors, or skips.
 
-The Java and OpenAPI exports were refreshed after removing AccountResponse and CardResponse. CreditAccount and DemoCard now return the same six display fields directly; tests confirm that linked entities and internal card fields remain excluded. The earlier React, Postman, restart, and seed evidence remains dated to its original pass; browser results and screenshots were refreshed for the 3D card. The older SonarQube exports and JaCoCo HTML directory remain historical evidence. The final October 9 SonarQube scan passed; see the current analysis below.
+The tests cover registration rollback and duplicate email, signed authentication, roles and account ownership, assigned cards, validation, pagination, approvals, declines, request-ID retries, concurrent spending, full refunds, and failed saves. MySQL tests check actual persistence and transaction behavior.
 
-## Java and frontend checks
-
-Maven verify with the mysql-verification profile passed **47 tests**: 34 HTTP/unit tests and 13 real MySQL integration tests. The added MySQL test checks account/card serialization after service transactions close, including customer reads and admin list/status responses. There were no failures, errors, or skips. Tests cover registration rollback and concurrent email conflicts, signed authentication and claims, roles and ownership, different assigned cards, full-number matching even when masks match, validation and pages, approval and saved declines, identical and changed retries, concurrent spending and refunds, full-refund restrictions, and atomic rollback.
-
-JaCoCo 0.8.14 measured all 32 production classes without coverage exclusions:
-
-| Metric | Covered / total | Result |
+| JaCoCo metric | Covered / total | Result |
 | --- | --- | --- |
-| Java lines | 516 / 540 | 95.56% |
-| Java branches | 146 / 172 | 84.88% |
-| Java instructions | 2223 / 2313 | 96.11% |
-| Java methods | 151 / 158 | 95.57% |
+| Lines | 516 / 540 | 95.56% |
+| Branches | 146 / 172 | 84.88% |
+| Instructions | 2223 / 2313 | 96.11% |
+| Methods | 151 / 158 | 95.57% |
 
-The enforced 70% Java line gate passed, exceeding the rubric's 80% target. The [current XML](java-coverage.xml) and [measured summary](java-results.json) preserve this measurement. The [older HTML report](jacoco/index.html) and its adjacent XML/CSV remain October 8 evidence. They were not replaced with source HTML containing the preserved, uncommitted CardTransaction.java edit. No raw test response output was exported.
+The enforced 70% line-coverage gate passed. JaCoCo measured all 32 production classes without coverage exclusions. See the [test summary](java-results.json) and [coverage XML](java-coverage.xml). Coverage shows which code ran during tests. It does not prove the absence of bugs.
 
-Frontend prop checking, 51 API/route/state tests, one private admin-setup MySQL test, and the Vite production build passed. npm audit reported zero vulnerabilities. Thirteen Chromium workflow groups passed against the real backend and MySQL. The [checklist](01_Completion_Checklist.md) describes injected failures, keyboard/responsive/axe checks, and refreshed screenshots. Browser V8 coverage measured 99.13% lines, 78.98% branches, and 88.88% functions. It is separate from the Java coverage gate and does not prove that every condition was asserted.
+## Frontend and browser checks
 
-The [restart check](restart-results.json) stopped and restarted its own backend process after saving a purchase. The assigned card stayed identical; replaying the original UUID returned the same transaction, one history row, and one balance change. The [seed check](seed-results.json) reran the SQL seed and confirmed four base tables and preservation of existing seeded passwords, balances, account/card details, and history. No schema migration was needed.
+The October 12 cleanup checks passed prop checking, 37 API tests, nine route tests, seven state tests, six fictional-card rule tests, and the production build. See [frontend results](frontend-checks.json).
+
+The saved [browser results](browser-results.json) cover thirteen workflow groups against Spring Boot and MySQL. They include approvals, declines, uncertain retries, refunds, account status, ownership, and pagination. Separate October 10 [wallet checks](card-wallet-results.json) exercise owned-card loading, reveal/prefill, a real purchase, admin freezing, and legacy details.
+
+The [card model checks](card-model-results.json) verify WebGL rendering, shimmer/hover, keyboard/touch flips, reduced motion, phone layouts, and graphics fallbacks. Their account/card display responses are mocked.
+
+The browser runner injects lost responses, expiration/failure/empty responses, and some visibility/graphics events. Its reports identify these cases. Java tests separately verify expired JWTs. Sampled pages at 1440, 768, 390, and 320 pixels had no reported axe WCAG 2 A/AA or 2.1 violations. This does not cover every browser or assistive technology.
+
+Recorded browser V8 coverage is 99.13% lines, 78.98% branches, and 88.88% functions. See [frontend coverage](frontend-coverage.json) and [LCOV](lcov.info). It is separate from the Java gate.
+
+The optional Three.js chunk is about 563 kB, or 142 kB compressed. Vite reports a large-chunk advisory. It loads after the ordinary card appears.
 
 ## Postman and OpenAPI
 
-Postman CLI 1.71.0 exercised the [exported collection](Credit_Circuit.postman_collection.json): 54 collection items plus two rate-limit subrequests, **56 HTTP requests and 83 assertions**, with zero failures. It covers all application endpoints plus authentication, roles and ownership, invalid fields/pages, duplicate emails/requests, assigned cards and mismatched details, unchanged balance/history after invalid input, approval/decline, full refunds, account status, cookie-only access, CORS, and authentication rate limiting.
+The October 9 Postman CLI run exercised all eleven application endpoints. It passed 56 HTTP requests and 83 assertions with zero failures. The collection covers authentication, roles/ownership, validation, pages, assigned cards, approval/decline, retries, refunds, account status, cookie-only rejection, CORS, and authentication rate limiting.
 
-The [CLI output](postman-results.txt) and [summary](postman-results.json) contain no active credentials, JWTs, full card numbers, or raw response bodies. Exported credential/token/card/code variables are blank. The runner derives fictional numbers and supplies temporary credentials in memory, then removes its own fixtures. No Postman cloud publication is claimed. The refreshed [OpenAPI export](Credit_Circuit.openapi.json) comes from the rebuilt backend with the DTO removal and an expiry-month schema annotation. The annotation keeps the documented month numeric; packaging and the generated schema check passed after this documentation-only correction. Its CreditAccount and DemoCard schemas contain exactly their six display fields; the deleted DTO schemas are absent. The masked card retains its simulation-only numberEntryHint.
+The [collection](Credit_Circuit.postman_collection.json), [run summary](postman-results.json), and [CLI output](postman-results.txt) contain no active credentials, issued JWTs, full card numbers, security codes, or raw response bodies. Sensitive exported variables are blank. The runner supplies temporary fixture values in memory and removes its own rows.
 
-## Current SonarQube analysis - October 9
+The [OpenAPI export](Credit_Circuit.openapi.json) documents the backend's request and response schemas. User/account/card responses exclude password hashes, linked entities, and internal card fields.
 
-The final scan completed at **4:14 PM Eastern** against revision **f72dc2c**, including the preserved uncommitted CardTransaction.java edit. The actual processed analysis passed its quality gate. The [current summary](sonar-current-results.json), [scanner log](sonar-current-scanner.txt), and [dashboard screenshot](sonar-current-dashboard.jpg) preserve the result. The summary records the scanner log and authenticated dashboard; it is not a raw Web API export.
+## SonarQube
 
-| Metric | October 9 final result |
+The final October 9 analysis completed at 4:14 p.m. Eastern for revision f72dc2c, including the local entity edit recorded in that run. Its processed quality gate passed.
+
+| Metric | Recorded result |
 | --- | --- |
 | Quality gate | PASSED |
 | Open security / reliability / maintainability issues | 0 / 0 / 0 |
@@ -47,32 +53,14 @@ The final scan completed at **4:14 PM Eastern** against revision **f72dc2c**, in
 | New-code coverage / new issues | 96.0% / 0 |
 | Duplicated lines | 0.0% |
 
-An initial current-code scan failed the zero-new-issues condition for a catch-variable naming finding. All nine javascript:S7718 naming findings were corrected by renaming only the catch variables and their references to error_. Prop checking, all 51 API/route/state tests, and the frontend production build passed afterward. A fresh Java/MySQL verification also passed all 47 tests with 95.56% line coverage and the enforced 70% gate. The final scan imported that fresh JaCoCo XML and the existing October 9 browser-derived LCOV. It did not rerun browser coverage. The updated Java XML reproduces the measured coverage already recorded above.
+The [results](sonar-current-results.json), [scanner log](sonar-current-scanner.txt), and [dashboard screenshot](sonar-current-dashboard.jpg) preserve the actual analysis. The JSON is a recorded summary of the scanner/dashboard, not a raw Web API export.
 
-The scanner warned that the preserved uncommitted CardTransaction.java edit lacks SCM blame. The file was analyzed; it was not excluded or committed as part of this pass. SonarQube Community Build reports limited security analysis, so zero reported issues does not certify the absence of every injection vulnerability.
+Nine catch-variable naming findings were corrected before the passing scan. It imported fresh Java coverage and existing browser LCOV. The recorded entity edit lacked SCM blame but was included in analysis. Community Build provides limited security analysis. Later frontend changes postdate this scan.
 
-The earlier HTTP 401 attempt remains recorded in [the attempt summary](sonar-refresh-results.json). Local SonarQube administrator access was recovered after backing up its database, the user selected a new password, and the temporary project analysis token was revoked after the successful scan. No credential values are included in these exports.
+[sonar-project.properties](../../sonar-project.properties) records the analysis paths. A Maven build outside backend/target needs matching binary, test-result, and coverage path overrides.
 
-## Historical SonarQube analysis - October 8
+## Persistence checks and limits
 
-The saved [results](sonar-results.json), [successful scanner log](sonar-scanner.txt), and [before-cleanup findings](sonar-before.json) describe revision **e7c9f1fad8b53372fe5c26505308da9919ea085a**, not this pass. That actual processed analysis used local Java 21 and SonarQube Community Build with Java/React sources and JaCoCo/LCOV imports.
+The [restart check](restart-results.json) confirmed that an assigned card and saved purchase survive a backend restart. Retrying the original request returned the same transaction and one balance change. The recorded [seed check](seed-results.json) confirmed that rerunning the then-current SQL seed preserved existing rows and four base tables.
 
-| Metric | October 8 result |
-| --- | --- |
-| Quality gate | OK |
-| Bugs / vulnerabilities / security hotspots | 0 / 0 / 0 |
-| Open blocker / critical / major issues | 0 / 0 / 0 |
-| Open minor issues | 9 naming findings |
-| Reliability / security / maintainability ratings | A / A / A |
-| Combined Java/React coverage | 93.9% |
-| Combined line / branch coverage | 97.6% / 79.7% |
-| Duplicated lines | 0.0% |
-| New-code coverage / new violations | 91.9% / 0 |
-
-Those nine javascript:S7718 findings preferred the catch name error_ over failure. Two findings were reviewed as false positives, with the recorded reasons preserved: java:S4502 concerned CSRF for an API accepting explicit bearer headers without automatic cookie/session authentication; javascript:S6845 concerned keyboard focus on a named horizontal table scroll region. The saved review records explain the tests and reasoning. Their historical status does not establish the findings for the current revision.
-
-[sonar-project.properties](../../sonar-project.properties) supplies the reproducible project paths. A Maven build outside backend/target needs matching binary, test-result, and JaCoCo path overrides. Database settings, signing keys, and analysis credentials remain outside source control.
-
-## Limits and remaining work
-
-The final SonarQube scan passed after local administrator access was restored and the user chose a new password. History/refund and admin React pages and their shared table/dialog controls still need a later readability pass. No cloud deployment, production load test, or universal accessibility certification is represented as completed. The rate limiter is local and resets on restart; a copied JWT remains valid until expiration after browser sign-out. The 3D card is implemented and checked in Chromium after the recorded SonarQube scan; that scan does not cover these frontend changes. Phase 6 remains removed.
+This is a local simulator. The authentication limiter resets on restart. A copied JWT stays valid until expiration after browser sign-out. No production load test, cloud deployment, or universal accessibility certification is claimed.

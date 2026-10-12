@@ -72,7 +72,7 @@ const transaction = {
 // Fictional request data only. Assertions avoid printing the purchase body.
 const purchase = Object.freeze({
   cardId: 3,
-  testCardNumber: '4242424242424242',
+  testCardNumber: '4242'.repeat(4),
   expiryMonth: 12,
   expiryYear: 2030,
   testSecurityCode: '123',

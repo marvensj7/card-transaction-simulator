@@ -30,3 +30,9 @@ logs/
 *.iml
 .DS_Store
 Thumbs.db
+
+# Finished recording stays in the local submission package.
+outputs/04_Presentation/04_Credit_Circuit_Demo.mp4
+
+# Local submission packages
+Credit_Circuit_Submission.zip

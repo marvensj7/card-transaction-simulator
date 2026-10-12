@@ -1,8 +1,7 @@
 {
-  "date": "2026-10-09T19:26:25.896260+00:00",
-  "evidenceRecordedAt": "2026-10-09T19:26:25.896260+00:00",
-  "sourceRevision": "825927cfb72db30769a4a96c7f97de505182658b",
-  "preservedLocalCardTransactionEditIncludedInBuild": true,
+  "date": "2026-10-12T20:24:39.878717+00:00",
+  "sourceRevision": "57a1a190ac74c3dc43404660d4429f020bcc609e",
+  "workingTreeChangesIncluded": "Final cleanup documents and existing seed edit; application Java source unchanged.",
   "java": "17",
   "mysql": "8.4.9",
   "gate": {
@@ -11,10 +10,6 @@
     "passed": true
   },
   "coverageReport": "java-coverage.xml",
-  "historicalHtmlReport": {
-    "path": "jacoco/index.html",
-    "date": "2026-10-08"
-  },
   "coverage": {
     "INSTRUCTION": {
       "covered": 2223,

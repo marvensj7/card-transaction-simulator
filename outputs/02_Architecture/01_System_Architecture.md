@@ -68,4 +68,17 @@ The browser checks form input for immediate feedback. Bean Validation checks inc
 
 The separation has a few small-project compromises. Services use ResponseStatusException and response classes, which connect them to the REST API. AppUser, CreditAccount, and DemoCard also serve as API responses, so their serialized fields are part of the API contract. Password hashes, linked entities, and internal card fields remain excluded. Response tests check the exact account/card fields. AccountService shares role checks with TransactionService, and AuthService coordinates three repositories to create the customer/account/card in one transaction. I kept those direct calls within the service layer without adding more classes.
 
-The application runs locally using the [backend](../../backend/README.md), [frontend](../../frontend/README.md), and [SQL](../../sql/README.md) setup instructions. AWS deployment is waived.
+## Design choices
+
+| Choice | Why I used it |
+| --- | --- |
+| React | I can keep each screen's form values and request state together and reuse the controls. |
+| Spring Boot and JPA | The controller, service, and repository flow matches what I learned in class. I can follow a request through ordinary Java classes. |
+| MySQL and four tables | Foreign keys connect the customer, account, card, and history. Constraints protect the stored values. |
+| BigDecimal and DECIMAL | Purchases and refunds need exact decimal amounts. |
+| Request IDs, account locks, and transactions | A request ID recognizes a retry. A lock makes balance changes wait. A transaction saves the balance and history together. |
+| Full refunds | One linked reversal keeps the amount and history clear without adding partial-refund rules. |
+| Signed JWTs in React memory | Protected requests use one bearer-token system. Reloading clears browser access, and I do not need a session or token table. |
+| Local setup | My instructor waived AWS. The existing READMEs explain how to run the application with local configuration. |
+
+The application runs locally using the [backend](../../backend/README.md), [frontend](../../frontend/README.md), and [SQL](../../sql/README.md) setup instructions.

@@ -1,65 +1,68 @@
 # React frontend
 
-Credit Circuit uses JSX, JSDoc prop checking, ordinary page state, and direct handlers. Home, dashboard, and purchase share FlippableCard. It loads a Three.js model with rounded edges, actual thickness, a pointer-controlled foil gradient, and an idle shimmer. Click, tap, Enter, or Space flips it. Reduced-motion preferences stop shimmer/tilt and switch faces immediately. If WebGL2 or the graphics download is unavailable, or the graphics context is lost, the ordinary HTML/CSS card remains usable. Cards start masked. Only the owned dashboard card offers Show/Hide details: the front reveals the derived fictional number and the back reveals a temporary sample security code. Both are cleared after 20 seconds, window blur, a hidden tab, or navigation. Home remains masked.
+I use React, Vite, and React Router. Pages keep their own form and request state. Shared components handle repeated buttons, inputs, tables, loading states, and confirmation dialogs.
 
-Use this card navigates to `/purchase?useCard=1`. That flag contains no card details. PurchasePage reconstructs the assigned fictional number and fills it and the expiry once in React memory; the security-code field stays empty and the ordinary form remains editable. Unknown instructions or a mismatched mask disable reveal/prefill. The helper follows the current ACCOUNT_V1 and legacy rules in the backend's entry instruction without changing API fields. ACTIVE/FROZEN badges reflect the loaded account; a frozen card is muted with shimmer and tilt stopped. Admin permissions and server purchase checks are unchanged.
+## Setup
 
-FlippableCard owns the side and input handlers. cardScene creates the geometry, face shader, rendering loop, and cleanup; cardArtwork draws safe labels onto textures. The scene pauses drawing while offscreen or the document is hidden, limits pixel density to 2, and releases graphics resources when its page unmounts. Three.js loads in a separate optional bundle (about 142 kB compressed) after the ordinary card renders.
+Use Node.js 20.19+, 22.13+, or 24+. From this folder:
 
 ```powershell
 npm ci
 npm run dev
+```
+
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite forwards /api requests to Spring Boot on port 8080. Start MySQL and the backend using the [backend README](../backend/README.md) before signing in. If the backend uses another address, copy .env.example to the ignored .env file and set API_PROXY_TARGET.
+
+A 502 or 504 sign-in error usually means the backend is stopped or still starting. Wait for its Started message and check the [OpenAPI UI](http://127.0.0.1:8080/swagger-ui/index.html), then retry.
+
+## Pages and state
+
+LoginPage handles registration and sign-in. DashboardPage loads the customer's account and assigned card. PurchasePage submits purchases and shows the result. TransactionsPage pages history and confirms full refunds. AdminPage pages accounts/activity and changes account status.
+
+Pages call functions in creditCircuitApi. fetchJson attaches the bearer header, omits cookies, and handles safe errors. UserUiContext keeps the token in a ref and user/expiration/notice state in a reducer. Context shares sign-in state. useCallback keeps authentication handlers stable, and useMemo supplies the Context value. ProtectedRoute controls navigation, while the backend enforces roles and ownership.
+
+Sign-out, reload, expiration, and a protected 401 clear browser access. Nothing stores a token in browser storage. A copied token remains valid until server expiration.
+
+A purchase or refund keeps its UUID and submitted details while the response is uncertain. Retry uses that same request. Leaving or reloading the page loses those memory-only details, so check history after signing in before starting another purchase.
+
+## Card and purchase display
+
+Home, dashboard, and purchase share FlippableCard. Click, tap, Enter, or Space flips it. Three.js adds thickness, a hover gradient, and shimmer. Reduced motion stops tilt/shimmer. If graphics cannot load, the HTML/CSS card remains usable.
+
+Cards start masked. The dashboard can reveal fictional details temporarily, with automatic hiding after 20 seconds, focus loss, or navigation. Use this card fills the assigned number and expiry in React memory. It sends only a useCard=1 navigation flag and leaves the security-code field empty.
+
+The assigned card's numberEntryHint supplies the simulation rule. The helper checks that rule and its mask before reveal or prefill. Security codes are checked for format only. Full numbers and codes are never stored or logged.
+
+AccountSummary shows credit totals and the percentage used. A purchase receipt shows approval/decline, merchant, amount, transaction ID, reason, and the saved balance after that outcome.
+
+## Checks
+
+```powershell
 npm run check:props
 npm run check:api
 npm run check:routes
 npm run check:state
+node --test checks/fictionalCardNumber.test.mjs
 npm run build
 ```
 
-With Vite running, `npm run check:card` verifies the real WebGL model in Chromium using software graphics, hover/idle changes, keyboard/touch flips, reduced motion, phone layouts, and graphics fallbacks. Its dashboard/purchase display checks use explicitly mocked safe API data. [Card model results](../outputs/03_Verification/card-model-results.json) are separate from the real backend workflow results below.
-
-With Vite, backend, and MySQL running, `npm run check:wallet` runs six fictional-rule checks and the real owned-card reveal/prefill/purchase/freeze/legacy workflow with temporary fixtures. The timer uses an advanced browser clock; blur, visibility, and graphics-loss events are explicitly injected. [Wallet results](../outputs/03_Verification/card-wallet-results.json) record the checks. Only masked screenshots are exported; revealed pixels and credentials stay in process memory.
-
-Vite serves [the app](http://127.0.0.1:5173) and proxies /api to port 8080. Protected workflows need the backend and MySQL. Home and the sign-in form render without account data.
-
-If signing in returns HTTP 502 or 504, check that Spring Boot is running. The React server can display the form while the API is stopped. Start MySQL, then run the following in a separate terminal from the repository root and keep that terminal open:
-
-```powershell
-cd backend
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local" "-Dcapstone.build.directory=C:/Users/marve/.cache/credit-circuit-build"
-```
-
-Wait for the backend's `Started` message and confirm that the [OpenAPI UI](http://127.0.0.1:8080/swagger-ui/index.html) opens, then retry signing in. If startup fails, check the ignored local configuration described in the [backend README](../backend/README.md).
-
-LoginPage registers/signs in. DashboardPage loads the own account/card. PurchasePage loads the owned account/card, validates controlled input, submits one stable request, and displays approval/decline. The assigned masked card includes numberEntryHint from the backend. Follow that simulation-only instruction; new cards use `0000` followed by the account ID padded to 12 digits. Existing legacy cards keep their displayed instruction. Security codes are format-only. No full number is returned or stored. TransactionsPage pages history and confirms full refunds. AdminPage pages account/activity summaries and changes ACTIVE/FROZEN status. ProtectedRoute checks navigation; the backend enforces authorization.
-
-AccountSummary shows a labeled credit-use meter beneath the totals, calculated from outstanding balance divided by credit limit. Its fill follows loaded account data, and reduced motion disables the width transition. A confirmed purchase displays a simulation receipt with an approval/decline icon and text, amount, merchant, transaction ID, and the saved balance after that purchase. Declines explain the server's reason and unchanged balance. Uncertain requests retain the existing retry controls until the server confirms an outcome.
-
-UserUiContext stores the access token in one ref and safe user/expiration/notice state in a reducer. Context shares identity. Stable useCallback handlers configure API/expiration behavior; useMemo supplies the shared Context value. Effects check expiration/visibility. Pages use useState/useEffect for forms/data. No token goes to browser storage. Reload/sign-out require login. A copied token remains valid until server expiration.
-
-Purchase/refund refs retain the original UUID and input while a response is uncertain. Pending actions are disabled and guarded. An identical retry confirms the saved outcome. Leaving/reloading an uncertain page loses memory-only retry details; inspect history after signing in before starting another purchase.
-
-Small Button/Input/Card/Table/Loading/Pagination/ConfirmModal pieces serve real workflows. Labels describe errors. Loading has a spinner/skeleton. The dialog focuses Cancel and supports Escape. A focusable table region permits keyboard scrolling on narrow screens.
-
-## Real verification
-
-With backend/MySQL running and private DB configuration available:
+For browser checks, install Chromium:
 
 ```powershell
 npx playwright install chromium
-npm run check:browser
-node checks/postman.mjs
 ```
 
-From the repository root, verify that an assigned card and an identical purchase retry survive an actual backend restart:
+With Vite running, npm run check:card checks the WebGL model with mocked dashboard/purchase data. With Vite, Spring Boot, MySQL, and private database configuration available, npm run check:browser and npm run check:wallet exercise real workflows. Fixtures use random fictional credentials in memory and remove only their own rows.
+
+Browser reports identify injected failures and events. Sampled accessibility checks cover keyboard use and responsive layouts. Browser V8 coverage is separate from Java coverage.
+
+With Spring Boot and MySQL running, npm run check:postman exercises the exported collection. It supplies private values in memory and exports no raw responses or environment. Its final test consumes the authentication limit. Leave at least one minute between browser/Postman runs.
+
+The restart check starts its own backend on port 8083. From the repository root:
 
 ```powershell
-$env:DEMO_RESTART_JAR = 'C:/path/to/verified/card-transaction-simulator-0.0.1-SNAPSHOT.jar'
+$env:DEMO_RESTART_JAR = 'C:/path/to/card-transaction-simulator-0.0.1-SNAPSHOT.jar'
 node frontend/checks/restart.mjs
 ```
 
-This check starts its own backend on port 8083, stops and restarts that process, and removes only its temporary MySQL fixtures. It requires the ignored local backend configuration and a free port 8083. `DEMO_JAVA` can specify the Java 17 executable if it is not on PATH.
-
-Runners create temporary fictional users with random passwords in memory and clean only their own rows. The browser deliberately loses responses after real saves, injects a 401 for UI expiration, and injects failure/empty responses for otherwise unavailable states. Real expired-token rejection and timer expiration have separate tests. Reports identify injected cases. Browser coverage uses Chromium V8/source maps and is separate from Java coverage.
-
-The Postman runner supplies private values in memory and exports no raw response/environment. Its final test consumes the authentication limit. Wait at least one minute between browser/Postman runs. [Evidence](../outputs/03_Verification/01_Completion_Checklist.md) records actual results.
+It needs ignored local backend configuration and a free port 8083. DEMO_JAVA can specify Java 17 if needed. The [quality report](../outputs/03_Verification/02_Quality_Report.md) records measured results.

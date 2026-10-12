@@ -1,21 +1,29 @@
-# Credit Circuit documents
+# Credit Circuit submission documents
 
 ## Proposal
 
-- [Current proposal](01_Project_Proposal/03_Submission_Proposal.md)
-- [Working scope](01_Project_Proposal/01_Working_Proposal.md)
-- [Instructor description](01_Project_Proposal/02_Instructor_Draft.md)
+- [Project proposal](01_Project_Proposal/03_Submission_Proposal.md)
 
 ## Architecture
 
-- [Architecture and purchase sequence](02_Architecture/01_System_Architecture.md)
+- [System architecture and purchase sequence](02_Architecture/01_System_Architecture.md)
 - [Four-table ERD](02_Architecture/02_Entity_Relationship_Diagram.md)
-- [API contract](02_Architecture/03_API_Design.md)
-- [React components and hooks](02_Architecture/04_React_Component_Diagram.md)
-- [Backend walkthrough](02_Architecture/05_Backend_Walkthrough.md)
+- [API design](02_Architecture/03_API_Design.md)
+- [React component diagram](02_Architecture/04_React_Component_Diagram.md)
 
-## Verification
+## Testing
 
-- [Rubric checklist and measured results](03_Verification/01_Completion_Checklist.md)
+- [Rubric checklist](03_Verification/01_Completion_Checklist.md)
+- [Quality report](03_Verification/02_Quality_Report.md)
+- [Java results](03_Verification/java-results.json) and [coverage XML](03_Verification/java-coverage.xml)
+- [Postman collection](03_Verification/Credit_Circuit.postman_collection.json) and [run results](03_Verification/postman-results.json)
+- [OpenAPI export](03_Verification/Credit_Circuit.openapi.json)
+- [SonarQube results](03_Verification/sonar-current-results.json), [scanner log](03_Verification/sonar-current-scanner.txt), and [dashboard](03_Verification/sonar-current-dashboard.jpg)
 
-Documents describe implemented behavior, verification results, and planned application work. AWS/related deployment work are waived. Jira and branch protection are outside this pass. The 3D card is implemented on home, dashboard, and purchase with masked details, keyboard controls, and a reduced-motion fallback.
+## Presentation
+
+- [Slides](04_Presentation/03_Credit_Circuit_Presentation.pptx)
+- [Slide PDF](04_Presentation/03_Credit_Circuit_Presentation.pdf)
+- [Speaker notes](04_Presentation/02_Speaker_Notes.md)
+
+The local submission package also includes `04_Presentation/04_Credit_Circuit_Demo.mp4`. Play the video after slide 10 and close on slide 11. The [Canva presentation](https://www.canva.com/d/mveus6ZN3KJYDbg) is available separately.

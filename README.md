@@ -1,26 +1,29 @@
 # Credit Circuit
 
-My UCI 2123 capstone simulates credit card purchases with fictional identities, cards, and balances. React calls a Spring Boot API backed by four MySQL tables.
+Marvens Jean | UCI 2123
+
+My capstone simulates credit card purchases using fictional identities, cards, and balances. Customers can register, sign in, view their credit, make purchases, review history, and request a full refund. Administrators can review accounts and freeze or reactivate them.
+
+I wanted to understand what happens behind a purchase, especially when a customer retries after losing the confirmation. Credit Circuit returns the saved result for a matching request ID. Approved purchases increase the outstanding balance, declines leave it unchanged, and refunds link back to the original purchase.
 
 ```text
-React page → fetch call → Spring controller → service → JPA repository → MySQL
+React page → API call → Spring controller → service → JPA repository → MySQL
 ```
 
-Customers register, sign in, view credit and a masked card, make purchases, review paged history, and request one full refund. Administrators review paged account/activity lists and freeze or reactivate accounts. A saved decline is a financial outcome. Repeating an identical request ID returns the saved result without another balance change.
-
-Spring Security verifies signed JWTs and BCrypt checks passwords. Access tokens stay in React memory, expire after 15 minutes, and disappear on sign-out or reload. Services check the stored role and account ownership. The API accepts no authentication cookie. Stateless logout cannot revoke a copied token before expiration.
+Spring Security verifies signed JWTs, and BCrypt checks passwords. Tokens stay in React memory and clear on sign-out, reload, or expiration. The server checks the stored role and account ownership. A database transaction saves the balance and history together.
 
 ## Run locally
 
-Follow the [backend setup](backend/README.md), [SQL setup](sql/README.md), and [frontend setup](frontend/README.md). Do not commit credentials, signing keys, demo passwords, or issued tokens.
+Start with the [SQL setup](sql/README.md), then follow the [backend instructions](backend/README.md) and [frontend instructions](frontend/README.md). The frontend runs at [http://127.0.0.1:5173](http://127.0.0.1:5173), with API requests forwarded to port 8080. Keep local credentials and signing keys in ignored configuration.
 
-From frontend, use `npm ci` and `npm run dev`. From backend, use `mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"` after creating ignored local configuration. The browser runs at [localhost](http://127.0.0.1:5173). Vite forwards /api to port 8080.
+## Submission files
 
-## Evidence and documents
+- [Project proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md)
+- [Architecture, ERD, API design, and React diagram](outputs/README.md)
+- [Rubric checklist](outputs/03_Verification/01_Completion_Checklist.md) and [quality report](outputs/03_Verification/02_Quality_Report.md)
+- [Postman collection](outputs/03_Verification/Credit_Circuit.postman_collection.json) and [OpenAPI export](outputs/03_Verification/Credit_Circuit.openapi.json)
+- [Presentation slides](outputs/04_Presentation/03_Credit_Circuit_Presentation.pptx), [slide PDF](outputs/04_Presentation/03_Credit_Circuit_Presentation.pdf), and [speaker notes](outputs/04_Presentation/02_Speaker_Notes.md)
 
-- [Verified results and rubric checklist](outputs/03_Verification/01_Completion_Checklist.md)
-- [Submission proposal](outputs/01_Project_Proposal/03_Submission_Proposal.md)
-- [Architecture, ERD, API, React diagram, and walkthrough](outputs/README.md)
-- [Postman collection](outputs/03_Verification/Credit_Circuit.postman_collection.json)
+The local demo video is `outputs/04_Presentation/04_Credit_Circuit_Demo.mp4`. Play it after slide 10, then return to slide 11 for the closing. The video is included in the local submission package and kept out of the public repository.
 
-AWS and related deployment/DevOps requirements are waived by my instructor. Jira and branch protection are outside this pass. JWT, validation, pagination, OpenAPI, coverage, Postman, and SonarQube remain required. The planned 3D card follows the required application work.
+My instructor waived AWS infrastructure, deployment pipelines, and cloud monitoring. Jira is not required. Branch protection is outside this cleanup under my project instructions. The application runs locally. The flippable card is implemented with keyboard controls, reduced motion, and a graphics fallback.

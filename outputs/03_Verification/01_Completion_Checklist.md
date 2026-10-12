@@ -1,38 +1,67 @@
-# Credit Circuit verification checklist
+# Credit Circuit final submission checklist
 
-I verified the application locally on October 9, 2026 with Java 17, MySQL 8.4.9, and Chromium. Postman evidence describes revision cd81a36; browser evidence was refreshed on October 10 for the receipt and credit-use meter changes; the final SonarQube scan describes revision f72dc2c. The original local CardTransaction.java edit was preserved and included in verification. My instructor waived AWS and related deployment/DevOps requirements. Jira and branch protection are excluded. Other written requirements remain required.
+Checked against the UCI 2123 rubric on October 12, 2026.
 
-| Rubric area | Implemented behavior and evidence | Remaining limitation or action |
+## Required files
+
+| Requirement | File or evidence | Status |
 | --- | --- | --- |
-| 1.2-1.3 Planning | Current proposals; system/sequence, ERD, API, and React diagrams in [architecture](../02_Architecture/01_System_Architecture.md). | The 3D card is implemented; its browser checks cover flipping, keyboard input, narrow layouts, and reduced motion. |
-| 2.1-2.4 Data/services | Four constrained tables, BCrypt seed hashes, JPA repositories/custom queries, bounded pages, constructor injection, custom exceptions, locking and atomic balance/history writes. [Java report](java-results.json). | Local fictional dataset; no production/load-test claim. |
-| 2.5-2.6 API | Request/entity validation, controller @Valid, safe global errors/logging, 201 new outcome/200 identical retry, generated OpenAPI. [API contract](../02_Architecture/03_API_Design.md). | No request bodies or secret values exported as logs. |
-| 3.1-3.3 React | Vite, small shared Button/Input/Card/Table/Modal components, more than five routes, JSX/JSDoc prop checks. State/effects control pages; Context/reducer handles authentication; memo/callback stabilize shared authentication values/actions. | No TypeScript migration or unused hook examples. |
-| 3.4-3.5 Workflows/UI | Registration/sign-in, dashboard, purchases, paged history/full refunds, admin account/activity/status. Safe failures, disabled pending actions, spinner/skeleton, keyboard dialog/navigation/scrolling, responsive layouts. [Browser results](browser-results.json). | Chromium checks cover sampled pages, not every assistive technology/browser. |
-| 4.1 Authentication | Spring Security, BCrypt, signed JWT, register/login/current-user, USER/ADMIN plus stored-role/ownership checks. [API contract](../02_Architecture/03_API_Design.md). | Sign-out discards local access; a copied token remains valid until expiration. |
-| 4.2 Security | External random signing key, memory-only browser access, CORS, small per-IP authentication rate limit, bearer-transport CSRF scope, validation. Tests verify invalid claims/signatures, cookie-only 401 and CORS rejection. | Local process rate limiter resets on restart. HTTP demo stays on loopback. |
-| 4.3 Java tests/coverage | 47 passed, including 13 real MySQL integration tests. JaCoCo: 95.56% lines, 84.88% branches; enforced 70% line gate passed. [Current XML](java-coverage.xml), [measured summary](java-results.json). | Coverage is execution evidence, not a guarantee of correctness. The jacoco HTML/XML/CSV directory remains October 8 evidence. |
-| 4.4 Postman | [Exported collection](Credit_Circuit.postman_collection.json): all 11 application endpoints, auth/roles/ownership/errors/pages/retries/assigned cards/purchases/refunds/CORS/rate limit. 56 requests and 83 assertions passed. [CLI output](postman-results.txt), [run summary](postman-results.json). | Blank credential/token variables; temporary fixture credentials supplied only during execution. |
-| 4.5 SonarQube | Actual final October 9 analysis passed for revision f72dc2c, including the preserved local entity edit. Zero open security/reliability/maintainability issues, 95.3% overall coverage, and 0.0% duplication. [Current results](sonar-current-results.json), [scanner log](sonar-current-scanner.txt), [quality report](02_Quality_Report.md). | The preserved local edit lacks SCM blame. Community Build provides limited security analysis. Older exports remain historical evidence. |
+| Custom project approval | Instructor approval recorded in the project scope. | Approved by instructor, as supplied by me. |
+| Proposal: problem, users, requirements, scope | [Proposal](../01_Project_Proposal/03_Submission_Proposal.md): 15 user stories, 15 functional requirements, performance/security/scale requirements. | Present |
+| System architecture diagram | [Architecture and purchase sequence](../02_Architecture/01_System_Architecture.md) | Present |
+| ERD with tables, fields, relationships, constraints | [Four-table ERD](../02_Architecture/02_Entity_Relationship_Diagram.md) | Present |
+| API design: methods, paths, request/response fields | [API design](../02_Architecture/03_API_Design.md) and [OpenAPI](Credit_Circuit.openapi.json) | Present |
+| React component diagram | [Component design](../02_Architecture/04_React_Component_Diagram.md) | Present |
+| Spring Boot source and JUnit suite | backend/src/main and backend/src/test | Present |
+| React source and package lock | frontend/src, package.json, package-lock.json, Vite configuration | Present |
+| SQL schema and seed | sql/01_schema.sql and sql/02_seed.sql | Present |
+| Setup instructions | [Backend README](../../backend/README.md), [frontend README](../../frontend/README.md), [SQL README](../../sql/README.md) | Present |
+| Architecture decisions | Design choices and responsibilities in the [architecture document](../02_Architecture/01_System_Architecture.md) | Present |
+| Java coverage report, minimum 70% | [Java summary](java-results.json) and [JaCoCo XML](java-coverage.xml): 95.56% lines, enforced gate passed | Rechecked October 12 |
+| Exported and exercised Postman collection | [Collection](Credit_Circuit.postman_collection.json), [summary](postman-results.json), [CLI output](postman-results.txt): 56 requests, 83 assertions, zero failures | Recorded October 9 |
+| Actual SonarQube report | [Results](sonar-current-results.json), [scanner log](sonar-current-scanner.txt), [dashboard](sonar-current-dashboard.jpg): quality gate passed | Recorded October 9 |
+| Presentation slides and required PDF export | [PowerPoint](../04_Presentation/03_Credit_Circuit_Presentation.pptx) and [PDF](../04_Presentation/03_Credit_Circuit_Presentation.pdf): eleven slides/pages | Present and visually checked |
+| Demonstration | Local outputs/04_Presentation/04_Credit_Circuit_Demo.mp4, plus the working local application | 2:57 video present; presentation playback still needs rehearsal |
+| Peer review with two peers, feedback given and received | No completed feedback record found in the project folder. | Needs my input |
+| Self-assessment | No completed self-assessment found in the project folder. | Needs my input |
+| Test credentials for the instructor's demo | Provide existing fictional customer/admin sign-in details privately, outside Git and submitted source. | Needs my private handoff |
+| All code committed and pushed to main | Public repository and final cleanup commit | Check final Git status and remote after push |
+| Repository URL submitted to Canvas | https://github.com/marvensj7/card-transaction-simulator | My Canvas action |
+| All documentation uploaded to Canvas | Final local submission package, including slide PDF and Postman JSON | My Canvas action |
 
-## How the browser evidence was obtained
+## Implementation checks
 
-The October 10 receipt and credit-use meter update passed prop checking, 37 API tests, nine route tests, seven state tests, and the production build. All thirteen real MySQL browser workflow groups passed again, including approval/decline, purchase/refund retries, account freezing, responsive layouts, and automated accessibility checks. [Browser results](browser-results.json), [dashboard screenshot](dashboard-desktop.png), [phone receipt screenshot](purchase-phone.png), and frontend coverage were refreshed. Java coverage, Postman, and SonarQube retain their previously recorded dates and revisions.
+| Rubric section | What I checked |
+| --- | --- |
+| 2.1 Database | Four tables, primary/foreign/unique/not-null/check constraints, history index, and rerunnable schema/seed. No schema migration is needed for this cleanup. |
+| 2.2 Entities | JPA relationships, explicit lazy loading, validation annotations, and no cascade deletion of financial history. |
+| 2.3 Repositories | Spring Data JPA, custom queries, page queries, and account locking. |
+| 2.4 Services | Constructor injection, business rules, safe exceptions, and transactional balance/history writes. |
+| 2.5–2.6 Controllers and errors | HTTP methods/statuses, @Valid, OpenAPI annotations, and a global safe exception handler. |
+| 3.1–3.2 React | Vite, JSX/JSDoc prop checks, reusable controls, pages, React Router, and more than five routes. TypeScript is optional. |
+| 3.3 State | useState/useEffect, authentication Context/reducer, useMemo, useCallback, and memory-only token state. |
+| 3.4–3.5 API and interface | Named API functions, safe failures, pending controls, loading states, labeled forms, responsive layouts, and keyboard use. |
+| 4.1–4.2 Security | Spring Security, signed JWTs, BCrypt, USER/ADMIN roles, ownership checks, external secrets, CORS, authentication rate limiting, validation, and bearer-header CSRF settings. |
+| 4.3 Java tests | 47 passed, including 13 real MySQL integration tests. No failures, errors, or skips. |
+| 4.4 API integration | Exercised Postman export covers all eleven application endpoints and success/failure behavior. |
+| 4.5 Quality | Actual passing SonarQube analysis, zero open security/reliability/maintainability issues in that recorded scan, and meaningful source comments. |
 
-The October 10 wallet update has separate [real MySQL wallet results](card-wallet-results.json): owned-card masking/reveal, model texture replacement, automatic hiding, purchase prefill and a real approval, actual admin freeze, graphics fallback, narrow-screen accessibility, and the legacy rule. Six rule checks reject mismatched/unknown details. Browser time and blur/visibility/context-loss events are explicitly injected. Revealed screenshots, numbers, sample codes, and credentials are never exported.
+The October 12 frontend pass passed prop checking, 37 API tests, nine route tests, seven state tests, six fictional-card rule tests, and the production build. See [frontend results](frontend-checks.json).
 
-The October 10 Three.js visual update has separate [card model results](card-model-results.json): real WebGL2 rendering in Chromium with SwiftShader software graphics, idle shimmer/hover changes, keyboard/touch flips, reduced motion, narrow layouts, and download/context fallbacks. Dashboard/purchase display data in that runner is explicitly mocked. It does not rerun the real MySQL workflows, Java coverage, Postman, or SonarQube checks recorded below.
+The saved [browser results](browser-results.json) cover thirteen real Spring Boot/MySQL workflow groups. Separate [wallet](card-wallet-results.json) and [model](card-model-results.json) reports cover the card changes. Reports identify mocked data and injected failures/events. The [quality report](02_Quality_Report.md) explains test dates and limitations. Later frontend changes postdate the recorded SonarQube scan.
 
-Thirteen workflow groups used the real Spring Boot API and MySQL with temporary fictional fixtures that were removed afterward. Different assigned cards, full-number matching, purchases, saved declines, refunds, account status changes, ownership/role failures, and pagination reached the real application. For uncertain retries, the runner let the backend save before discarding the response, then verified the same UUID and one saved result. Sign-in, sign-out, and reload checks confirmed stable card details.
+## Approved exclusions
 
-The runner explicitly injected a 401 expiration response, a 503 dashboard failure, and empty account/card/admin list responses. Empty customer history was real. The React state tests separately exercised its expiration timer; Java tests verified genuinely expired JWTs. These are distinct checks, not a claim that the browser waited 15 minutes.
+My instructor waived AWS infrastructure, SSM/cloud secrets services, deployment pipelines, AWS hosting, and cloud monitoring. Those cloud deliverables and URLs are not part of this local submission. Jira is not required. Branch protection remains outside this cleanup under my project instructions.
 
-Widths checked were 1440, 768, 390, and 320 pixels. Keyboard checks covered the skip link, route/menu focus, confirmation Cancel/Escape, and horizontal table scrolling. Sampled pages had zero axe WCAG 2 A/AA and 2.1 violations. Screenshots: [home](home-desktop.png), [dashboard](dashboard-desktop.png), [phone purchase](purchase-phone.png), [tablet history](history-tablet.png), [admin](admin-desktop.png).
+Peer-review records and the self-assessment need my own input. This checklist records their status and does not recreate the previously removed Phase 6 worksheets.
 
-## Other checks and boundaries
+## Before submitting
 
-The October 9 frontend pass passed prop checking, 35 API tests, nine route tests, seven state tests, the private admin-setup MySQL test, and the production build. npm audit reported zero vulnerabilities. [Historical frontend summary](frontend-checks.json). Browser-derived V8 coverage is recorded separately in [frontend-coverage.json](frontend-coverage.json) and [LCOV](lcov.info); it does not replace the Java gate.
+1. Add any completed peer-review feedback and finish the self-assessment required by the rubric.
+2. Give the instructor fictional demo credentials privately.
+3. Upload the documentation package to Canvas and include the repository URL.
+4. Confirm Canvas shows the uploaded files and a submission receipt before 5 p.m.
+5. Rehearse the presentation and video playback for October 13. The local export uses the separate video after slide 10, then returns to slide 11.
 
-An [actual backend restart](restart-results.json) preserved the assigned card and returned the same saved purchase on an identical retry. The [seed rerun](seed-results.json) preserved existing data and confirmed four tables with no migration. New cards use ACCOUNT_V1: 0000 followed by the account ID padded to 12 digits; only the profile and last four digits are stored. Existing DEMO_4242 cards retain their original behavior and history. The backend checks the complete expected number and owned card/expiry; security codes remain format-only.
-
-This checklist covers application implementation and verification. The final SonarQube scan passed on October 9, and its temporary project token was revoked. The flippable 3D card is implemented and checked in Chromium. Its frontend changes postdate the recorded SonarQube scan.
+This checklist verifies files and recorded results. It does not confirm a Canvas submission or guarantee a grade.
